@@ -25,6 +25,9 @@ if (window.__LYPO_INIT__) {
   function setStatus(text) {
     const el = $("statusText");
     if (el) el.textContent = text;
+
+    const p = $("previewText");
+    if (p) p.textContent = text;
   }
 
   function setBackendChip(text) {
@@ -32,17 +35,7 @@ if (window.__LYPO_INIT__) {
     if (el) el.textContent = text;
   }
 
-  
-  function setPreview(state, bodyText) {
-    const box = $("previewBox");
-    const body = $("previewBody");
-    const title = $("previewTitle");
-    if (box) box.classList.toggle("isReady", state === "ready");
-    if (title) title.textContent = state === "ready" ? "Output ready" : "Output preview";
-    if (body && typeof bodyText === "string") body.textContent = bodyText;
-  }
-
-function euro(n) {
+  function euro(n) {
     // Use comma decimals to match €2,89 in the UI.
     const fixed = Number.isFinite(n) ? n.toFixed(2) : "0.00";
     return fixed.replace(".", ",");
@@ -65,6 +58,9 @@ function euro(n) {
     const a = $("btnDownload");
     if (!a) return;
     a.hidden = true;
+    a.classList.remove("isReady");
+    a.setAttribute("aria-disabled", "true");
+    a.setAttribute("tabindex", "-1");
     a.removeAttribute("href");
   }
 
@@ -75,8 +71,18 @@ function euro(n) {
       resetDownload();
       return;
     }
+
     a.hidden = false;
     a.href = url;
+    a.classList.add("isReady");
+    a.setAttribute("aria-disabled", "false");
+    a.removeAttribute("tabindex");
+
+    // Try to start the download automatically (some browsers require a user gesture).
+    // The button remains highlighted so the user can click once if blocked.
+    setTimeout(() => {
+      try { a.click(); } catch (_) {}
+    }, 150);
   }
 
   async function fetchJson(url, options = {}) {
@@ -237,7 +243,6 @@ function euro(n) {
     if (nameEl) nameEl.textContent = file ? file.name : "or drop it here";
 
     resetDownload();
-    setPreview("idle", file ? `Selected: ${file.name}` : "Upload a video to get started.");
 
     lastDurationSec = file ? await computeDurationSeconds(file) : null;
     if (lastDurationSec && Number.isFinite(lastDurationSec)) {
@@ -246,7 +251,6 @@ function euro(n) {
       lastEstimatedCost = null;
     }
     updateCostUI();
-    setPreview("idle", "Upload a video to get started. Your translated video will be ready here.");
   }
 
   function initUploadUI() {
@@ -349,7 +353,6 @@ function euro(n) {
       }
 
       setLoading(true, "Uploading…");
-      setPreview("idle", "Uploading your video…");
       log(`Uploading: ${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`);
       log(`Language: ${lang}`);
 
@@ -369,30 +372,26 @@ function euro(n) {
       }
 
       setLoading(true, "Processing…");
-      setPreview("idle", "Processing… (this can take a few minutes)");
       const final = await pollJob(jobId);
       if (!final) return;
 
       const finalStatus = (final?.status || "").toLowerCase();
       if (["failed","error","canceled","cancelled"].includes(finalStatus)) {
         setLoading(false, "Failed ⚠️");
-        setPreview("idle", "Something went wrong while generating the video.");
         log(`Job failed: ${final?.error || "Unknown error"}`);
         return;
       }
 
       setLoading(false, "Done ✅");
 
-      setPreview("ready", "Your translated video is ready. Download should start automatically.");
-
       if (final?.outputUrl) {
+        setStatus("Ready to download ✅");
         setDownload(final.outputUrl);
       } else {
         log("No outputUrl returned. Ensure backend returns outputUrl on success.");
       }
     } catch (e) {
       setLoading(false, "Error ⚠️");
-      setPreview("idle", "Error while uploading/processing.");
       log(`Error: ${e.message}`);
     } finally {
       if (runBtn) runBtn.disabled = false;
@@ -421,6 +420,5 @@ function euro(n) {
     // initial
     checkBackendHealth().then((ok) => ok && loadLanguages());
     updateCostUI();
-    setPreview("idle", "Upload a video to get started. Your translated video will be ready here.");
   })();
 }
