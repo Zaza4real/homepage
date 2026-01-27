@@ -72,6 +72,34 @@
     if (typeof text === "string") setStatus(text);
   }
 
+  
+  const GENERATING_MESSAGES = [
+    "The longer the video, the longer it takes ⏳",
+    "Be patient — we're doing God's work here 😇",
+    "Aligning lips, preserving voices, bending physics…",
+    "High-quality dubbing takes a moment ✨"
+  ];
+  let genMsgIdx = 0;
+  let genMsgTimer = null;
+
+  function startGeneratingMessages() {
+    stopGeneratingMessages();
+    genMsgIdx = 0;
+    setPreviewHint(GENERATING_MESSAGES[genMsgIdx]);
+    genMsgTimer = setInterval(() => {
+      genMsgIdx = (genMsgIdx + 1) % GENERATING_MESSAGES.length;
+      setPreviewHint(GENERATING_MESSAGES[genMsgIdx]);
+    }, 2800);
+  }
+
+  function stopGeneratingMessages() {
+    if (genMsgTimer) {
+      clearInterval(genMsgTimer);
+      genMsgTimer = null;
+    }
+  }
+
+
   // ---- Download
   function resetDownload() {
     const btn = $("btnDownload");
@@ -331,7 +359,7 @@
     clearOutputVideo();
     showSkeleton(true);
     setPreviewTitle("Generating…");
-    setPreviewHint("Working on it — preview will appear when ready.");
+    startGeneratingMessages();
 
     try {
       setLoading(true, "Uploading…");
@@ -348,6 +376,7 @@
       const final = await pollJob(jobId);
 
       setLoading(false, "Ready ✅");
+      stopGeneratingMessages();
       showSkeleton(false);
 
       showOutputVideo(final.outputUrl);
@@ -357,6 +386,7 @@
       setPreviewHint("Preview is playable. Click Download to save the MP4.");
     } catch (e) {
       setLoading(false, "Error");
+      stopGeneratingMessages();
       showSkeleton(false);
       clearOutputVideo();
       setPreviewTitle("Error");
