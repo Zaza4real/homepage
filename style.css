@@ -1146,7 +1146,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
   width: 36px;
   height: 36px;
   margin: 0 2px;
-  vertical-align: 4px;
+  vertical-align: -8px;
   border-radius: 999px;
   background: conic-gradient(
     rgba(0,225,255,1),
