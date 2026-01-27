@@ -19,7 +19,6 @@
   <header class="header">
     <a class="logoWrap" href="#" aria-label="LYPO Home" data-tab="home">
       <span class="logo">LYPO</span>
-      <span class="tagline">Voice-preserving video translation • Lip-sync</span>
     </a>
 
     <nav class="tabs" role="tablist" aria-label="LYPO tabs">
@@ -31,19 +30,46 @@
   </header>
 
   <main class="container">
-    <!-- HOME (clean front page: demo only) -->
+
+    <!-- HOME (demo only + 4 animated tab launcher buttons) -->
     <section class="tabPanel isActive" id="tab-home" role="tabpanel">
       <div class="hero">
-        <div class="kicker">⚪ Fast. Clean. Built for creators & teams.</div>
+        <div class="kicker">⚪ Translate video • Keep your voice • Lip-sync</div>
 
         <h1 class="h1">
-          Translate your video to <span class="grad">every language</span>
-          <span class="nowrap">— keep your voice,</span> sync the lips.
+          Make one video speak <span class="grad">every language</span>.
         </h1>
 
         <p class="sub">
-          LYPO turns one video into multilingual versions while preserving your voice identity and aligning lips with the new translation.
+          LYPO creates multilingual versions while preserving voice identity and syncing lips to the translated audio.
         </p>
+
+        <!-- 4 animated buttons that switch tabs -->
+        <div class="launchRow" aria-label="Quick navigation">
+          <button class="launchBtn launchGlow" type="button" data-go="features">
+            <span class="li">✨</span>
+            <span>See Features</span>
+            <span class="fx"></span>
+          </button>
+
+          <button class="launchBtn launchPulse" type="button" data-go="pricing">
+            <span class="li">💸</span>
+            <span>View Pricing</span>
+            <span class="fx"></span>
+          </button>
+
+          <button class="launchBtn launchMag" type="button" data-go="docs">
+            <span class="li">📚</span>
+            <span>Open Docs</span>
+            <span class="fx"></span>
+          </button>
+
+          <button class="launchBtn launchShine" type="button" data-go="home">
+            <span class="li">⚡</span>
+            <span>Back to Demo</span>
+            <span class="fx"></span>
+          </button>
+        </div>
 
         <div class="demoCard">
           <div class="demoTop">
@@ -83,7 +109,7 @@
                   <span class="ping"></span>
                   <span id="statusText">Ready.</span>
                 </div>
-                <div class="hint">Tip: Use a public MP4 URL.</div>
+                <div class="hint">Use a public MP4 URL. (Backend keeps your Replicate key safe.)</div>
               </div>
             </div>
 
@@ -93,37 +119,124 @@
       </div>
     </section>
 
-    <!-- Other tabs (kept clean, you can fill later) -->
+    <!-- FEATURES -->
     <section class="tabPanel" id="tab-features" role="tabpanel">
       <div class="panel">
         <h2>Features</h2>
-        <ul class="list">
-          <li><b>Voice preservation:</b> keep your voice identity across languages.</li>
-          <li><b>Lip sync:</b> align mouth motion to translated speech.</li>
-          <li><b>Fast workflow:</b> API-first, easy to integrate.</li>
-          <li><b>Scalable:</b> start simple, grow into batch processing.</li>
-        </ul>
-        <p class="muted">You can expand this tab later with screenshots, examples, and before/after videos.</p>
+
+        <div class="grid2">
+          <div class="feature">
+            <div class="fTitle">Voice-preserving dubbing</div>
+            <p>Your voice identity stays consistent across languages.</p>
+          </div>
+          <div class="feature">
+            <div class="fTitle">Lip sync alignment</div>
+            <p>Mouth movement is synced to the translated audio for a natural result.</p>
+          </div>
+          <div class="feature">
+            <div class="fTitle">API-first workflow</div>
+            <p>Integrate into your pipeline (batch jobs, dashboards, automations).</p>
+          </div>
+          <div class="feature">
+            <div class="fTitle">Fast iterations</div>
+            <p>Start simple on Render, scale up when usage grows.</p>
+          </div>
+        </div>
+
+        <div class="panelActions">
+          <button class="tabJump" type="button" data-go="home">← Back to Demo</button>
+          <button class="tabJump" type="button" data-go="docs">Open Docs →</button>
+        </div>
       </div>
     </section>
 
+    <!-- PRICING -->
     <section class="tabPanel" id="tab-pricing" role="tabpanel">
       <div class="panel">
         <h2>Pricing</h2>
-        <p class="muted">Add tiers here (Starter / Pro / Enterprise). Keep it simple and clear.</p>
+
+        <div class="pricing">
+          <div class="tier">
+            <div class="tierTop">
+              <div class="tierName">Starter</div>
+              <div class="tierPrice">€0</div>
+            </div>
+            <ul>
+              <li>Demo UI + API connection</li>
+              <li>Basic usage</li>
+              <li>Good for testing</li>
+            </ul>
+          </div>
+
+          <div class="tier featured">
+            <div class="tierTop">
+              <div class="tierName">Pro</div>
+              <div class="tierPrice">€29</div>
+            </div>
+            <ul>
+              <li>Higher limits</li>
+              <li>Faster processing</li>
+              <li>Priority support</li>
+            </ul>
+          </div>
+
+          <div class="tier">
+            <div class="tierTop">
+              <div class="tierName">Enterprise</div>
+              <div class="tierPrice">Custom</div>
+            </div>
+            <ul>
+              <li>SLA + dedicated infra</li>
+              <li>Security & compliance</li>
+              <li>Custom integrations</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="muted small">Replace these with your real pricing whenever you’re ready.</p>
+
+        <div class="panelActions">
+          <button class="tabJump" type="button" data-go="home">← Back to Demo</button>
+          <button class="tabJump" type="button" data-go="features">See Features →</button>
+        </div>
       </div>
     </section>
 
+    <!-- DOCS -->
     <section class="tabPanel" id="tab-docs" role="tabpanel">
       <div class="panel">
         <h2>Docs</h2>
-        <p class="muted">Add: API endpoints, request/response examples, and how to deploy on Render.</p>
+
+        <div class="docs">
+          <div class="docBlock">
+            <div class="docTitle">Endpoints</div>
+            <pre class="code">
+GET  /health
+POST /api/dub            { videoUrl, targetLanguage, keepVoice, lipsync }
+GET  /api/dub/:id        (optional polling)
+            </pre>
+          </div>
+
+          <div class="docBlock">
+            <div class="docTitle">How it works</div>
+            <ol class="muted">
+              <li>Frontend sends video URL + language.</li>
+              <li>Backend calls Replicate (token stored in env vars).</li>
+              <li>Backend returns job id, frontend polls until complete.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="panelActions">
+          <button class="tabJump" type="button" data-go="home">← Back to Demo</button>
+          <button class="tabJump" type="button" data-go="pricing">Pricing →</button>
+        </div>
       </div>
     </section>
 
     <footer class="footer">
       <span>© <span id="year"></span> LYPO</span>
-      <span class="muted">Hosted on Render</span>
+      <span class="muted">Ready to publish • Hosted on Render</span>
     </footer>
   </main>
 
