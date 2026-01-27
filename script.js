@@ -30,6 +30,40 @@ if (window.__LYPO_INIT__) {
     if (el) el.textContent = text;
   }
 
+
+  function setLoading(isLoading, statusText) {
+    const pill = $("statusPill");
+    if (pill) pill.classList.toggle("isLoading", !!isLoading);
+
+    const runBtn = $("btnRun");
+    const healthBtn = $("btnHealth");
+    const pickBtn = $("btnPickVideo");
+    const fileInput = $("videoFile");
+    const langSel = $("targetLang");
+
+    [runBtn, healthBtn, pickBtn, fileInput, langSel].forEach((el) => {
+      if (!el) return;
+      if (el.tagName === "INPUT" || el.tagName === "SELECT") {
+        el.disabled = !!isLoading;
+      } else {
+        el.disabled = !!isLoading;
+        el.classList.toggle("isLoading", !!isLoading);
+      }
+    });
+
+    if (typeof statusText === "string") setStatus(statusText);
+  }
+
+  function setVideoName(file) {
+    const nameEl = $("videoName");
+    if (!nameEl) return;
+    if (!file) {
+      nameEl.textContent = "or drop it here";
+      return;
+    }
+    const mb = Math.round(file.size / 1024 / 1024);
+    nameEl.textContent = `${file.name} • ${mb} MB`;
+  }
   async function fetchJson(url, options = {}) {
     const res = await fetch(url, options);
     const isJson = (res.headers.get("content-type") || "").includes("application/json");
@@ -172,11 +206,13 @@ if (window.__LYPO_INIT__) {
     }
   }
 
+  
   async function runUploadDub() {
+    // One place to turn loading UI on/off reliably
     try {
       const ok = await checkBackendHealth();
       if (!ok) {
-        setStatus("Backend not reachable ⚠️");
+        setLoading(false, "Backend not reachable ⚠️");
         return;
       }
 
@@ -184,17 +220,15 @@ if (window.__LYPO_INIT__) {
       const lang = $("targetLang")?.value;
 
       if (!file) {
-        setStatus("Choose a video file ⚠️");
+        setLoading(false, "Choose a video file ⚠️");
         return;
       }
       if (!lang) {
-        setStatus("Choose a target language ⚠️");
+        setLoading(false, "Choose a target language ⚠️");
         return;
       }
 
-      setStatus("Uploading…");
-      log(`Uploading: ${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`);
-      log(`Language: ${lang}`);
+      setLoading(true, "Uploading…");
 
       const form = new FormData();
       form.append("video", file);
@@ -205,39 +239,32 @@ if (window.__LYPO_INIT__) {
         body: form
       });
 
-      log("Start:");
-      log(JSON.stringify(start, null, 2));
-
       const jobId = start?.id;
       if (!jobId) {
-        setStatus("Started ✅ (no job id)");
+        setLoading(false, "Started ✅ (no job id)");
         return;
       }
 
-      setStatus("Processing…");
+      setLoading(true, "Processing…");
       const final = await pollJob(jobId);
-      if (!final) return;
+      if (!final) {
+        setLoading(false, "Timed out ⚠️");
+        return;
+      }
 
       const finalStatus = (final?.status || "").toLowerCase();
-      if (["failed","error","canceled","cancelled"].includes(finalStatus)) {
-        setStatus("Failed ⚠️");
-        log(`Job failed: ${final?.error || "Unknown error"}`);
+      if (["failed", "error", "canceled", "cancelled"].includes(finalStatus)) {
+        setLoading(false, "Failed ⚠️");
         return;
       }
 
-      setStatus("Done ✅");
-      log("Final:");
-      log(JSON.stringify(final, null, 2));
+      setLoading(false, "Done ✅");
 
       if (final?.outputUrl) {
-        log(`Output URL: ${final.outputUrl}`);
         window.open(final.outputUrl, "_blank");
-      } else {
-        log("No outputUrl returned. Ensure backend returns outputUrl on success.");
       }
     } catch (e) {
-      setStatus("Error ⚠️");
-      log(`Error: ${e.message}`);
+      setLoading(false, "Error ⚠️");
     }
   }
 
@@ -249,9 +276,50 @@ if (window.__LYPO_INIT__) {
     initTabs();
     initMagneticCta();
 
+
+    // File upload UI (custom button + drag & drop)
+    const fileInput = $("videoFile");
+    const pickBtn = $("btnPickVideo");
+
+    pickBtn?.addEventListener("click", () => fileInput?.click());
+
+    fileInput?.addEventListener("change", () => {
+      setVideoName(fileInput.files?.[0]);
+      setStatus("Ready.");
+    });
+
+    ["dragenter", "dragover"].forEach((ev) => {
+      pickBtn?.addEventListener(ev, (e) => {
+        e.preventDefault();
+        pickBtn.classList.add("dragOver");
+      });
+    });
+
+    ["dragleave", "drop"].forEach((ev) => {
+      pickBtn?.addEventListener(ev, (e) => {
+        e.preventDefault();
+        pickBtn.classList.remove("dragOver");
+      });
+    });
+
+    pickBtn?.addEventListener("drop", (e) => {
+      const f = e.dataTransfer?.files?.[0];
+      if (!f) return;
+      if (fileInput) fileInput.files = e.dataTransfer.files;
+      setVideoName(f);
+      setStatus("Ready.");
+    });
+
+    setVideoName(fileInput?.files?.[0]);
     $("btnHealth")?.addEventListener("click", async () => {
-      const ok = await checkBackendHealth();
-      if (ok) await loadLanguages();
+      try {
+        setLoading(true, "Checking backend…");
+        const ok = await checkBackendHealth();
+        if (ok) await loadLanguages();
+        setLoading(false, ok ? "Ready." : "Backend not reachable ⚠️");
+      } catch {
+        setLoading(false, "Error ⚠️");
+      }
     });
 
     $("btnRun")?.addEventListener("click", runUploadDub);
