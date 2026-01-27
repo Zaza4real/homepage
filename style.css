@@ -1140,7 +1140,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .miniVid.isPlaying .miniWave{ opacity: 1; }
 
 
-/* Logo spinner replaces the “O” in LYPO */
+/* Logo spinner replaces the O in LYPO */
 .logoSpinner{
   display:inline-block;
   width: 28px;
@@ -1171,3 +1171,4 @@ button.btnLink{ display:inline-flex; align-items:center; }
   text-transform: uppercase;
   color: rgba(255,255,255,.55);
 }
+
