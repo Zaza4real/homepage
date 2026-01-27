@@ -1,3 +1,4 @@
+
 // LYPO frontend demo script (v7) — clean init + working buttons
 (() => {
   if (window.__LYPO_INIT__) return;
