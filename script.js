@@ -45,30 +45,42 @@ function sleep(ms) {
 
 /* ========= TABS ========= */
 function activateTab(tabName) {
-  // buttons
   document.querySelectorAll(".tabBtn").forEach((b) => {
     const is = b.dataset.tab === tabName;
     b.classList.toggle("isActive", is);
     b.setAttribute("aria-selected", is ? "true" : "false");
   });
 
-  // panels
   document.querySelectorAll(".tabPanel").forEach((p) => {
     p.classList.toggle("isActive", p.id === `tab-${tabName}`);
   });
+
+  // tiny UX: ensure top of content visible when switching
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function initTabs() {
-  // tab buttons
   document.querySelectorAll(".tabBtn").forEach((btn) => {
     btn.addEventListener("click", () => activateTab(btn.dataset.tab));
   });
 
   // clicking logo goes home
-  document.querySelectorAll("[data-tab='home']").forEach((el) => {
+  document.querySelectorAll("[data-go='home']").forEach((el) => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
       activateTab("home");
+    });
+  });
+
+  // CTA buttons route to tabs
+  document.querySelectorAll("[data-go]").forEach((el) => {
+    const go = el.getAttribute("data-go");
+    if (!go) return;
+    el.addEventListener("click", (e) => {
+      // allow logo handler above
+      if (go === "home") return;
+      e.preventDefault();
+      activateTab(go);
     });
   });
 }
@@ -145,12 +157,12 @@ async function pollJob(jobId) {
     setStatus(status ? `Status: ${status}` : "Status: …");
     log(`Status: ${status || "(unknown)"}`);
 
-    if (["succeeded", "success", "completed", "done"].includes(status)) return data;
-    if (["failed", "error", "canceled", "cancelled"].includes(status)) return data;
+    if (["succeeded","success","completed","done"].includes(status)) return data;
+    if (["failed","error","canceled","cancelled"].includes(status)) return data;
   }
 }
 
-/* ========= UI ACTIONS ========= */
+/* ========= UI ========= */
 async function runDemo() {
   try {
     activateTab("home");
@@ -184,11 +196,10 @@ async function runDemo() {
     if (jobId) {
       setStatus("Processing…");
       const final = await pollJob(jobId);
-
       if (!final) return;
 
       const finalStatus = (final?.status || "").toLowerCase();
-      if (["failed", "error", "canceled", "cancelled"].includes(finalStatus)) {
+      if (["failed","error","canceled","cancelled"].includes(finalStatus)) {
         setStatus("Failed ⚠️");
         log(`Job failed: ${final?.error || "Unknown error"}`);
         return;
@@ -200,22 +211,41 @@ async function runDemo() {
 
       if (final?.outputUrl) {
         log(`Output URL: ${final.outputUrl}`);
+      } else {
+        log("No outputUrl returned. Consider returning outputUrl in backend when done.");
       }
       return;
     }
 
     if (statusUrl) {
       setStatus("Started ✅ (no job id)");
-      log(`Status URL (backend provided): ${statusUrl}`);
+      log(`Backend returned statusUrl: ${statusUrl}`);
       return;
     }
 
     setStatus("Started ✅");
-    log("No job id returned. Add GET /api/dub/:id in backend if you want progress polling.");
+    log("No job id returned. Add GET /api/dub/:id for progress polling.");
   } catch (err) {
     setStatus("Error ⚠️");
     log(`Error: ${err.message}`);
   }
+}
+
+/* Magnetic CTA animation (only for the .ctaMag button) */
+function initMagneticCta() {
+  const magBtn = document.querySelector(".ctaMag");
+  if (!magBtn) return;
+
+  magBtn.addEventListener("mousemove", (e) => {
+    const r = magBtn.getBoundingClientRect();
+    const dx = (e.clientX - (r.left + r.width / 2)) / 16;
+    const dy = (e.clientY - (r.top + r.height / 2)) / 16;
+    magBtn.style.transform = `translate(${dx}px, ${dy}px)`;
+  });
+
+  magBtn.addEventListener("mouseleave", () => {
+    magBtn.style.transform = "";
+  });
 }
 
 /* ========= INIT ========= */
@@ -224,6 +254,7 @@ async function runDemo() {
   if (year) year.textContent = String(new Date().getFullYear());
 
   initTabs();
+  initMagneticCta();
 
   $("btnRun")?.addEventListener("click", runDemo);
   $("btnHealth")?.addEventListener("click", checkBackendHealth);
