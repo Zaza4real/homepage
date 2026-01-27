@@ -1,513 +1,1092 @@
-// LYPO frontend demo script (v12) — fixed languages + working buttons
-(() => {
-  if (window.__LYPO_INIT__) return;
-  window.__LYPO_INIT__ = true;
+:root{
+  --bg: #070A12;
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.66);
+  --border: rgba(255,255,255,.12);
+  --shadow: 0 25px 80px rgba(0,0,0,.55);
+  --r: 22px;
 
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
-  const POLL_INTERVAL_MS = 1400;
-  const POLL_TIMEOUT_MS = 8 * 60 * 1000;
+  --led: rgba(255,255,255,.90);
+  --ledSoft: rgba(255,255,255,.22);
+}
 
-  // Pricing hint (USD)
-  const PRICE_PER_30S_USD = 2.89;
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  color:var(--text);
+  background:var(--bg);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  overflow-x:hidden;
+}
+a{ color:inherit; text-decoration:none; }
 
-  const $ = (id) => document.getElementById(id);
+/* BG */
+.bg{ position:fixed; inset:0; pointer-events:none; z-index:-1; }
+.orb{ position:absolute; width:560px; height:560px; filter:blur(40px); opacity:.55; animation:float 10s ease-in-out infinite; }
+.o1{ left:-160px; top:-140px; background:radial-gradient(circle at 30% 30%, rgba(0,225,255,.50), transparent 60%); }
+.o2{ right:-180px; top:30px; background:radial-gradient(circle at 30% 30%, rgba(142,84,255,.50), transparent 60%); animation-delay:-2s; }
+.grid{
+  position:absolute; inset:0;
+  background:
+    linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image: radial-gradient(circle at 40% 12%, black 0%, transparent 65%);
+  opacity:.22;
+}
+.noise{
+  position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+  opacity:.14;
+  mix-blend-mode:overlay;
+}
+@keyframes float{
+  0%,100%{ transform:translateY(0) translateX(0) scale(1); }
+  50%{ transform:translateY(18px) translateX(10px) scale(1.02); }
+}
 
-  // ---- UI helpers
-  function setStatus(text) {
-    const st = $("statusText");
-    if (st) st.textContent = text;
+/* Layout */
+.container{
+  width:min(1040px, calc(100% - 40px));
+  margin:0 auto;
+  padding:120px 0 44px;
+}
+.header{
+  position:fixed;
+  top:18px; left:50%;
+  transform:translateX(-50%);
+  width:min(1040px, calc(100% - 40px));
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.38);
+  backdrop-filter:blur(16px);
+  border-radius:999px;
+  box-shadow:var(--shadow);
+  z-index:10;
+}
+
+/* HUGE LYPO */
+.logoWrap{ padding:6px 10px; }
+.logo{
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: .22em;
+  font-weight: 1000;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.95);
+  text-shadow:
+    0 0 18px rgba(255,255,255,.10),
+    0 0 48px rgba(255,255,255,.08),
+    0 12px 44px rgba(0,0,0,.70);
+  position: relative;
+}
+.logo::after{
+  content:"";
+  position:absolute;
+  inset:-10px -12px;
+  border-radius:16px;
+  background: radial-gradient(260px 70px at 15% 30%, rgba(255,255,255,.10), transparent 62%);
+  opacity:.9;
+  pointer-events:none;
+}
+
+/* Tabs with LED */
+.tabs{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.tabBtn{
+  position:relative;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.82);
+  padding:9px 12px;
+  border-radius:999px;
+  cursor:pointer;
+  font-weight:900;
+  font-size:13px;
+  letter-spacing:.01em;
+  transition: transform .12s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  overflow:hidden;
+}
+.tabBtn::before{
+  content:"";
+  position:absolute; inset:-2px;
+  border-radius:999px;
+  background: radial-gradient(160px 60px at 20% 30%, var(--ledSoft), transparent 60%);
+  opacity:0;
+  transition:opacity .18s ease;
+  pointer-events:none;
+}
+.tabBtn::after{
+  content:"";
+  position:absolute; inset:-3px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+  opacity:0;
+  pointer-events:none;
+}
+.tabBtn:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.20);
+  box-shadow:0 0 0 1px rgba(255,255,255,.10), 0 16px 46px rgba(0,0,0,.45);
+}
+.tabBtn:hover::before{ opacity:1; }
+.tabBtn:hover::after{ opacity:1; }
+.tabBtn.isActive{
+  color:rgba(0,0,0,.92);
+  background:rgba(255,255,255,.86);
+  border-color:rgba(255,255,255,.20);
+  box-shadow:0 0 0 1px rgba(255,255,255,.18), 0 0 18px rgba(255,255,255,.18);
+}
+.tabBtn.isActive::before{
+  opacity:1;
+  background: radial-gradient(200px 60px at 30% 30%, rgba(255,255,255,.45), transparent 60%);
+}
+.tabBtn.isActive::after{
+  opacity:1;
+  animation: ledPulse 1.8s ease-in-out infinite;
+}
+@keyframes ledPulse{
+  0%,100%{ box-shadow:0 0 0 0 rgba(255,255,255,.25); }
+  50%{ box-shadow:0 0 0 8px rgba(255,255,255,0); }
+}
+
+/* Panels */
+.tabPanel{ display:none; }
+.tabPanel.isActive{ display:block; }
+
+.hero{ padding-top:12px; }
+.kicker{
+  display:inline-flex;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.06);
+  color:var(--muted);
+  font-size:13px;
+}
+.h1{
+  margin:16px 0 10px;
+  font-size: clamp(34px, 5vw, 54px);
+  line-height:1.05;
+  letter-spacing:-0.03em;
+}
+.grad{
+  background: linear-gradient(90deg, rgba(0,225,255,.95), rgba(142,84,255,.95), rgba(255,120,120,.90));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.sub{
+  margin:0;
+  max-width:72ch;
+  color:var(--muted);
+  font-size:17px;
+  line-height:1.65;
+}
+
+/* 4 Animated CTA buttons */
+.ctaRow{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+
+.ctaBtn{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.90);
+  cursor:pointer;
+  font-weight:900;
+  transition: transform .10s ease, background .18s ease, border-color .18s ease;
+  overflow:hidden;
+  user-select:none;
+}
+.ctaBtn:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.20);
+}
+.ctaBtn:active{ transform: translateY(0) scale(.99); }
+.ctaIcon{ opacity:.95; }
+.ctaFx{
+  position:absolute; inset:-2px;
+  border-radius:16px;
+  pointer-events:none;
+  opacity:0;
+  transition: opacity .18s ease;
+}
+.ctaBtn:hover .ctaFx{ opacity:1; }
+
+/* Glow */
+.ctaGlow .ctaFx{
+  background: radial-gradient(260px 110px at 20% 20%, rgba(255,255,255,.20), transparent 60%),
+              radial-gradient(240px 110px at 80% 30%, rgba(255,255,255,.14), transparent 55%);
+}
+
+/* Pulse */
+.ctaPulse{ background:rgba(255,255,255,.08); }
+.ctaPulse::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.26);
+  opacity:0;
+  transform:scale(.92);
+}
+.ctaPulse:hover::after{ animation:pulse 1.15s ease-out infinite; }
+@keyframes pulse{
+  0%{ opacity:0; transform:scale(.92); }
+  30%{ opacity:.45; }
+  100%{ opacity:0; transform:scale(1.08); }
+}
+
+/* Magnetic */
+.ctaMag{ background:rgba(255,255,255,.07); }
+.ctaMag .ctaFx{
+  background: radial-gradient(220px 100px at 30% 30%, rgba(255,255,255,.20), transparent 60%);
+}
+
+/* Shine */
+.ctaShine{ background:rgba(255,255,255,.07); }
+.ctaShine::before{
+  content:"";
+  position:absolute;
+  top:-40%; left:-60%;
+  width:55%; height:180%;
+  transform:rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  opacity:0;
+}
+.ctaShine:hover::before{
+  opacity:1;
+  animation: shine 1.1s ease forwards;
+}
+@keyframes shine{
+  from{ transform: translateX(0) rotate(18deg); }
+  to{ transform: translateX(260%) rotate(18deg); }
+}
+
+/* Demo */
+.demoCard{
+  margin-top:18px;
+  border-radius:var(--r);
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.26);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.demoTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.05);
+}
+.demoTitle{ font-weight:1000; letter-spacing:.01em; }
+.chips{ display:flex; gap:8px; flex-wrap:wrap; }
+.chip{
+  font-size:12px;
+  color:rgba(255,255,255,.75);
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.22);
+}
+.demoBody{ padding:14px; display:grid; gap:14px; }
+
+.form{ display:flex; flex-direction:column; gap:12px; }
+.field{ display:flex; flex-direction:column; gap:8px; }
+.field span{ color:rgba(255,255,255,.72); font-weight:900; font-size:13px; }
+.field input{
+  padding:12px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.28);
+  color:rgba(255,255,255,.88);
+  outline:none;
+}
+.field input:focus{
+  border-color: rgba(255,255,255,.22);
+  box-shadow: 0 0 0 4px rgba(255,255,255,.07);
+}
+
+/* Match dropdown styling to inputs (darker + more modern) */
+.field select{
+  width:100%;
+  padding:12px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.30);
+  color:rgba(255,255,255,.90);
+  outline:none;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255,255,255,.72) 50%),
+    linear-gradient(135deg, rgba(255,255,255,.72) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 13px) calc(50% - 2px);
+  background-size:5px 5px, 5px 5px;
+  background-repeat:no-repeat;
+}
+.field select:focus{
+  border-color: rgba(255,255,255,.22);
+  box-shadow: 0 0 0 4px rgba(255,255,255,.07);
+}
+
+.actions{ display:flex; gap:10px; flex-wrap:wrap; }
+.btnPrimary,.btnGhost{
+  position:relative;
+  border-radius:14px;
+  padding:12px 14px;
+  font-weight:1000;
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,.14);
+  transition: transform .12s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  overflow:hidden;
+}
+
+/* Make <a> buttons look identical to button buttons */
+.btnLink{ text-decoration:none; display:inline-flex; align-items:center; }
+.btnPrimary{ background:rgba(255,255,255,.86); color:rgba(0,0,0,.92); }
+.btnGhost{ background:rgba(255,255,255,.06); color:rgba(255,255,255,.86); }
+.btnPrimary:hover,.btnGhost:hover{
+  transform:translateY(-1px);
+  border-color:rgba(255,255,255,.20);
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+.btnGlow{
+  position:absolute; inset:-3px;
+  border-radius:16px;
+  pointer-events:none;
+  opacity:0;
+  background: radial-gradient(200px 70px at 20% 30%, rgba(255,255,255,.25), transparent 60%);
+  transition: opacity .18s ease;
+}
+.btnPrimary:hover .btnGlow,
+.btnGhost:hover .btnGlow{ opacity:1; }
+
+.statusRow{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+.statusPill{
+  display:inline-flex; gap:10px; align-items:center;
+  padding:10px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.24);
+}
+
+.hintSep{ opacity:.65; margin: 0 8px; }
+.costEstimate{ color: rgba(255,255,255,.82); }
+
+/* Indeterminate progress bar (shown while uploading/processing) */
+.progressWrap{
+  width: 100%;
+  max-width: 520px;
+  height: 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.30);
+  overflow:hidden;
+}
+.progressBar{
+  position:relative;
+  width:100%;
+  height:100%;
+}
+.progressBar::before{
+  content:"";
+  position:absolute;
+  top:-2px; bottom:-2px;
+  width: 40%;
+  left:-40%;
+  background: linear-gradient(90deg,
+    rgba(0,225,255,.00),
+    rgba(0,225,255,.80),
+    rgba(142,84,255,.80),
+    rgba(255,120,120,.70),
+    rgba(0,225,255,.00)
+  );
+  filter: blur(0.2px);
+  animation: progressSweep 1.15s ease-in-out infinite;
+}
+@keyframes progressSweep{
+  0%{ left:-45%; }
+  100%{ left:105%; }
+}
+.ping{
+  width:10px; height:10px; border-radius:999px;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 0 0 0 rgba(255,255,255,.30);
+  animation: ping 1.6s ease-out infinite;
+}
+@keyframes ping{
+  0%{ box-shadow:0 0 0 0 rgba(255,255,255,.30); }
+  70%{ box-shadow:0 0 0 12px rgba(255,255,255,0); }
+  100%{ box-shadow:0 0 0 0 rgba(255,255,255,0); }
+}
+.hint{ color:var(--muted); font-size:13px; }
+
+.console{
+  margin:0;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+  color:rgba(255,255,255,.80);
+  overflow:auto;
+  max-height:280px;
+  line-height:1.55;
+}
+
+/* Panels */
+.panel{
+  border-radius:var(--r);
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.22);
+  box-shadow:var(--shadow);
+  padding:18px;
+}
+.panel h2{ margin:0 0 12px; letter-spacing:-0.02em; }
+.grid2{ display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; }
+.tile{
+  grid-column: span 6;
+  padding:16px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+}
+.tileTitle{ font-weight:1000; margin-bottom:6px; }
+.tile p{ margin:0; color:var(--muted); line-height:1.6; }
+
+.pricing{ display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; }
+.priceCard{
+  grid-column: span 4;
+  padding:16px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+}
+.priceCard.featured{
+  border-color: rgba(255,255,255,.20);
+  background: rgba(255,255,255,.08);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 24px 80px rgba(0,0,0,.35);
+}
+.priceTop{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+.priceName{ font-weight:1000; }
+.priceValue{ color:rgba(255,255,255,.80); }
+.priceCard ul{ margin:0; padding-left:18px; color:rgba(255,255,255,.78); line-height:1.7; }
+
+.codeCard{
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.22);
+  padding: 12px;
+}
+.code{ margin:0; color: rgba(255,255,255,.80); line-height:1.55; overflow:auto; }
+
+.footer{
+  margin-top:22px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  color:rgba(255,255,255,.55);
+  font-size:14px;
+  padding:0 2px;
+}
+.muted{ color:var(--muted); }
+
+/* --- Modern upload + loaders + progress + pricing hint --- */
+.btnLabel{ display:inline-flex; align-items:center; gap:8px; }
+
+/* Upload button (modern, darker, matches CTA vibe) */
+.upload{ width:100%; }
+.uploadBtn{
+  position:relative;
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 14px;
+  border-radius:18px;
+  border:1px dashed rgba(255,255,255,.22);
+  background:rgba(0,0,0,.30);
+  color:rgba(255,255,255,.92);
+  cursor:pointer;
+  text-align:left;
+  overflow:hidden;
+  transition: transform .12s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.uploadBtn:hover{
+  transform:translateY(-1px);
+  background:rgba(0,0,0,.38);
+  border-color:rgba(255,255,255,.32);
+  box-shadow: 0 16px 50px rgba(0,0,0,.45);
+}
+.uploadBtn:active{ transform: translateY(0) scale(.99); }
+.uploadIcon{
+  width:42px; height:42px;
+  display:grid; place-items:center;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.35);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+  flex:0 0 auto;
+  font-size:18px;
+}
+.uploadText{ display:flex; flex-direction:column; gap:4px; }
+.uploadText strong{ font-weight:1000; letter-spacing:.01em; }
+.uploadText em{
+  font-style:normal;
+  color:rgba(255,255,255,.70);
+  font-size:13px;
+}
+.uploadFx{
+  position:absolute; inset:-2px;
+  border-radius:20px;
+  pointer-events:none;
+  opacity:0;
+  background: conic-gradient(from 180deg,
+    rgba(0,225,255,.55),
+    rgba(142,84,255,.55),
+    rgba(255,120,120,.50),
+    rgba(0,225,255,.55)
+  );
+  filter: blur(14px);
+  transition: opacity .18s ease;
+}
+.uploadBtn:hover .uploadFx{ opacity:.65; }
+.uploadBtn.dragOver{
+  border-style:solid;
+  border-color: rgba(0,225,255,.55);
+  background: rgba(0,225,255,.08);
+}
+
+/* Hint row (slightly darker) */
+.hint{ color: rgba(255,255,255,.68); }
+.hint strong{ color: rgba(255,255,255,.88); }
+.hintSep{ margin:0 8px; opacity:.65; }
+.costEstimate{ color: rgba(255,255,255,.85); }
+
+/* Progress bar (indeterminate) */
+.progressWrap{
+  width:100%;
+  margin-top:8px;
+  border-radius:999px;
+  background: rgba(0,0,0,.32);
+  border: 1px solid rgba(255,255,255,.12);
+  overflow:hidden;
+}
+.progressBar{
+  position:relative;
+  height:10px;
+}
+.progressBar::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  width:45%;
+  border-radius:999px;
+  background: conic-gradient(from 180deg,
+    rgba(0,225,255,.90),
+    rgba(142,84,255,.90),
+    rgba(255,120,120,.85),
+    rgba(0,225,255,.90)
+  );
+  filter: blur(.0px);
+  animation: indet 1.15s ease-in-out infinite;
+}
+@keyframes indet{
+  0%{ transform: translateX(-120%); }
+  100%{ transform: translateX(260%); }
+}
+
+/* Loading indicators */
+@keyframes spin{ to{ transform: rotate(360deg); } }
+
+.loader,
+.btnSpinner{
+  width:22px; height:22px;
+  border-radius:999px;
+  background: conic-gradient(
+    rgba(0,225,255,1),
+    rgba(142,84,255,1),
+    rgba(255,120,120,1),
+    rgba(0,225,255,1)
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
+  animation: spin .8s linear infinite;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.18) inset, 0 0 24px rgba(142,84,255,.20);
+}
+.loader{ display:none; }
+.statusPill.isLoading .loader{ display:inline-block; }
+.statusPill.isLoading .ping{ display:none; }
+
+.btnSpinner{
+  display:none;
+  margin-left:10px;
+  width:18px; height:18px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
+}
+.btnPrimary.isLoading .btnSpinner,
+.btnGhost.isLoading .btnSpinner{ display:inline-block; }
+
+.btnPrimary:disabled,
+.btnGhost:disabled,
+.uploadBtn:disabled{
+  opacity:.65;
+  cursor:not-allowed;
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+@media (max-width: 980px){
+  .tabs{ display:none; }
+  .container{ padding-top: 120px; }
+  .logo{ font-size: 40px; letter-spacing: .20em; }
+  .tile{ grid-column: span 12; }
+  .priceCard{ grid-column: span 12; }
+}
+
+
+
+/* Force hidden attribute to always hide even if display is set elsewhere */
+[hidden] { display: none !important; }
+
+/* Upload button + output window side-by-side */
+.uploadGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.uploadBtn{
+  padding: 14px 14px; /* slightly smaller than before */
+  min-height: 82px;
+}
+
+.previewBox{
+  min-height: 82px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(10,12,18,.55);
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.previewBox:before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  background: radial-gradient(80% 80% at 30% 20%, rgba(120,160,255,.24), rgba(0,0,0,0));
+  pointer-events:none;
+}
+
+.previewInner{
+  position:relative;
+  z-index:1;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding: 16px 16px 10px;
+}
+
+.previewIcon{
+  font-size: 18px;
+  filter: drop-shadow(0 8px 20px rgba(120,160,255,.35));
+}
+
+.previewText{
+  font-weight: 700;
+  letter-spacing: .1px;
+}
+
+.previewHint{
+  position:relative;
+  z-index:1;
+  padding: 0 16px 14px;
+  opacity:.7;
+  font-size: 12px;
+}
+
+/* Download button: hidden until ready, then highlighted */
+#btnDownload.isReady{
+  border-color: rgba(140,255,210,.55);
+  box-shadow: 0 0 0 1px rgba(140,255,210,.25), 0 18px 50px rgba(0,0,0,.45);
+  transform: translateY(-1px);
+}
+
+#btnDownload.isReady .btnGlow{
+  opacity: 1;
+}
+
+
+/* Output video preview inside the output window (no autoplay) */
+.outputVideo{
+  width: calc(100% - 24px);
+  margin: 6px 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.28);
+  display:block;
+}
+button.btnLink{ display:inline-flex; align-items:center; }
+
+
+/* “Snapshot” placeholder while generating */
+.previewSkeleton{
+  width: calc(100% - 24px);
+  margin: 6px 12px 12px;
+  height: 158px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(110px 70px at 28% 35%, rgba(0,225,255,.22), transparent 60%),
+    radial-gradient(120px 80px at 70% 55%, rgba(142,84,255,.20), transparent 60%),
+    linear-gradient(120deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  position: relative;
+  overflow: hidden;
+}
+.previewSkeleton::before{
+  content:"";
+  position:absolute;
+  inset:-40% -60%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+  animation: skShine 1.25s ease-in-out infinite;
+}
+.previewSkeleton::after{
+  content:"▶";
+  position:absolute;
+  left: 14px;
+  bottom: 12px;
+  width: 40px;
+  height: 40px;
+  display:grid;
+  place-items:center;
+  border-radius: 14px;
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.92);
+  box-shadow: 0 18px 46px rgba(0,0,0,.35);
+}
+@keyframes skShine{
+  0%{ transform: translateX(-20%) rotate(18deg); opacity:.0; }
+  35%{ opacity: .9; }
+  100%{ transform: translateX(40%) rotate(18deg); opacity:.0; }
+}
+
+
+/* Preview window: not pressable/clickable (except the video controls) */
+.previewBox{ cursor: default; pointer-events: none; }
+.previewBox *{ pointer-events: none; }
+.previewBox video{ pointer-events: auto; } /* allow playback controls only */
+
+
+/* Remove the “fog” overlay when an output video is ready */
+.previewBox.hasVideo:before{
+  opacity: 0 !important;
+}
+
+
+/* When output is ready, make the preview look “original” (no haze overlay) */
+.previewBox.hasVideo{
+  background: rgba(0,0,0,.18) !important;
+}
+.previewBox.hasVideo:before{
+  opacity: 0 !important;
+}
+
+
+/* Creative generating-text animation */
+.previewHint{
+  transition: opacity .4s ease;
+}
+
+.hintPop{
+  animation: hintPop 0.8s ease-out;
+}
+
+@keyframes hintPop{
+  0%{
+    opacity: 0;
+    transform: translateY(6px) scale(.98);
   }
-  function setPreviewTitle(text) {
-    const p = $("previewText");
-    if (p) p.textContent = text;
+  60%{
+    opacity: 1;
+    transform: translateY(-1px) scale(1.01);
   }
-  function setPreviewHint(text) {
-    const h = $("previewHint");
-    if (h) h.textContent = text;
+  100%{
+    opacity: .85;
+    transform: translateY(0) scale(1);
   }
-  function showSkeleton(on) {
-    const sk = $("previewSkeleton");
-    if (sk) sk.hidden = !on;
+}
+
+
+/* Landing showcase (English ➜ French) */
+.showcaseCard{
+  margin-top: 18px;
+  border-radius: 20px;
+  padding: 16px 16px 14px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 28px 80px rgba(0,0,0,.35);
+  position: relative;
+  overflow: hidden;
+}
+.showcaseCard:before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background:
+    radial-gradient(260px 180px at 18% 15%, rgba(0,225,255,.16), transparent 60%),
+    radial-gradient(280px 200px at 78% 55%, rgba(142,84,255,.14), transparent 60%),
+    linear-gradient(120deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+  filter: blur(0px);
+  pointer-events:none;
+}
+
+.showcaseTop{
+  position: relative;
+  display:flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.showcaseTitle{
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.showcaseSub{
+  color: rgba(255,255,255,.72);
+  font-size: 13px;
+}
+
+.showcaseGrid{
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.showVid{
+  margin: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.24);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,.32);
+}
+.showVidEl{
+  display:block;
+  width: 100%;
+  max-height: 168px; /* small on purpose */
+  object-fit: cover;
+  background: rgba(0,0,0,.25);
+}
+.showVidEl::-webkit-media-controls-panel{
+  background: rgba(0,0,0,.35);
+}
+
+.showCap{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.capTag{
+  display:inline-flex;
+  align-items:center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.86);
+}
+.capTagAlt{
+  background: rgba(0,225,255,.10);
+  border-color: rgba(0,225,255,.22);
+}
+.capText{
+  font-weight: 700;
+  color: rgba(255,255,255,.92);
+}
+
+.showArrow{
+  display:grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(0,0,0,.28);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 16px 40px rgba(0,0,0,.28);
+}
+.arrowLine{
+  position:absolute;
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.24), rgba(255,255,255,.10));
+  opacity: .7;
+  border-radius: 999px;
+}
+.arrowHead{
+  font-size: 22px;
+  opacity: .9;
+  transform: translateX(1px);
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,.4));
+}
+
+.showcaseHint{
+  position: relative;
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(255,255,255,.62);
+}
+
+/* Mobile: stack nicely */
+@media (max-width: 720px){
+  .showcaseGrid{
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
-  function clearOutputVideo() {
-    const box = $("previewBox");
-    const v = $("outputVideo");
-    if (box) box.classList.remove("hasVideo");
-    if (!v) return;
-    try { v.pause?.(); } catch {}
-    v.hidden = true;
-    v.removeAttribute("src");
-    v.load?.();
+  .showArrow{
+    width: 42px;
+    height: 42px;
+    justify-self: center;
+    transform: rotate(90deg);
   }
-  function showOutputVideo(url) {
-    const box = $("previewBox");
-    const v = $("outputVideo");
-    if (box) box.classList.add("hasVideo");
-    if (!v) return;
-    v.hidden = false;
-    v.src = url;
-    v.load?.();
+  .arrowLine{
+    width: 36px;
   }
-  function setBackendChip(text) {
-    const el = $("chipBackend");
-    if (el) el.textContent = text;
+}
+
+
+/* Compact showcase tab (above demo card) */
+.showcaseTab{
+  margin: 0 0 14px;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 22px 62px rgba(0,0,0,.32);
+  position: relative;
+  overflow: hidden;
+}
+.showcaseTab:before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background:
+    radial-gradient(220px 150px at 12% 15%, rgba(0,225,255,.14), transparent 60%),
+    radial-gradient(240px 160px at 82% 55%, rgba(142,84,255,.12), transparent 60%),
+    linear-gradient(120deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+  pointer-events:none;
+}
+
+.showTabLeft{
+  position: relative;
+  display:flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 160px;
+}
+.showTabTitle{
+  font-weight: 850;
+  letter-spacing: .2px;
+}
+.showTabSub{
+  font-size: 12px;
+  color: rgba(255,255,255,.68);
+}
+
+.showTabMedia{
+  position: relative;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+
+.miniVid{
+  position: relative;
+  width: 138px;
+  height: 78px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.22);
+  box-shadow: 0 14px 40px rgba(0,0,0,.30);
+}
+.miniVidEl{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display:block;
+  filter: saturate(1.05) contrast(1.02);
+}
+.miniPlay{
+  position:absolute;
+  left: 8px;
+  bottom: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.38);
+  color: rgba(255,255,255,.92);
+  cursor: pointer;
+  display:grid;
+  place-items:center;
+  box-shadow: 0 18px 44px rgba(0,0,0,.36);
+}
+.miniPlay:active{ transform: translateY(1px); }
+.miniCap{
+  position:absolute;
+  right: 8px;
+  top: 8px;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.86);
+}
+
+.miniArrow{
+  font-size: 18px;
+  opacity: .9;
+  filter: drop-shadow(0 12px 26px rgba(0,0,0,.35));
+}
+
+@media (max-width: 820px){
+  .showcaseTab{
+    flex-direction: column;
+    align-items: flex-start;
   }
-  function setLoading(isLoading, text) {
-    const pill = $("statusPill");
-    const progress = $("progressWrap");
-    const run = $("btnRun");
-    const pay = $("btnPay");
-
-    if (pill) pill.classList.toggle("isLoading", !!isLoading);
-    if (progress) progress.hidden = !isLoading;
-
-    if (run) {
-      run.disabled = !!isLoading;
-      run.classList.toggle("isLoading", !!isLoading);
-    }
-    if (pay) {
-      pay.disabled = !!isLoading;
-      pay.classList.toggle("isLoading", !!isLoading);
-    }
-    if (typeof text === "string") setStatus(text);
+  .showTabMedia{
+    width:100%;
+    justify-content: space-between;
   }
-
-  
-  const GENERATING_MESSAGES = [
-    "Longer videos travel deeper paths through the machine ⏳",
-    "Stay with us — good dubbing is a small act of digital divinity 😇",
-    "Aligning lips, preserving voices, politely bending reality…",
-    "Crafting your translated video frame by frame ✨"
-  ];
-  let genMsgIdx = 0;
-  let genMsgTimer = null;
-
-  function startGeneratingMessages() {
-    stopGeneratingMessages();
-    genMsgIdx = 0;
-    const hint = document.getElementById("previewHint");
-    if (hint) {
-      hint.classList.remove("hintPop");
-      void hint.offsetWidth; // reflow
-      hint.classList.add("hintPop");
-    }
-    setPreviewHint(GENERATING_MESSAGES[genMsgIdx]);
-    genMsgTimer = setInterval(() => {
-      genMsgIdx = (genMsgIdx + 1) % GENERATING_MESSAGES.length;
-      const hint = document.getElementById("previewHint");
-    if (hint) {
-      hint.classList.remove("hintPop");
-      void hint.offsetWidth; // reflow
-      hint.classList.add("hintPop");
-    }
-    setPreviewHint(GENERATING_MESSAGES[genMsgIdx]);
-    }, 5200);
+  .miniVid{
+    width: 46%;
+    min-width: 140px;
   }
-
-  function stopGeneratingMessages() {
-    if (genMsgTimer) {
-      clearInterval(genMsgTimer);
-      genMsgTimer = null;
-    }
-  }
-
-
-  // ---- Download
-  function resetDownload() {
-    const btn = $("btnDownload");
-    if (!btn) return;
-    btn.hidden = true;
-    btn.classList.remove("isReady");
-    btn.setAttribute("aria-disabled", "true");
-    btn.setAttribute("tabindex", "-1");
-    btn.dataset.url = "";
-  }
-  function enableDownload(url) {
-    const btn = $("btnDownload");
-    if (!btn) return;
-    btn.hidden = false;
-    btn.dataset.url = url;
-    btn.classList.add("isReady");
-    btn.setAttribute("aria-disabled", "false");
-    btn.removeAttribute("tabindex");
-  }
-  function guessMp4Name() {
-    const original = $("videoFile")?.files?.[0]?.name || "video";
-    const base = original.replace(/\.[^.]+$/, "");
-    return `${base}-translated.mp4`;
-  }
-  async function downloadViaBlob(url, filename) {
-    // Best effort: force a real file download (avoid the browser opening a video player).
-    // Requires CORS on the outputUrl OR a same-origin proxy.
-    const res = await fetch(url, { mode: "cors" });
-    if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-
-    const originalBlob = await res.blob();
-
-    // Re-wrap as octet-stream to discourage inline playback in some browsers (esp. Safari).
-    const blob = new Blob([originalBlob], { type: "application/octet-stream" });
-
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    a.rel = "noopener";
-    a.style.display = "none";
-    document.body.appendChild(a);
-
-    // This should stay in-page (no fullscreen). If a browser ignores download attr, it may still open.
-    a.click();
-
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 2500);
-  }
-  function makeDownloadUrl(rawUrl, filename) {
-    try {
-      const u = new URL(rawUrl);
-      const host = u.host || "";
-      const isS3 = host.includes("amazonaws.com") || u.searchParams.has("X-Amz-Signature");
-      const isGcs = host.includes("storage.googleapis.com");
-      if (isS3 || isGcs) {
-        u.searchParams.set("response-content-disposition", `attachment; filename="${filename}"`);
-        u.searchParams.set("response-content-type", "video/mp4");
-        return u.toString();
-      }
-      return rawUrl;
-    } catch {
-      return rawUrl;
-    }
-  }
-
-  // ---- Tabs
-  function attachTabs() {
-    const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
-    const panels = Array.from(document.querySelectorAll(".tabPanel"));
-    const goHome = document.querySelector("[data-go='home']");
-
-    function activate(tab) {
-      tabBtns.forEach((b) => {
-        const on = b.dataset.tab === tab;
-        b.classList.toggle("isActive", on);
-        b.setAttribute("aria-selected", on ? "true" : "false");
-      });
-      panels.forEach((p) => p.classList.toggle("isActive", p.id === `tab-${tab}`));
-    }
-
-    tabBtns.forEach((b) => b.addEventListener("click", () => activate(b.dataset.tab)));
-    goHome?.addEventListener("click", (e) => {
-      e.preventDefault();
-      activate("home");
-    });
-  }
-
-  // ---- Networking
-  async function fetchJson(url, options = {}) {
-    const res = await fetch(url, options);
-    const isJson = (res.headers.get("content-type") || "").includes("application/json");
-    if (!res.ok) {
-      const body = isJson ? await res.json().catch(() => null) : await res.text().catch(() => "");
-      throw new Error(typeof body === "string" ? body : (body?.error || `HTTP ${res.status}`));
-    }
-    return isJson ? res.json() : null;
-  }
-
-  // ---- Languages (Replicate expects full names)
-  async function loadLanguages() {
-    const select = $("targetLang");
-    if (!select) return;
-
-    const MAP = {
-      "en":"English","es":"Spanish","fr":"French","de":"German","it":"Italian","pt":"Portuguese",
-      "nl":"Dutch","tr":"Turkish","ko":"Korean","da":"Danish","ar":"Arabic","ro":"Romanian",
-      "zh":"Chinese","ja":"Japanese","sv":"Swedish","id":"Indonesian","uk":"Ukrainian","el":"Greek",
-      "cs":"Czech","bg":"Bulgarian","ms":"Malay","sk":"Slovak","hr":"Croatian","ta":"Tamil","fi":"Finnish","ru":"Russian",
-      "pl":"Polish","hi":"Hindi","fil":"Filipino"
-    };
-
-    function normalize(item) {
-      if (!item) return null;
-      if (typeof item === "string") {
-        const v = MAP[item] || item;
-        return { value: v, label: v };
-      }
-      const raw = item.name || item.label || item.title || item.value || item.code;
-      if (!raw) return null;
-      const code = (item.code || "").toLowerCase();
-      const v = MAP[raw] || MAP[code] || raw;
-      return { value: v, label: v };
-    }
-
-    function fill(list) {
-      select.innerHTML = "";
-      list.forEach((it) => {
-        const opt = document.createElement("option");
-        opt.value = it.value;      // IMPORTANT: send full name
-        opt.textContent = it.label;
-        select.appendChild(opt);
-      });
-    }
-
-    try {
-      const raw = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
-      const items = (raw || []).map(normalize).filter(Boolean);
-
-      if (items.length) {
-        const seen = new Set();
-        const uniq = [];
-        for (const it of items) {
-          if (seen.has(it.value)) continue;
-          seen.add(it.value);
-          uniq.push(it);
-        }
-        uniq.sort((a,b) => a.label.localeCompare(b.label));
-        fill(uniq);
-        return;
-      }
-      throw new Error("Empty language list");
-    } catch {
-      const fallback = ['Arabic', 'Arabic (Egypt)', 'Arabic (Saudi Arabia)', 'Bulgarian', 'Chinese', 'Chinese (Mandarin, Simplified)', 'Chinese (Taiwanese Mandarin, Traditional)', 'Croatian', 'Czech', 'Danish', 'Dutch', 'English', 'English (Australia)', 'English (Canada)', 'English (India)', 'English (UK)', 'English (United States)', 'Filipino', 'Finnish', 'French', 'French (Canada)', 'French (France)', 'German', 'German (Austria)', 'German (Germany)', 'German (Switzerland)', 'Greek', 'Hindi', 'Indonesian', 'Italian', 'Japanese', 'Korean', 'Malay', 'Mandarin', 'Polish', 'Portuguese', 'Portuguese (Brazil)', 'Portuguese (Portugal)', 'Romanian', 'Russian', 'Russian (Russia)', 'Slovak', 'Spanish', 'Spanish (Mexico)', 'Spanish (Spain)', 'Swedish', 'Tamil', 'Turkish', 'Turkish (Türkiye)', 'Ukrainian', 'Ukrainian (Ukraine)'];
-      const items = fallback.map((x) => ({ value: x, label: x }));
-      fill(items);
-    }
-  }
-
-  // ---- Backend health
-  async function checkBackend() {
-    try {
-      await fetchJson(`${BACKEND_BASE_URL}/health`);
-      setBackendChip("Backend: connected ✓");
-    } catch {
-      setBackendChip("Backend: not connected");
-    }
-  }
-
-  // ---- Cost estimate + upload picker
-  function formatUSD(n) {
-    const val = Number.isFinite(n) ? n : 0;
-    return `$${val.toFixed(2)}`;
-  }
-  function estimateCostFromSeconds(seconds) {
-    if (!Number.isFinite(seconds) || seconds <= 0) return null;
-    const units = Math.ceil(seconds / 30);
-    return units * PRICE_PER_30S_USD;
-  }
-
-  function attachUploadPicker() {
-    const input = $("videoFile");
-    const pickBtn = $("btnPickVideo");
-    const nameEl = $("videoName");
-    if (!input || !pickBtn) return;
-
-    const setName = (file) => { if (nameEl) nameEl.textContent = file ? file.name : "or drop it here"; };
-
-    pickBtn.addEventListener("click", () => input.click());
-
-    input.addEventListener("change", () => {
-      const file = input.files?.[0] || null;
-      setName(file);
-
-      resetDownload();
-      clearOutputVideo();
-      showSkeleton(false);
-      setPreviewTitle("No output yet");
-      setPreviewHint("Generated video will appear here");
-
-      const costEl = $("costEstimate");
-      const pay = $("btnPay");
-      if (!file) {
-        if (costEl) costEl.textContent = "";
-        if (pay) pay.querySelector(".btnLabel").textContent = "Pay";
-        return;
-      }
-
-      const tmp = document.createElement("video");
-      tmp.preload = "metadata";
-      tmp.onloadedmetadata = () => {
-        const seconds = Number(tmp.duration);
-        const est = estimateCostFromSeconds(seconds);
-        if (costEl && est) costEl.textContent = `Estimated: ${formatUSD(est)}`;
-        if (pay && est) pay.querySelector(".btnLabel").textContent = `Pay (${formatUSD(est)})`;
-        URL.revokeObjectURL(tmp.src);
-      };
-      tmp.src = URL.createObjectURL(file);
-    });
-
-    ["dragenter","dragover"].forEach((ev) => {
-      pickBtn.addEventListener(ev, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        pickBtn.classList.add("dragOver");
-      });
-    });
-    ["dragleave","drop"].forEach((ev) => {
-      pickBtn.addEventListener(ev, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        pickBtn.classList.remove("dragOver");
-      });
-    });
-    pickBtn.addEventListener("drop", (e) => {
-      const file = e.dataTransfer?.files?.[0];
-      if (!file) return;
-      input.files = e.dataTransfer.files;
-      input.dispatchEvent(new Event("change"));
-    });
-  }
-
-  // ---- Polling + run
-  async function pollJob(jobId) {
-    const start = Date.now();
-    while (Date.now() - start < POLL_TIMEOUT_MS) {
-      const j = await fetchJson(`${BACKEND_BASE_URL}/api/dub/${encodeURIComponent(jobId)}`);
-      if (j?.status === "succeeded" && j?.outputUrl) return j;
-      if (j?.status === "failed") throw new Error(j?.error || "Job failed");
-      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-      setStatus("Generating…");
-    }
-    throw new Error("Timed out waiting for result");
-  }
-
-  async function runUploadDub() {
-    const input = $("videoFile");
-    const select = $("targetLang");
-    const file = input?.files?.[0];
-    const outputLanguage = select?.value; // full name
-
-    if (!file) return setStatus("Please choose a video first.");
-    if (!outputLanguage) return setStatus("Please select a target language.");
-
-    resetDownload();
-    clearOutputVideo();
-    showSkeleton(true);
-    setPreviewTitle("Generating…");
-    startGeneratingMessages();
-
-    try {
-      setLoading(true, "Uploading…");
-
-      const fd = new FormData();
-      fd.append("video", file);
-      fd.append("output_language", outputLanguage);
-
-      const up = await fetchJson(`${BACKEND_BASE_URL}/api/dub-upload`, { method: "POST", body: fd });
-      const jobId = up?.id || up?.jobId || up?.predictionId;
-      if (!jobId) throw new Error("No job id returned from server.");
-
-      setStatus("Generating…");
-      const final = await pollJob(jobId);
-
-      setLoading(false, "Ready ✅");
-      stopGeneratingMessages();
-      showSkeleton(false);
-
-      showOutputVideo(final.outputUrl);
-      enableDownload(final.outputUrl);
-
-      setPreviewTitle("Output ready");
-      setPreviewHint("Preview is playable. Click Download to save the MP4.");
-    } catch (e) {
-      setLoading(false, "Error");
-      stopGeneratingMessages();
-      showSkeleton(false);
-      clearOutputVideo();
-      setPreviewTitle("Error");
-      setPreviewHint("Something went wrong.");
-      setStatus(`Error: ${e?.message || e}`);
-    }
-  }
-
-  // ---- Button handlers
-  function attachDownload() {
-    const btn = $("btnDownload");
-    if (!btn) return;
-
-    btn.addEventListener("click", async () => {
-      const raw = btn.dataset.url;
-      if (!raw || btn.getAttribute("aria-disabled") === "true") return;
-
-      const filename = guessMp4Name();
-
-      // Blob download only (prevents opening the MP4 player/fullscreen).
-      // This requires CORS on the outputUrl OR serving the file from the same origin via your backend.
-      try {
-        await downloadViaBlob(raw, filename);
-      } catch (e) {
-        setStatus("Download blocked by server (CORS) ⚠️");
-        setPreviewHint("To force download without opening the player: enable CORS on outputUrl or proxy it via your backend.");
-      }
-    });
-  }
-
-  function attachPay() {
-    const btn = $("btnPay");
-    if (!btn) return;
-    btn.addEventListener("click", () => setStatus("Payment is not connected yet."));
-  }
-
-  function setYear() {
-    const y = $("year");
-    if (y) y.textContent = String(new Date().getFullYear());
-  }
-
-  function lockPreviewBox() {
-    $("previewBox")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-  }
-
-  
-  function attachMiniShowcase() {
-    const buttons = Array.from(document.querySelectorAll(".miniPlay"));
-    const vids = {
-      english: document.querySelectorAll(".miniVidEl")[0] || null,
-      french: document.querySelectorAll(".miniVidEl")[1] || null
-    };
-
-    function stopAll() {
-      Object.values(vids).forEach((v) => { try { v?.pause(); } catch {} });
-      buttons.forEach((b) => { if (b) b.textContent = "▶"; });
-    }
-
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const key = btn.dataset.play;
-        const v = vids[key];
-        if (!v) return;
-
-        // Toggle play for this one, stop the other
-        const isPlaying = !v.paused && !v.ended;
-        stopAll();
-        if (!isPlaying) {
-          v.play().catch(() => {});
-          btn.textContent = "❚❚";
-        }
-      });
-    });
-
-    // Clicking on the tiny video itself does nothing (only the play button)
-    document.querySelectorAll(".miniVidEl").forEach((v) => {
-      v.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
-    });
-  }
-
-// ---- INIT
-  attachTabs();
-  setYear();
-  attachUploadPicker();
-  attachDownload();
-  attachPay();
-  attachMiniShowcase();
-  lockPreviewBox();
-
-  resetDownload();
-  clearOutputVideo();
-  showSkeleton(false);
-  setPreviewTitle("No output yet");
-  setPreviewHint("Generated video will appear here");
-
-  loadLanguages();
-  checkBackend();
-
-  $("btnRun")?.addEventListener("click", runUploadDub);
-})();
+}
