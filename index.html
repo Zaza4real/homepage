@@ -42,20 +42,13 @@
         </h1>
 
         <p class="sub">
-          Upload a video, select a language, and run the tool.
+          Upload a video, select a language, and run the backend API demo.
+          Your Replicate key stays on the server.
         </p>
-
-        <!-- 4 animated CTA shortcuts (switch tabs) -->
-        <div class="ctaRow" aria-label="Shortcuts">
-          <button class="ctaBtn ctaGlow" type="button" data-go="features"><span class="ctaIcon">✨</span><span>Features</span><span class="ctaFx"></span></button>
-          <button class="ctaBtn ctaPulse" type="button" data-go="pricing"><span class="ctaIcon">⚡</span><span>Pricing</span><span class="ctaFx"></span></button>
-          <button class="ctaBtn ctaMag" type="button" data-go="docs"><span class="ctaIcon">🧩</span><span>Docs</span><span class="ctaFx"></span></button>
-          <button class="ctaBtn ctaShine" type="button" data-go="about"><span class="ctaIcon">👋</span><span>About</span><span class="ctaFx"></span></button>
-        </div>
 
         <div class="demoCard">
           <div class="demoTop">
-            <div class="demoTitle">Lypo Video Translator</div>
+            <div class="demoTitle">Backend API Video Translator Demo</div>
             <div class="chips">
               <span class="chip">UI ✓</span>
               <span class="chip" id="chipBackend">Backend: not connected</span>
@@ -66,17 +59,29 @@
             <div class="form">
               <label class="field">
                 <span>Upload video</span>
-                <div class="upload">
-                  <input id="videoFile" type="file" accept="video/*" hidden />
-                  <button class="uploadBtn" id="btnPickVideo" type="button">
-                    <span class="uploadIcon">🎬</span>
-                    <span class="uploadText">
-                      <strong>Choose a video</strong>
-                      <em id="videoName">or drop it here</em>
-                    </span>
-                    <span class="uploadFx"></span>
-                  </button>
-                </div>
+                <div class="uploadRow">
+  <div class="upload">
+    <input id="videoFile" type="file" accept="video/*" hidden />
+    <button class="uploadBtn uploadBtnCompact" id="btnPickVideo" type="button">
+      <span class="uploadIcon">🎬</span>
+      <span class="uploadText">
+        <strong>Choose a video</strong>
+        <em id="videoName">or drop it here</em>
+      </span>
+      <span class="uploadFx"></span>
+    </button>
+  </div>
+
+  <div class="previewBox" id="previewBox" aria-live="polite">
+    <div class="previewTop">
+      <span class="previewDot" aria-hidden="true"></span>
+      <span class="previewTitle" id="previewTitle">Output preview</span>
+    </div>
+    <div class="previewBody" id="previewBody">
+      Upload a video to get started. Your translated video will be ready here.
+    </div>
+  </div>
+</div>
               </label>
 
               <label class="field">
