@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>YouDub — Translate videos into every language</title>
-  <meta name="description" content="YouDub translates your videos into every language while keeping your voice and syncing lips to the new translation." />
+  <title>LYPO — Video Translation with Voice + Lip Sync</title>
+  <meta name="description" content="Translate your video to every language while keeping your voice and syncing lips." />
   <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -12,303 +12,118 @@
   <div class="bg">
     <div class="orb o1"></div>
     <div class="orb o2"></div>
-    <div class="orb o3"></div>
     <div class="grid"></div>
     <div class="noise"></div>
-    <div class="vignette"></div>
   </div>
 
   <header class="header">
-    <a class="logo" href="#top" aria-label="YouDub Home">
-      <span class="mark" aria-hidden="true"></span>
-      <span class="name">YouDub</span>
-      <span class="beta">BETA</span>
+    <a class="logoWrap" href="#" aria-label="LYPO Home" data-tab="home">
+      <span class="logo">LYPO</span>
+      <span class="tagline">Voice-preserving video translation • Lip-sync</span>
     </a>
 
-    <nav class="nav">
-      <a href="#how">How it works</a>
-      <a href="#features">Features</a>
-      <a href="#demo">Demo</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#contact" class="navPill">Get access</a>
+    <nav class="tabs" role="tablist" aria-label="LYPO tabs">
+      <button class="tabBtn isActive" role="tab" aria-selected="true" data-tab="home">Demo</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="features">Features</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="pricing">Pricing</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="docs">Docs</button>
     </nav>
   </header>
 
-  <main id="top" class="container">
-    <section class="hero">
-      <div class="kicker">
-        <span class="spark">⚡</span>
-        <span>Translate videos globally • Keep your voice • Lip-sync included</span>
-      </div>
+  <main class="container">
+    <!-- HOME (clean front page: demo only) -->
+    <section class="tabPanel isActive" id="tab-home" role="tabpanel">
+      <div class="hero">
+        <div class="kicker">⚪ Fast. Clean. Built for creators & teams.</div>
 
-      <h1 class="h1">
-        Translate your video into
-        <span class="grad">every language</span>
-        — while keeping <span class="grad2">your voice</span> and syncing lips.
-      </h1>
+        <h1 class="h1">
+          Translate your video to <span class="grad">every language</span>
+          <span class="nowrap">— keep your voice,</span> sync the lips.
+        </h1>
 
-      <p class="sub">
-        <strong>YouDub</strong> turns one video into dozens of localized versions.
-        Your audience hears <em>you</em>, not a generic dub — and the lips match the new translation.
-      </p>
-
-      <!-- 4 catchy animated buttons -->
-      <div class="btnRow">
-        <a class="btn btnGlow" href="#demo">
-          <span class="btnIcon">🎬</span>
-          <span>Try the demo</span>
-          <span class="btnFx"></span>
-        </a>
-
-        <button class="btn btnPulse" id="btnGenerate" type="button">
-          <span class="btnIcon">🧠</span>
-          <span>Generate dub</span>
-          <span class="btnFx"></span>
-        </button>
-
-        <a class="btn btnMag" href="#pricing">
-          <span class="btnIcon">🌍</span>
-          <span>See pricing</span>
-          <span class="btnFx"></span>
-        </a>
-
-        <button class="btn btnShine" id="btnNotify" type="button">
-          <span class="btnIcon">✨</span>
-          <span>Get early access</span>
-          <span class="btnFx"></span>
-        </button>
-      </div>
-
-      <div class="statusRow">
-        <div class="statusPill" id="statusPill">
-          <span class="ping"></span>
-          <span id="statusText">Ready. Connect backend later for real generation.</span>
-        </div>
-
-        <div class="mini">
-          <span class="miniKey">Use case:</span>
-          <span class="miniVal">Creators • Courses • Ads • Podcasts • Product videos</span>
-        </div>
-      </div>
-
-      <div class="panel" aria-label="YouDub console">
-        <div class="panelTop">
-          <div class="panelTitle">YouDub Console</div>
-          <div class="panelMeta">
-            <span class="chip chipGood">UI ✓</span>
-            <span class="chip" id="chipBackend">Backend: not connected</span>
-          </div>
-        </div>
-        <pre class="console" id="console">Tip: Click “Generate dub”. We’ll wire it to your Render backend + Replicate next.</pre>
-      </div>
-
-      <div class="scrollHint">
-        <span>Scroll</span>
-        <span class="arrow">↓</span>
-      </div>
-    </section>
-
-    <section class="section" id="how">
-      <div class="sectionHead">
-        <h2>How it works</h2>
-        <p>From one upload to fully localized versions — fast, consistent, and on-brand.</p>
-      </div>
-
-      <ol class="steps">
-        <li class="step">
-          <div class="stepNum">1</div>
-          <div>
-            <div class="stepTitle">Upload your video</div>
-            <p>Drop in MP4 or a link. YouDub extracts audio + transcription.</p>
-          </div>
-        </li>
-        <li class="step">
-          <div class="stepNum">2</div>
-          <div>
-            <div class="stepTitle">Translate + preserve your voice</div>
-            <p>We translate into target languages and keep the output sounding like you.</p>
-          </div>
-        </li>
-        <li class="step">
-          <div class="stepNum">3</div>
-          <div>
-            <div class="stepTitle">Lip-sync to the new language</div>
-            <p>Mouth movement is aligned to the translated speech for a natural result.</p>
-          </div>
-        </li>
-        <li class="step">
-          <div class="stepNum">4</div>
-          <div>
-            <div class="stepTitle">Export & publish</div>
-            <p>Download localized videos and ship globally in minutes.</p>
-          </div>
-        </li>
-      </ol>
-    </section>
-
-    <section class="section" id="features">
-      <div class="sectionHead">
-        <h2>Features</h2>
-        <p>Designed for creators and teams that ship content across markets.</p>
-      </div>
-
-      <div class="cards">
-        <article class="card">
-          <div class="cardBadge">VOICE</div>
-          <h3>Keep your identity</h3>
-          <p>Your audience still hears you — consistent tone and presence across languages.</p>
-        </article>
-
-        <article class="card">
-          <div class="cardBadge">LIP-SYNC</div>
-          <h3>Natural mouth movement</h3>
-          <p>Lips are synchronized to the new translation for a clean, believable dub.</p>
-        </article>
-
-        <article class="card">
-          <div class="cardBadge">SCALE</div>
-          <h3>Translate into every language</h3>
-          <p>Generate multiple languages in one run and manage outputs cleanly.</p>
-        </article>
-      </div>
-
-      <div class="callout">
-        <div class="calloutTitle">Pro tip</div>
-        <p>
-          Start with your best-performing video. Localize it into 5 languages, post, measure, then expand.
+        <p class="sub">
+          LYPO turns one video into multilingual versions while preserving your voice identity and aligning lips with the new translation.
         </p>
-      </div>
-    </section>
 
-    <section class="section" id="demo">
-      <div class="sectionHead">
-        <h2>Demo</h2>
-        <p>Front-end demo UI now. We’ll connect the real backend generation next.</p>
-      </div>
-
-      <div class="demoGrid">
-        <div class="demoBox">
-          <div class="demoLabel">Input</div>
-          <label class="field">
-            <span>Video URL</span>
-            <input id="videoUrl" placeholder="https://..." autocomplete="off" />
-          </label>
-          <label class="field">
-            <span>Target language</span>
-            <select id="lang">
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-              <option value="it">Italian</option>
-              <option value="pt">Portuguese</option>
-              <option value="ja">Japanese</option>
-              <option value="ko">Korean</option>
-              <option value="zh">Chinese</option>
-            </select>
-          </label>
-          <button class="btn btnPulse full" id="btnGenerate2" type="button">
-            <span class="btnIcon">🚀</span>
-            <span>Generate</span>
-            <span class="btnFx"></span>
-          </button>
-          <div class="hint">For real generation, we’ll route this to your Render Web Service.</div>
-        </div>
-
-        <div class="demoBox">
-          <div class="demoLabel">Output</div>
-          <div class="outputBox" id="outputBox">
-            <div class="outputTitle">Result</div>
-            <div class="outputText" id="outputText">No output yet.</div>
+        <div class="demoCard">
+          <div class="demoTop">
+            <div class="demoTitle">Backend API Demo</div>
+            <div class="chips">
+              <span class="chip">UI ✓</span>
+              <span class="chip" id="chipBackend">Backend: not connected</span>
+            </div>
           </div>
-          <div class="hint">When connected, you’ll receive a job ID + progress + download link.</div>
+
+          <div class="demoBody">
+            <div class="form">
+              <label class="field">
+                <span>Video URL</span>
+                <input id="videoUrl" placeholder="https://example.com/video.mp4" />
+              </label>
+
+              <label class="field">
+                <span>Target language</span>
+                <input id="targetLang" placeholder="e.g. es, fr, de, ja" value="es" />
+              </label>
+
+              <div class="actions">
+                <button class="btnPrimary" id="btnRun" type="button">
+                  Run translation
+                  <span class="btnGlow"></span>
+                </button>
+
+                <button class="btnGhost" id="btnHealth" type="button">
+                  Check backend
+                  <span class="btnGlow"></span>
+                </button>
+              </div>
+
+              <div class="statusRow">
+                <div class="statusPill">
+                  <span class="ping"></span>
+                  <span id="statusText">Ready.</span>
+                </div>
+                <div class="hint">Tip: Use a public MP4 URL.</div>
+              </div>
+            </div>
+
+            <pre class="console" id="console">Paste a video URL → choose language → Run translation.</pre>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="pricing">
-      <div class="sectionHead">
+    <!-- Other tabs (kept clean, you can fill later) -->
+    <section class="tabPanel" id="tab-features" role="tabpanel">
+      <div class="panel">
+        <h2>Features</h2>
+        <ul class="list">
+          <li><b>Voice preservation:</b> keep your voice identity across languages.</li>
+          <li><b>Lip sync:</b> align mouth motion to translated speech.</li>
+          <li><b>Fast workflow:</b> API-first, easy to integrate.</li>
+          <li><b>Scalable:</b> start simple, grow into batch processing.</li>
+        </ul>
+        <p class="muted">You can expand this tab later with screenshots, examples, and before/after videos.</p>
+      </div>
+    </section>
+
+    <section class="tabPanel" id="tab-pricing" role="tabpanel">
+      <div class="panel">
         <h2>Pricing</h2>
-        <p>Keep it simple. Start small and scale as you grow.</p>
+        <p class="muted">Add tiers here (Starter / Pro / Enterprise). Keep it simple and clear.</p>
       </div>
-
-      <div class="pricing">
-        <article class="priceCard">
-          <div class="priceTop">
-            <div class="priceName">Starter</div>
-            <div class="price">$19<span>/mo</span></div>
-          </div>
-          <ul>
-            <li>Fast dubs for short videos</li>
-            <li>Voice preserved</li>
-            <li>Basic lip-sync</li>
-          </ul>
-          <button class="btn btnGlow full" id="btnStarter" type="button">
-            <span class="btnIcon">✨</span><span>Get Starter</span><span class="btnFx"></span>
-          </button>
-        </article>
-
-        <article class="priceCard featured">
-          <div class="priceTop">
-            <div class="priceName">Creator</div>
-            <div class="price">$49<span>/mo</span></div>
-          </div>
-          <ul>
-            <li>Multiple languages per video</li>
-            <li>Better voice match</li>
-            <li>Priority processing</li>
-          </ul>
-          <button class="btn btnPulse full" id="btnCreator" type="button">
-            <span class="btnIcon">🚀</span><span>Get Creator</span><span class="btnFx"></span>
-          </button>
-        </article>
-
-        <article class="priceCard">
-          <div class="priceTop">
-            <div class="priceName">Studio</div>
-            <div class="price">$149<span>/mo</span></div>
-          </div>
-          <ul>
-            <li>Teams & workflows</li>
-            <li>Highest-quality lip-sync</li>
-            <li>Support & SLAs</li>
-          </ul>
-          <button class="btn btnShine full" id="btnStudio" type="button">
-            <span class="btnIcon">🏁</span><span>Talk to us</span><span class="btnFx"></span>
-          </button>
-        </article>
-      </div>
-
-      <p class="fineprint">
-        Pricing is placeholder — update it any time. The design will still look great.
-      </p>
     </section>
 
-    <section class="section" id="contact">
-      <div class="sectionHead">
-        <h2>Get early access</h2>
-        <p>Drop your email — we’ll notify you when the full pipeline is live.</p>
-      </div>
-
-      <div class="contactCard">
-        <div class="contactRow">
-          <div class="contactKey">Email</div>
-          <div class="contactVal">
-            <input class="emailInput" id="emailInput" placeholder="you@company.com" />
-            <button class="copyBtn" id="btnSaveEmail" type="button">Save</button>
-            <button class="copyBtn ghost" id="btnCopySite" type="button">Copy site link</button>
-          </div>
-        </div>
-
-        <div class="contactRow">
-          <div class="contactKey">Status</div>
-          <div class="contactVal muted" id="contactStatus">No email saved yet.</div>
-        </div>
+    <section class="tabPanel" id="tab-docs" role="tabpanel">
+      <div class="panel">
+        <h2>Docs</h2>
+        <p class="muted">Add: API endpoints, request/response examples, and how to deploy on Render.</p>
       </div>
     </section>
 
     <footer class="footer">
-      <span>© <span id="year"></span> YouDub</span>
-      <span class="muted">Modern UI • Hosted on Render</span>
+      <span>© <span id="year"></span> LYPO</span>
+      <span class="muted">Hosted on Render</span>
     </footer>
   </main>
 
