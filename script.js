@@ -9,73 +9,8 @@
 
   // Pricing hint (USD)
   const PRICE_PER_30S_USD = 2.89;
-  // Credits
-  const LYPOS_PER_USD = 100;
-  const BALANCE_KEY = "lypo_balance_lypos";
 
   const $ = (id) => document.getElementById(id);
-
-  // ---- Credits state
-  let balanceLypos = 0;
-  let paidForCurrent = false;
-  let currentCostLypos = 0;
-
-  function loadBalance() {
-    const raw = Number(localStorage.getItem(BALANCE_KEY));
-    balanceLypos = Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
-  }
-
-  function saveBalance() {
-    localStorage.setItem(BALANCE_KEY, String(Math.max(0, Math.floor(balanceLypos))));
-  }
-
-  function formatLypos(n) {
-    const v = Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
-    return `${v.toLocaleString()} LYPOS`;
-  }
-
-  function usdToLypos(usd) {
-    const u = Number.isFinite(usd) ? usd : 0;
-    return Math.round(u * LYPOS_PER_USD);
-  }
-
-  function setBalanceChip() {
-    const el = $("chipBalance");
-    if (el) el.textContent = `Balance: ${formatLypos(balanceLypos)}`;
-  }
-
-  function setPayLabel(text) {
-    const pay = $("btnPay");
-    const label = pay?.querySelector(".btnLabel");
-    if (label && typeof text === "string") label.textContent = text;
-  }
-
-  function updatePaymentUI() {
-    const run = $("btnRun");
-    const pay = $("btnPay");
-    const hasFile = !!$("videoFile")?.files?.[0];
-
-    // If there's no file selected, payment is a top-up action.
-    if (!hasFile) {
-      paidForCurrent = false;
-      currentCostLypos = 0;
-      if (run) run.disabled = false;
-      if (pay) pay.disabled = false;
-      setPayLabel("Buy LYPOS");
-      return;
-    }
-
-    // With a file, require paying before running.
-    const needsPay = !paidForCurrent;
-    if (run) run.disabled = needsPay;
-    if (pay) pay.disabled = paidForCurrent;
-
-    if (paidForCurrent) {
-      setPayLabel("Paid ✓");
-    } else {
-      setPayLabel(`Pay (${formatLypos(currentCostLypos)})`);
-    }
-  }
 
   // ---- UI helpers
   function setStatus(text) {
@@ -147,9 +82,6 @@
       pay.classList.toggle("isLoading", !!isLoading);
     }
     if (typeof text === "string") setStatus(text);
-
-    // Restore pay/run state after loading ends (payment gating)
-    if (!isLoading) updatePaymentUI();
   }
 
   // ---- Generating messages
@@ -180,7 +112,34 @@
       genMsgTimer = null;
     }
   }
-
+  function attachPay() {
+    const btn = $("btnPay");
+    if (!btn) return;
+  
+    btn.addEventListener("click", async () => {
+      try {
+        const email = prompt("Enter your email to receive credits:");
+        if (!email) return;
+  
+        setLoading(true, "Opening payment…");
+  
+        const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ packId: "pack10", email }), // example pack
+        });
+  
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Failed to start checkout");
+  
+        window.location.href = data.url; // redirect to Stripe Checkout
+      } catch (e) {
+        setLoading(false, "Ready");
+        setStatus(`Payment error: ${e.message || e}`);
+      }
+    });
+  }
+  
   // ---- Download (blob only; avoids fullscreen/player)
   function resetDownload() {
     const btn = $("btnDownload");
@@ -364,12 +323,6 @@
       const file = input.files?.[0] || null;
       setName(file);
 
-      // new file => payment reset
-      paidForCurrent = false;
-      currentCostLypos = 0;
-      setBalanceChip();
-      updatePaymentUI();
-
       resetDownload();
       clearOutputVideo();
       showSkeleton(false);
@@ -382,8 +335,7 @@
 
       if (!file) {
         if (costEl) costEl.textContent = "";
-        if (pay) pay.querySelector(".btnLabel").textContent = "Buy LYPOS";
-        updatePaymentUI();
+        if (pay) pay.querySelector(".btnLabel").textContent = "Pay";
         return;
       }
 
@@ -392,13 +344,8 @@
       tmp.onloadedmetadata = () => {
         const seconds = Number(tmp.duration);
         const est = estimateCostFromSeconds(seconds);
-        currentCostLypos = est ? usdToLypos(est) : 0;
-
-        if (costEl && est) {
-          costEl.textContent = `Estimated: ${formatUSD(est)} (${formatLypos(currentCostLypos)})`;
-        }
-
-        updatePaymentUI();
+        if (costEl && est) costEl.textContent = `Estimated: ${formatUSD(est)}`;
+        if (pay && est) pay.querySelector(".btnLabel").textContent = `Pay (${formatUSD(est)})`;
         URL.revokeObjectURL(tmp.src);
       };
       tmp.src = URL.createObjectURL(file);
@@ -447,7 +394,6 @@
 
     if (!file) return setStatus("Please choose a video first.");
     if (!outputLanguage) return setStatus("Please select a target language.");
-    if (!paidForCurrent) return setStatus(`Please pay ${formatLypos(currentCostLypos)} before running.`);
 
     resetDownload();
     clearOutputVideo();
@@ -581,71 +527,7 @@
   function attachPay() {
     const btn = $("btnPay");
     if (!btn) return;
-
-    btn.addEventListener("click", () => {
-      const file = $("videoFile")?.files?.[0] || null;
-
-      // --- No file selected: treat as top-up
-      if (!file) {
-        const raw = prompt("Buy LYPOS\n\nEnter amount in USD (1 USD = 100 LYPOS):", "10");
-        if (raw === null) return;
-        const usd = Number(String(raw).replace(/[^0-9.]/g, ""));
-        if (!Number.isFinite(usd) || usd <= 0) {
-          setStatus("Invalid amount.");
-          return;
-        }
-        const add = usdToLypos(usd);
-        balanceLypos += add;
-        saveBalance();
-        setBalanceChip();
-        updatePaymentUI();
-        setStatus(`Added ${formatLypos(add)} ✅`);
-        return;
-      }
-
-      // --- File selected: pay required cost
-      if (!currentCostLypos || currentCostLypos <= 0) {
-        setStatus("Select a video first so we can calculate the cost.");
-        return;
-      }
-
-      if (paidForCurrent) {
-        setStatus("Already paid for this video.");
-        return;
-      }
-
-      if (balanceLypos < currentCostLypos) {
-        const short = currentCostLypos - balanceLypos;
-        const raw = prompt(
-          `Not enough LYPOS. You are short by ${formatLypos(short)}.\n\nEnter USD to top up (1 USD = 100 LYPOS):`,
-          String(Math.ceil(short / LYPOS_PER_USD))
-        );
-        if (raw === null) return;
-        const usd = Number(String(raw).replace(/[^0-9.]/g, ""));
-        if (!Number.isFinite(usd) || usd <= 0) {
-          setStatus("Invalid amount.");
-          return;
-        }
-        const add = usdToLypos(usd);
-        balanceLypos += add;
-        saveBalance();
-        setBalanceChip();
-      }
-
-      if (balanceLypos < currentCostLypos) {
-        setStatus("Still not enough LYPOS.");
-        updatePaymentUI();
-        return;
-      }
-
-      balanceLypos -= currentCostLypos;
-      saveBalance();
-      setBalanceChip();
-      paidForCurrent = true;
-      updatePaymentUI();
-
-      setStatus(`Paid ${formatLypos(currentCostLypos)} ✅`);
-    });
+    btn.addEventListener("click", () => setStatus("Payment is not connected yet."));
   }
 
   function setYear() {
@@ -661,9 +543,6 @@
   }
 
   // ---- INIT
-  loadBalance();
-  setBalanceChip();
-
   attachTabs();
   setYear();
   attachUploadPicker();
@@ -677,8 +556,6 @@
   showSkeleton(false);
   setPreviewTitle("No output yet");
   setPreviewHint("Generated video will appear here");
-
-  updatePaymentUI();
 
   loadLanguages();
   checkBackend();
