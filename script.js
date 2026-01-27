@@ -55,48 +55,22 @@ if (window.__LYPO_INIT__) {
   }
 
   function resetDownload() {
-    const btn = $("btnDownload");
-    if (!btn) return;
-    btn.hidden = true;
-    btn.classList.remove("isReady");
-    btn.setAttribute("aria-disabled", "true");
-    btn.setAttribute("tabindex", "-1");
-    btn.dataset.url = "";
+    const a = $("btnDownload");
+    if (!a) return;
+    a.hidden = true;
+    a.classList.remove("isReady");
+    a.setAttribute("aria-disabled", "true");
+    a.setAttribute("tabindex", "-1");
+    a.removeAttribute("href");
   }
 
   function setDownload(url) {
-    const btn = $("btnDownload");
-    const video = $("outputVideo");
-    if (!btn) return;
-
+    const a = $("btnDownload");
+    if (!a) return;
     if (!url) {
       resetDownload();
-      if (video) {
-        video.hidden = true;
-        video.removeAttribute("src");
-        video.load?.();
-      }
       return;
     }
-
-    btn.hidden = false;
-    btn.dataset.url = url;
-    btn.classList.add("isReady");
-    btn.setAttribute("aria-disabled", "false");
-    btn.removeAttribute("tabindex");
-
-    // Show preview (no autoplay, no popups)
-    if (video) {
-      video.hidden = false;
-      video.src = url;
-      video.load?.();
-    }
-
-    // Auto-trigger download once (best effort). If browser blocks it, button stays highlighted.
-    setTimeout(() => {
-      try { btn.click(); } catch (_) {}
-    }, 150);
-  }
 
     a.hidden = false;
     a.href = url;
@@ -125,33 +99,7 @@ if (window.__LYPO_INIT__) {
     return new Promise((r) => setTimeout(r, ms));
   }
 
-  
-
-  async function downloadViaBlob(url, filename = "lypo-output.mp4") {
-    // Best-effort: force download even if the MP4 would normally stream/play.
-    // Requires CORS permission on the outputUrl.
-    const res = await fetch(url, { mode: "cors" });
-    if (!res.ok) throw new Error("Download failed");
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
-  }
-
-  function guessMp4Name() {
-    const original = $("videoFile")?.files?.[0]?.name || "video";
-    const base = original.replace(/\.[^.]+$/, "");
-    return `${base}-translated.mp4`;
-  }
-// ---- Tabs ----
+  // ---- Tabs ----
   function activateTab(tabName) {
     document.querySelectorAll(".tabBtn").forEach((b) => {
       const is = b.dataset.tab === tabName;
@@ -404,10 +352,6 @@ if (window.__LYPO_INIT__) {
         return;
       }
 
-      const outV = $("outputVideo");
-      if (outV) { outV.hidden = true; outV.removeAttribute("src"); outV.load?.(); }
-      const hint = $("previewHint");
-      if (hint) hint.textContent = "Generated video will appear here";
       setLoading(true, "Uploading…");
       log(`Uploading: ${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`);
       log(`Language: ${lang}`);
@@ -441,11 +385,8 @@ if (window.__LYPO_INIT__) {
       setLoading(false, "Done ✅");
 
       if (final?.outputUrl) {
-        setStatus("Ready ✅");
+        setStatus("Ready to download ✅");
         setDownload(final.outputUrl);
-        const hint = $("previewHint");
-        if (hint) hint.textContent = "Preview ready (no autoplay). Download starts automatically.";
-
       } else {
         log("No outputUrl returned. Ensure backend returns outputUrl on success.");
       }
@@ -476,24 +417,8 @@ if (window.__LYPO_INIT__) {
 
     $("btnRun")?.addEventListener("click", runUploadDub);
 
-    $("btnDownload")?.addEventListener("click", async () => {
-      const btn = $("btnDownload");
-      const url = btn?.dataset?.url;
-      if (!url || btn?.getAttribute("aria-disabled") === "true") return;
-      try {
-        setStatus("Downloading…");
-        await downloadViaBlob(url, guessMp4Name());
-        setStatus("Downloaded ✅");
-      } catch (e) {
-        // If CORS blocks blob download, we can only open the URL.
-        // Keep the button highlighted and tell the user what to change server-side.
-        setStatus("Download blocked by server (CORS) ⚠️");
-        log(`Download blocked (CORS). Ask backend to enable CORS on outputUrl or proxy it. ${e?.message || ""}`);
-      }
-    });
-
     // initial
     checkBackendHealth().then((ok) => ok && loadLanguages());
     updateCostUI();
   })();
-
+}
