@@ -56,11 +56,19 @@ async function runAiDemo() {
   // log("AI response received.");
   // consoleEl.textContent = JSON.stringify(data, null, 2);
 
-  // Simulate:
-  chipBackend.textContent = "Backend: not connected";
-  await new Promise((r) => setTimeout(r, 650));
-  setStatus("UI OK ✅ Next: connect backend endpoint");
-  log("UI demo complete. Add backend URL to script.js when ready.");
+const BACKEND = "https://YOUR-BACKEND.onrender.com";
+
+async function runDubDemo() {
+  const res = await fetch(`${BACKEND}/api/dub`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      videoUrl: "https://example.com/video.mp4",
+      targetLanguage: "es"
+    })
+
+  const data = await res.json();
+  document.getElementById("console").textContent = JSON.stringify(data, null, 2);
 }
 
 $("btnRunAi").addEventListener("click", runAiDemo);
