@@ -1,5 +1,5 @@
 /* ========= CONFIG ========= */
-const BACKEND_BASE_URL = "https://YOUR-BACKEND.onrender.com"; // <-- set this
+const BACKEND_BASE_URL = "https://lypo-backend.onrender.com"; // <-- set this
 const POLL_INTERVAL_MS = 1400;
 const POLL_TIMEOUT_MS = 6 * 60 * 1000;
 
