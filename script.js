@@ -1,53 +1,54 @@
-// Prevent double-init (fixes “double buttons / double handlers” symptoms)
-if (window.__LYPO_INIT__) {
-  console.warn("LYPO already initialized (script.js loaded twice?)");
-} else {
+// LYPO frontend demo script (v10) — clean init (fixes broken buttons + preview)
+(() => {
+  if (window.__LYPO_INIT__) return;
   window.__LYPO_INIT__ = true;
 
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com"; // <-- set this
+  // === CONFIG ===
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com"; // change if needed
   const POLL_INTERVAL_MS = 1400;
   const POLL_TIMEOUT_MS = 8 * 60 * 1000;
-  const PRICE_PER_30S_EUR = 2.89;
+
+  // Pricing hint (USD)
+  const PRICE_PER_30S_USD = 2.89;
 
   const $ = (id) => document.getElementById(id);
 
-  function nowTime() {
-    return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  }
-
-  function log(line) {
-    // Console removed from UI; keep this as a no-op unless a #console element exists.
-    const consoleEl = $("console");
-    if (!consoleEl) return;
-    consoleEl.textContent = `[${nowTime()}] ${line}\n\n` + consoleEl.textContent;
-  }
-
+  // ---------- UI helpers ----------
   function setStatus(text) {
-    const el = $("statusText");
-    if (el) el.textContent = text;
+    const st = $("statusText");
+    if (st) st.textContent = text;
   }
-
+  function setPreviewTitle(text) {
+    const p = $("previewText");
+    if (p) p.textContent = text;
+  }
+  function setPreviewHint(text) {
+    const h = $("previewHint");
+    if (h) h.textContent = text;
+  }
+  function showSkeleton(on) {
+    const sk = $("previewSkeleton");
+    if (sk) sk.hidden = !on;
+  }
+  function clearOutputVideo() {
+    const v = $("outputVideo");
+    if (!v) return;
+    try { v.pause?.(); } catch {}
+    v.hidden = true;
+    v.removeAttribute("src");
+    v.load?.();
+  }
+  function showOutputVideo(url) {
+    const v = $("outputVideo");
+    if (!v) return;
+    v.hidden = false;
+    v.src = url;
+    v.load?.();
+  }
   function setBackendChip(text) {
     const el = $("chipBackend");
     if (el) el.textContent = text;
   }
-
-  
-  function setPreview(state, bodyText) {
-    const box = $("previewBox");
-    const body = $("previewBody");
-    const title = $("previewTitle");
-    if (box) box.classList.toggle("isReady", state === "ready");
-    if (title) title.textContent = state === "ready" ? "Output ready" : "Output preview";
-    if (body && typeof bodyText === "string") body.textContent = bodyText;
-  }
-
-function euro(n) {
-    // Use comma decimals to match €2,89 in the UI.
-    const fixed = Number.isFinite(n) ? n.toFixed(2) : "0.00";
-    return fixed.replace(".", ",");
-  }
-
   function setLoading(isLoading, text) {
     const pill = $("statusPill");
     const progress = $("progressWrap");
@@ -56,371 +57,406 @@ function euro(n) {
 
     if (pill) pill.classList.toggle("isLoading", !!isLoading);
     if (progress) progress.hidden = !isLoading;
-    if (run) run.classList.toggle("isLoading", !!isLoading);
-    if (pay) pay.classList.toggle("isLoading", !!isLoading);
+
+    if (run) {
+      run.disabled = !!isLoading;
+      run.classList.toggle("isLoading", !!isLoading);
+    }
+    if (pay) {
+      pay.disabled = !!isLoading;
+      pay.classList.toggle("isLoading", !!isLoading);
+    }
     if (typeof text === "string") setStatus(text);
   }
 
+  // ---------- Download ----------
   function resetDownload() {
-    const a = $("btnDownload");
-    if (!a) return;
-    a.hidden = true;
-    a.removeAttribute("href");
+    const btn = $("btnDownload");
+    if (!btn) return;
+    btn.hidden = true;
+    btn.classList.remove("isReady");
+    btn.setAttribute("aria-disabled", "true");
+    btn.setAttribute("tabindex", "-1");
+    btn.dataset.url = "";
   }
+  function enableDownload(url) {
+    const btn = $("btnDownload");
+    if (!btn) return;
+    btn.hidden = false;
+    btn.dataset.url = url;
+    btn.classList.add("isReady");
+    btn.setAttribute("aria-disabled", "false");
+    btn.removeAttribute("tabindex");
+  }
+  function guessMp4Name() {
+    const original = $("videoFile")?.files?.[0]?.name || "video";
+    const base = original.replace(/\.[^.]+$/, "");
+    return `${base}-translated.mp4`;
+  }
+  async function downloadViaBlob(url, filename) {
+    // Requires CORS access to fetch the file
+    const res = await fetch(url, { mode: "cors" });
+    if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
 
-  function setDownload(url) {
-    const a = $("btnDownload");
-    if (!a) return;
-    if (!url) {
-      resetDownload();
-      return;
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+  }
+  function makeDownloadUrl(rawUrl, filename) {
+    // Best-effort: add attachment disposition for S3/GCS signed URLs
+    try {
+      const u = new URL(rawUrl);
+      const host = u.host || "";
+      const isS3 = host.includes("amazonaws.com") || u.searchParams.has("X-Amz-Signature");
+      const isGcs = host.includes("storage.googleapis.com");
+      if (isS3 || isGcs) {
+        u.searchParams.set("response-content-disposition", `attachment; filename="${filename}"`);
+        u.searchParams.set("response-content-type", "video/mp4");
+        return u.toString();
+      }
+      return rawUrl;
+    } catch {
+      return rawUrl;
     }
-    a.hidden = false;
-    a.href = url;
   }
 
+  // ---------- Tabs ----------
+  function attachTabs() {
+    const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
+    const panels = Array.from(document.querySelectorAll(".tabPanel"));
+    const goHome = document.querySelector("[data-go='home']");
+
+    function activate(tab) {
+      tabBtns.forEach((b) => {
+        const on = b.dataset.tab === tab;
+        b.classList.toggle("isActive", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      panels.forEach((p) => p.classList.toggle("isActive", p.id === `tab-${tab}`));
+    }
+
+    tabBtns.forEach((b) => b.addEventListener("click", () => activate(b.dataset.tab)));
+    goHome?.addEventListener("click", (e) => {
+      e.preventDefault();
+      activate("home");
+    });
+  }
+
+  // ---------- Networking ----------
   async function fetchJson(url, options = {}) {
     const res = await fetch(url, options);
     const isJson = (res.headers.get("content-type") || "").includes("application/json");
     if (!res.ok) {
-      const body = isJson ? await res.json().catch(() => ({})) : await res.text().catch(() => "");
-      throw new Error(body?.error || body?.message || res.statusText || "Request failed");
+      const body = isJson ? await res.json().catch(() => null) : await res.text().catch(() => "");
+      throw new Error(typeof body === "string" ? body : (body?.error || `HTTP ${res.status}`));
     }
-    return isJson ? res.json() : res.text();
+    return isJson ? res.json() : null;
   }
 
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
-
-  // ---- Tabs ----
-  function activateTab(tabName) {
-    document.querySelectorAll(".tabBtn").forEach((b) => {
-      const is = b.dataset.tab === tabName;
-      b.classList.toggle("isActive", is);
-      b.setAttribute("aria-selected", is ? "true" : "false");
-    });
-
-    document.querySelectorAll(".tabPanel").forEach((p) => {
-      p.classList.toggle("isActive", p.id === `tab-${tabName}`);
-    });
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function initTabs() {
-    document.querySelectorAll(".tabBtn").forEach((btn) => {
-      btn.addEventListener("click", () => activateTab(btn.dataset.tab));
-    });
-
-    document.querySelectorAll("[data-go]").forEach((el) => {
-      const go = el.getAttribute("data-go");
-      if (!go) return;
-      el.addEventListener("click", (e) => {
-        e.preventDefault();
-        activateTab(go);
-      });
-    });
-  }
-
-  // Magnetic animation (only for the .ctaMag button)
-  function initMagneticCta() {
-    const magBtn = document.querySelector(".ctaMag");
-    if (!magBtn) return;
-
-    magBtn.addEventListener("mousemove", (e) => {
-      const r = magBtn.getBoundingClientRect();
-      const dx = (e.clientX - (r.left + r.width / 2)) / 16;
-      const dy = (e.clientY - (r.top + r.height / 2)) / 16;
-      magBtn.style.transform = `translate(${dx}px, ${dy}px)`;
-    });
-
-    magBtn.addEventListener("mouseleave", () => {
-      magBtn.style.transform = "";
-    });
-  }
-
-  // ---- Backend ----
-  async function checkBackendHealth() {
-    if (!BACKEND_BASE_URL || BACKEND_BASE_URL.includes("YOUR-BACKEND")) {
-      setBackendChip("Backend: set URL in script.js");
-      log("Set BACKEND_BASE_URL in script.js to your Render backend URL.");
-      return false;
-    }
-
-    setBackendChip("Backend: checking…");
-    try {
-      const data = await fetchJson(`${BACKEND_BASE_URL}/health`);
-      if (data?.ok) {
-        setBackendChip("Backend: online ✓");
-        return true;
-      }
-      setBackendChip("Backend: responded");
-      return true;
-    } catch (e) {
-      setBackendChip("Backend: offline / wrong URL");
-      log(`Health check failed: ${e.message}`);
-      return false;
-    }
-  }
-
+  // ---------- Languages ----------
   async function loadLanguages() {
-    const sel = $("targetLang");
-    if (!sel) return;
+    const select = $("targetLang");
+    if (!select) return;
 
-    sel.innerHTML = `<option>Loading…</option>`;
-    try {
-      const data = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
-      const langs = data?.languages || [];
-      sel.innerHTML = "";
-      for (const name of langs) {
+    const NAMES = {
+      "ar": "Arabic",
+      "bg": "Bulgarian",
+      "bn": "Bengali",
+      "cs": "Czech",
+      "da": "Danish",
+      "de": "German",
+      "el": "Greek",
+      "en": "English",
+      "es": "Spanish",
+      "et": "Estonian",
+      "fa": "Persian",
+      "fi": "Finnish",
+      "fr": "French",
+      "he": "Hebrew",
+      "hi": "Hindi",
+      "hu": "Hungarian",
+      "id": "Indonesian",
+      "it": "Italian",
+      "ja": "Japanese",
+      "ko": "Korean",
+      "lt": "Lithuanian",
+      "lv": "Latvian",
+      "ms": "Malay",
+      "nl": "Dutch",
+      "no": "Norwegian",
+      "pl": "Polish",
+      "pt": "Portuguese",
+      "pt-BR": "Portuguese (Brazil)",
+      "ro": "Romanian",
+      "ru": "Russian",
+      "sk": "Slovak",
+      "sv": "Swedish",
+      "sw": "Swahili",
+      "th": "Thai",
+      "tl": "Filipino",
+      "tr": "Turkish",
+      "uk": "Ukrainian",
+      "ur": "Urdu",
+      "vi": "Vietnamese",
+      "zh": "Chinese",
+      "zh-CN": "Chinese (Simplified)",
+      "zh-TW": "Chinese (Traditional)"
+    };
+
+    function normalizeItem(item) {
+      if (typeof item === "string") return { code: item, name: NAMES[item] || item };
+      if (!item) return null;
+      const code = item.code || item.value || item.lang || item.id;
+      const name = item.name || item.label || item.title || (code ? (NAMES[code] || code) : null);
+      if (!code) return null;
+      return { code, name: name || code };
+    }
+
+    function fill(list) {
+      select.innerHTML = "";
+      list.forEach(({ code, name }) => {
         const opt = document.createElement("option");
-        opt.value = name;
+        opt.value = code;
         opt.textContent = name;
-        sel.appendChild(opt);
-      }
-      if (langs.includes("Spanish")) sel.value = "Spanish";
-    } catch (e) {
-      // fallback minimal list
-      sel.innerHTML = "";
-      ["Spanish", "French", "German", "Italian", "Portuguese", "Japanese", "Korean"].forEach((l) => {
-        const opt = document.createElement("option");
-        opt.value = l;
-        opt.textContent = l;
-        sel.appendChild(opt);
+        select.appendChild(opt);
       });
-      log(`Could not load languages from backend, using fallback. Error: ${e.message}`);
-    }
-  }
-
-  // ---- Upload UI (button + drag & drop) + price estimate ----
-  let lastEstimatedCost = null;
-  let lastDurationSec = null;
-
-  function updateCostUI() {
-    const el = $("costEstimate");
-    const pay = $("btnPay");
-
-    if (!el) return;
-
-    if (!lastDurationSec || !Number.isFinite(lastDurationSec) || lastDurationSec <= 0) {
-      el.textContent = "";
-      if (pay) pay.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Pay"));
-      return;
     }
 
-    const mins = Math.round((lastDurationSec / 60) * 10) / 10;
-    el.textContent = `Est. length: ${mins} min • Est. cost: €${euro(lastEstimatedCost)}`;
-    if (pay) pay.querySelector(".btnLabel")?.replaceChildren(document.createTextNode(`Pay €${euro(lastEstimatedCost)}`));
-  }
-
-  async function computeDurationSeconds(file) {
     try {
-      const url = URL.createObjectURL(file);
-      const video = document.createElement("video");
-      video.preload = "metadata";
-      video.src = url;
-      await new Promise((resolve, reject) => {
-        video.onloadedmetadata = () => resolve();
-        video.onerror = () => reject(new Error("Could not read video metadata"));
-      });
-      const d = Number(video.duration);
-      URL.revokeObjectURL(url);
-      return Number.isFinite(d) ? d : null;
+      const raw = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
+      const items = (raw || []).map(normalizeItem).filter(Boolean);
+      if (items.length) {
+        items.sort((a, b) => a.name.localeCompare(b.name));
+        fill(items);
+        return;
+      }
+      throw new Error("Empty language list");
     } catch {
-      return null;
+      const fallback = Object.entries(NAMES).map(([code, name]) => ({ code, name }));
+      fallback.sort((a, b) => a.name.localeCompare(b.name));
+      fill(fallback);
     }
   }
 
-  async function handleSelectedFile(file) {
-    const nameEl = $("videoName");
-    if (nameEl) nameEl.textContent = file ? file.name : "or drop it here";
-
-    resetDownload();
-    setPreview("idle", file ? `Selected: ${file.name}` : "Upload a video to get started.");
-
-    lastDurationSec = file ? await computeDurationSeconds(file) : null;
-    if (lastDurationSec && Number.isFinite(lastDurationSec)) {
-      lastEstimatedCost = (lastDurationSec / 30) * PRICE_PER_30S_EUR;
-    } else {
-      lastEstimatedCost = null;
+  // ---------- Backend health ----------
+  async function checkBackend() {
+    try {
+      await fetchJson(`${BACKEND_BASE_URL}/health`);
+      setBackendChip("Backend: connected ✓");
+    } catch {
+      setBackendChip("Backend: not connected");
     }
-    updateCostUI();
-    setPreview("idle", "Upload a video to get started. Your translated video will be ready here.");
   }
 
-  function initUploadUI() {
+  // ---------- Upload picker ----------
+  function formatUSD(n) {
+    const val = Number.isFinite(n) ? n : 0;
+    return `$${val.toFixed(2)}`;
+  }
+  function estimateCostFromSeconds(seconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0) return null;
+    const units = Math.ceil(seconds / 30);
+    return units * PRICE_PER_30S_USD;
+  }
+
+  function attachUploadPicker() {
     const input = $("videoFile");
-    const btn = $("btnPickVideo");
-    if (!input || !btn) return;
+    const pickBtn = $("btnPickVideo");
+    const nameEl = $("videoName");
+    if (!input || !pickBtn) return;
 
-    btn.addEventListener("click", () => input.click());
+    const setName = (file) => { if (nameEl) nameEl.textContent = file ? file.name : "or drop it here"; };
+
+    pickBtn.addEventListener("click", () => input.click());
 
     input.addEventListener("change", () => {
-      const file = input.files?.[0];
-      if (file) handleSelectedFile(file);
+      const file = input.files?.[0] || null;
+      setName(file);
+
+      resetDownload();
+      clearOutputVideo();
+      showSkeleton(false);
+      setPreviewTitle("No output yet");
+      setPreviewHint("Generated video will appear here");
+
+      // Cost estimate
+      const costEl = $("costEstimate");
+      const pay = $("btnPay");
+      if (!file) {
+        if (costEl) costEl.textContent = "";
+        if (pay) pay.querySelector(".btnLabel").textContent = "Pay";
+        return;
+      }
+
+      const tmp = document.createElement("video");
+      tmp.preload = "metadata";
+      tmp.onloadedmetadata = () => {
+        const seconds = Number(tmp.duration);
+        const est = estimateCostFromSeconds(seconds);
+        if (costEl && est) costEl.textContent = `Estimated: ${formatUSD(est)}`;
+        if (pay && est) pay.querySelector(".btnLabel").textContent = `Pay (${formatUSD(est)})`;
+        URL.revokeObjectURL(tmp.src);
+      };
+      tmp.src = URL.createObjectURL(file);
     });
 
-    // Drag & drop
-    const prevent = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-    ["dragenter", "dragover"].forEach((evt) => {
-      btn.addEventListener(evt, (e) => {
-        prevent(e);
-        btn.classList.add("dragOver");
+    // Drag & drop ONLY on the upload button
+    ["dragenter", "dragover"].forEach((ev) => {
+      pickBtn.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        pickBtn.classList.add("dragOver");
       });
     });
-    ["dragleave", "drop"].forEach((evt) => {
-      btn.addEventListener(evt, (e) => {
-        prevent(e);
-        btn.classList.remove("dragOver");
+    ["dragleave", "drop"].forEach((ev) => {
+      pickBtn.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        pickBtn.classList.remove("dragOver");
       });
     });
-    btn.addEventListener("drop", (e) => {
+    pickBtn.addEventListener("drop", (e) => {
       const file = e.dataTransfer?.files?.[0];
       if (!file) return;
-      // Some browsers require a DataTransfer to programmatically set input.files
-      try {
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        input.files = dt.files;
-      } catch {
-        // If it fails, we still handle the file for UI/estimate.
-      }
-      handleSelectedFile(file);
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event("change"));
     });
   }
 
+  // ---------- Job polling ----------
   async function pollJob(jobId) {
-    const t0 = Date.now();
-    while (true) {
-      if (Date.now() - t0 > POLL_TIMEOUT_MS) {
-        setStatus("Timed out ⚠️");
-        log("Polling timed out.");
-        return null;
-      }
-
-      await sleep(POLL_INTERVAL_MS);
-
-      let data;
-      try {
-        data = await fetchJson(`${BACKEND_BASE_URL}/api/dub/${encodeURIComponent(jobId)}`);
-      } catch (e) {
-        log(`Polling error (retrying): ${e.message}`);
-        continue;
-      }
-
-      const status = (data?.status || "").toLowerCase();
-      setStatus(status ? `Status: ${status}` : "Status: …");
-      log(`Status: ${status || "(unknown)"}`);
-
-      if (["succeeded","success","completed","done"].includes(status)) return data;
-      if (["failed","error","canceled","cancelled"].includes(status)) return data;
+    const start = Date.now();
+    while (Date.now() - start < POLL_TIMEOUT_MS) {
+      const j = await fetchJson(`${BACKEND_BASE_URL}/api/dub/${encodeURIComponent(jobId)}`);
+      if (j?.status === "succeeded" && j?.outputUrl) return j;
+      if (j?.status === "failed") throw new Error(j?.error || "Job failed");
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+      setStatus("Generating…");
     }
+    throw new Error("Timed out waiting for result");
   }
 
   async function runUploadDub() {
-    const runBtn = $("btnRun");
-    const payBtn = $("btnPay");
+    const input = $("videoFile");
+    const select = $("targetLang");
+    const file = input?.files?.[0];
+    const lang = select?.value;
+
+    if (!file) return setStatus("Please choose a video first.");
+    if (!lang) return setStatus("Please select a target language.");
+
+    resetDownload();
+    clearOutputVideo();
+    showSkeleton(true);
+    setPreviewTitle("Generating…");
+    setPreviewHint("Working on it — preview will appear when ready.");
 
     try {
-      resetDownload();
-      if (runBtn) runBtn.disabled = true;
-      if (payBtn) payBtn.disabled = true;
-
-      const ok = await checkBackendHealth();
-      if (!ok) {
-        setStatus("Backend not reachable ⚠️");
-        return;
-      }
-
-      const file = $("videoFile")?.files?.[0];
-      const lang = $("targetLang")?.value;
-
-      if (!file) {
-        setStatus("Choose a video file ⚠️");
-        return;
-      }
-      if (!lang) {
-        setStatus("Choose a target language ⚠️");
-        return;
-      }
-
       setLoading(true, "Uploading…");
-      setPreview("idle", "Uploading your video…");
-      log(`Uploading: ${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`);
-      log(`Language: ${lang}`);
 
-      const form = new FormData();
-      form.append("video", file);
-      form.append("output_language", lang);
+      const fd = new FormData();
+      fd.append("video", file);
+      fd.append("output_language", lang);
 
-      const start = await fetchJson(`${BACKEND_BASE_URL}/api/dub-upload`, {
-        method: "POST",
-        body: form
-      });
+      const up = await fetchJson(`${BACKEND_BASE_URL}/api/dub-upload`, { method: "POST", body: fd });
+      const jobId = up?.id || up?.jobId || up?.predictionId;
+      if (!jobId) throw new Error("No job id returned from server.");
 
-      const jobId = start?.id;
-      if (!jobId) {
-        setLoading(false, "Started ✅ (no job id)");
-        return;
-      }
-
-      setLoading(true, "Processing…");
-      setPreview("idle", "Processing… (this can take a few minutes)");
+      setStatus("Generating…");
       const final = await pollJob(jobId);
-      if (!final) return;
 
-      const finalStatus = (final?.status || "").toLowerCase();
-      if (["failed","error","canceled","cancelled"].includes(finalStatus)) {
-        setLoading(false, "Failed ⚠️");
-        setPreview("idle", "Something went wrong while generating the video.");
-        log(`Job failed: ${final?.error || "Unknown error"}`);
-        return;
-      }
+      setLoading(false, "Ready ✅");
+      showSkeleton(false);
 
-      setLoading(false, "Done ✅");
+      // Preview (playable, no autoplay)
+      showOutputVideo(final.outputUrl);
+      setPreviewTitle("Output ready");
+      setPreviewHint("Preview is playable. Click Download to save the MP4.");
 
-      setPreview("ready", "Your translated video is ready. Download should start automatically.");
+      // Download
+      enableDownload(final.outputUrl);
 
-      if (final?.outputUrl) {
-        setDownload(final.outputUrl);
-      } else {
-        log("No outputUrl returned. Ensure backend returns outputUrl on success.");
-      }
     } catch (e) {
-      setLoading(false, "Error ⚠️");
-      setPreview("idle", "Error while uploading/processing.");
-      log(`Error: ${e.message}`);
-    } finally {
-      if (runBtn) runBtn.disabled = false;
-      if (payBtn) payBtn.disabled = false;
+      setLoading(false, "Error");
+      showSkeleton(false);
+      clearOutputVideo();
+      setPreviewTitle("Error");
+      setPreviewHint("Something went wrong.");
+      setStatus(`Error: ${e?.message || e}`);
     }
   }
 
-  // ---- Init ----
-  (function init() {
-    const year = $("year");
-    if (year) year.textContent = String(new Date().getFullYear());
+  // ---------- Button handlers ----------
+  function attachDownload() {
+    const btn = $("btnDownload");
+    if (!btn) return;
 
-    initTabs();
-    initMagneticCta();
-    initUploadUI();
+    btn.addEventListener("click", async () => {
+      const raw = btn.dataset.url;
+      if (!raw || btn.getAttribute("aria-disabled") === "true") return;
 
-    // Payment button placeholder (wire this to Stripe/checkout later)
-    $("btnPay")?.addEventListener("click", () => {
-      // For now, just take the user to pricing so you have a clean flow
-      activateTab("pricing");
-      setStatus("Checkout coming soon — wire this to your payment system.");
+      const filename = guessMp4Name();
+      const url = makeDownloadUrl(raw, filename);
+
+      // Attempt 1: direct anchor click (works if server forces attachment)
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      // Attempt 2: blob download (works if CORS allows)
+      try { await downloadViaBlob(raw, filename); } catch {}
     });
+  }
 
-    $("btnRun")?.addEventListener("click", runUploadDub);
+  function attachPay() {
+    const btn = $("btnPay");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      setStatus("Payment is not connected yet.");
+    });
+  }
 
-    // initial
-    checkBackendHealth().then((ok) => ok && loadLanguages());
-    updateCostUI();
-    setPreview("idle", "Upload a video to get started. Your translated video will be ready here.");
-  })();
-}
+  function setYear() {
+    const y = $("year");
+    if (y) y.textContent = String(new Date().getFullYear());
+  }
+
+  // Prevent any click on preview box from triggering other UI
+  function lockPreviewBox() {
+    $("previewBox")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  }
+
+  // ---------- INIT ----------
+  attachTabs();
+  setYear();
+  attachUploadPicker();
+  attachDownload();
+  attachPay();
+  lockPreviewBox();
+
+  resetDownload();
+  clearOutputVideo();
+  showSkeleton(false);
+  setPreviewTitle("No output yet");
+  setPreviewHint("Generated video will appear here");
+
+  loadLanguages();
+  checkBackend();
+
+  $("btnRun")?.addEventListener("click", runUploadDub);
+})();
