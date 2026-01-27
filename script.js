@@ -30,7 +30,9 @@
     if (sk) sk.hidden = !on;
   }
   function clearOutputVideo() {
+    const box = $("previewBox");
     const v = $("outputVideo");
+    if (box) box.classList.remove("hasVideo");
     if (!v) return;
     try { v.pause?.(); } catch {}
     v.hidden = true;
@@ -38,7 +40,9 @@
     v.load?.();
   }
   function showOutputVideo(url) {
+    const box = $("previewBox");
     const v = $("outputVideo");
+    if (box) box.classList.add("hasVideo");
     if (!v) return;
     v.hidden = false;
     v.src = url;
@@ -371,17 +375,15 @@
       if (!raw || btn.getAttribute("aria-disabled") === "true") return;
 
       const filename = guessMp4Name();
-      const url = makeDownloadUrl(raw, filename);
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      try { await downloadViaBlob(raw, filename); } catch {}
+      // Blob download only (prevents opening the MP4 player/fullscreen).
+      // This requires CORS on the outputUrl OR serving the file from the same origin via your backend.
+      try {
+        await downloadViaBlob(raw, filename);
+      } catch (e) {
+        setStatus("Download blocked by server (CORS) ⚠️");
+        setPreviewHint("To force download without opening the player: enable CORS on outputUrl or proxy it via your backend.");
+      }
     });
   }
 
