@@ -792,3 +792,9 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .previewBox{ cursor: default; pointer-events: none; }
 .previewBox *{ pointer-events: none; }
 .previewBox video{ pointer-events: auto; } /* allow playback controls only */
+
+
+/* Remove the “fog” overlay when an output video is ready */
+.previewBox.hasVideo:before{
+  opacity: 0 !important;
+}
