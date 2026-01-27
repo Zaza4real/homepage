@@ -1,5 +1,5 @@
 // LYPO frontend demo script (v7) — clean init + working buttons
-() => {
+(() => {
   if (window.__LYPO_INIT__) return;
   window.__LYPO_INIT__ = true;
 
@@ -178,93 +178,18 @@
     return isJson ? res.json() : null;
   }
 
-  
   async function loadLanguages() {
-    const select = $("targetLang");
-    if (!select) return;
-
-    const NAMES = {
-      "en": "English",
-      "es": "Spanish",
-      "de": "German",
-      "fr": "French",
-      "it": "Italian",
-      "pt": "Portuguese",
-      "pt-BR": "Portuguese (Brazil)",
-      "nl": "Dutch",
-      "sv": "Swedish",
-      "no": "Norwegian",
-      "da": "Danish",
-      "fi": "Finnish",
-      "et": "Estonian",
-      "lv": "Latvian",
-      "lt": "Lithuanian",
-      "pl": "Polish",
-      "cs": "Czech",
-      "sk": "Slovak",
-      "hu": "Hungarian",
-      "ro": "Romanian",
-      "bg": "Bulgarian",
-      "el": "Greek",
-      "tr": "Turkish",
-      "uk": "Ukrainian",
-      "ru": "Russian",
-      "ar": "Arabic",
-      "he": "Hebrew",
-      "hi": "Hindi",
-      "bn": "Bengali",
-      "ur": "Urdu",
-      "fa": "Persian",
-      "zh": "Chinese",
-      "zh-CN": "Chinese (Simplified)",
-      "zh-TW": "Chinese (Traditional)",
-      "ja": "Japanese",
-      "ko": "Korean",
-      "th": "Thai",
-      "vi": "Vietnamese",
-      "id": "Indonesian",
-      "ms": "Malay",
-      "tl": "Filipino",
-      "sw": "Swahili"
-    };
-
-    function normalizeItem(item) {
-      if (typeof item === "string") return { code: item, name: NAMES[item] || item };
-      if (!item) return null;
-      const code = item.code || item.value || item.lang || item.id;
-      const name = item.name || item.label || item.title || (code ? (NAMES[code] || code) : null);
-      if (!code) return null;
-      return { code, name };
-    }
-
-    function fill(list) {
+    try {
+      const langs = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
+      const select = $("targetLang");
+      if (!select) return;
       select.innerHTML = "";
-      for (const it of list) {
+      for (const item of langs || []) {
         const opt = document.createElement("option");
-        opt.value = it.code;
-        opt.textContent = it.name; // full name
+        opt.value = item.code || item.value || item.lang || item;
+        opt.textContent = item.name || item.label || opt.value;
         select.appendChild(opt);
       }
-    }
-
-    try {
-      const raw = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
-      const items = (raw || []).map(normalizeItem).filter(Boolean);
-      if (items.length) {
-        // Sort by display name for nicer UX
-        items.sort((a,b) => a.name.localeCompare(b.name));
-        fill(items);
-        return;
-      }
-      throw new Error("Empty language list");
-    } catch (e) {
-      // Rich fallback list with full names (covers common cases)
-      const fallback = Object.entries(NAMES).map(([code, name]) => ({ code, name }));
-      fallback.sort((a,b) => a.name.localeCompare(b.name));
-      fill(fallback);
-    }
-  }
-
     } catch (e) {
       // Fallback list
       const select = $("targetLang");
@@ -278,6 +203,7 @@
         });
       }
     }
+  }
 
   async function checkBackend() {
     try {
@@ -471,7 +397,6 @@
   attachTabs();
   setYear();
   attachUploadPicker();
-  $("previewBox")?.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
   attachDownload();
   attachPay();
   resetDownload();
@@ -482,4 +407,4 @@
 
   loadLanguages();
   checkBackend();
-;
+})();
