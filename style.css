@@ -786,3 +786,9 @@ button.btnLink{ display:inline-flex; align-items:center; }
   35%{ opacity: .9; }
   100%{ transform: translateX(40%) rotate(18deg); opacity:.0; }
 }
+
+
+/* Preview window: not pressable/clickable (except the video controls) */
+.previewBox{ cursor: default; pointer-events: none; }
+.previewBox *{ pointer-events: none; }
+.previewBox video{ pointer-events: auto; } /* allow playback controls only */
