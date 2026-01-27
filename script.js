@@ -12,13 +12,38 @@
   // Credits
   const LYPOS_PER_USD = 100;
   const BALANCE_KEY = "lypo_balance_lypos";
+  const USER_ID_KEY = "lypo_user_id";
 
   const $ = (id) => document.getElementById(id);
+
+  function getUserId() {
+    let id = localStorage.getItem(USER_ID_KEY);
+    if (!id) {
+      id = (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+      localStorage.setItem(USER_ID_KEY, id);
+    }
+    return id;
+  }
 
   // ---- Credits state
   let balanceLypos = 0;
   let paidForCurrent = false;
   let currentCostLypos = 0;
+
+  async function refreshBalanceFromServer() {
+    try {
+      const userId = getUserId();
+      const out = await apiGet(`/api/balance?userId=${encodeURIComponent(userId)}`);
+      if (out && Number.isFinite(Number(out.balanceLypos))) {
+        balanceLypos = Math.max(0, Math.floor(Number(out.balanceLypos)));
+        saveBalance();
+        setBalanceChip();
+        updatePaymentUI();
+      }
+    } catch (e) {
+      // ignore: backend might be sleeping/offline
+    }
+  }
 
   function loadBalance() {
     const raw = Number(localStorage.getItem(BALANCE_KEY));
@@ -252,6 +277,25 @@
   }
 
   // ---- Networking
+
+  async function apiPost(path, body) {
+    const res = await fetch(`${BACKEND_BASE_URL}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+    return data;
+  }
+
+  async function apiGet(path) {
+    const res = await fetch(`${BACKEND_BASE_URL}${path}`, { method: "GET" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+    return data;
+  }
+
   async function fetchJson(url, options = {}) {
     const res = await fetch(url, options);
     const isJson = (res.headers.get("content-type") || "").includes("application/json");
@@ -585,15 +629,33 @@
     btn.addEventListener("click", () => {
       const file = $("videoFile")?.files?.[0] || null;
 
-      // --- No file selected: treat as top-up
+      // --- No file selected: treat as top-up (Stripe Checkout)
       if (!file) {
-        const raw = prompt("Buy LYPOS\n\nEnter amount in USD (1 USD = 100 LYPOS):", "10");
+        const raw = prompt("Top up LYPOS via card (Stripe)
+
+Enter amount in USD (1 USD = 100 LYPOS):", "10");
         if (raw === null) return;
         const usd = Number(String(raw).replace(/[^0-9.]/g, ""));
         if (!Number.isFinite(usd) || usd <= 0) {
           setStatus("Invalid amount.");
           return;
         }
+
+        setStatus("Redirecting to secure checkout…");
+        const userId = getUserId();
+
+        apiPost("/api/create-checkout-session", { userId, usd })
+          .then((out) => {
+            if (!out?.url) throw new Error("Missing checkout URL");
+            window.location.href = out.url;
+          })
+          .catch((err) => {
+            console.error(err);
+            setStatus(err?.message || "Could not start checkout.");
+          });
+
+        return;
+      }
         const add = usdToLypos(usd);
         balanceLypos += add;
         saveBalance();
@@ -663,6 +725,10 @@
   // ---- INIT
   loadBalance();
   setBalanceChip();
+  // Sync paid balance from server (Stripe webhook fulfillment)
+  const qp = new URLSearchParams(window.location.search);
+  if (qp.get("paid") === "1") refreshBalanceFromServer();
+  refreshBalanceFromServer();
 
   attachTabs();
   setYear();
