@@ -3,86 +3,233 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aleksander — Homepage</title>
-  <meta name="description" content="Aleksander's homepage — building modern web + AI projects." />
+  <title>Aleksander — Modern Homepage</title>
+  <meta name="description" content="A modern personal homepage with AI demos, projects, writing, and contact." />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="bg"></div>
 
-  <header class="top">
-    <a class="brand" href="#">Aleksander</a>
+<body>
+  <div class="bg">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="orb o3"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
+  </div>
+
+  <header class="header">
+    <a class="logo" href="#top" aria-label="Home">
+      <span class="dot"></span>
+      <span>Aleksander</span>
+    </a>
 
     <nav class="nav">
       <a href="#work">Work</a>
-      <a href="#about">About</a>
-      <a class="pill" href="#contact">Contact</a>
+      <a href="#stack">Stack</a>
+      <a href="#notes">Notes</a>
+      <a href="#contact" class="navPill">Contact</a>
     </nav>
   </header>
 
-  <main class="container">
+  <main id="top" class="container">
     <section class="hero">
-      <div class="badge">⚡ Building with AI + web</div>
+      <div class="kicker">
+        <span class="spark">⚡</span>
+        <span>Fast web + AI experiments • Render hosted</span>
+      </div>
 
-      <h1>
-        A modern homepage for
-        <span class="grad">projects, experiments, and writing</span>.
+      <h1 class="h1">
+        A <span class="grad">beautiful</span> homepage
+        for building and shipping.
       </h1>
 
       <p class="sub">
-        I’m Aleksander. I build fast, clean web experiences and experiment with AI APIs.
-        This site is my home base.
+        I’m Aleksander. I build clean, fast interfaces and prototype with AI APIs (Replicate).
+        This is my home base for demos, projects, and writing.
       </p>
 
-      <div class="cta">
-        <a class="btn primary" href="#work">See my work</a>
-        <a class="btn" href="#contact">Get in touch</a>
+      <!-- 4 catchy animated buttons -->
+      <div class="btnRow">
+        <a class="btn btnGlow" href="#work">
+          <span class="btnIcon">✨</span>
+          <span>Explore Work</span>
+          <span class="btnFx"></span>
+        </a>
+
+        <button class="btn btnPulse" id="btnRunAi" type="button">
+          <span class="btnIcon">🧠</span>
+          <span>Run AI Demo</span>
+          <span class="btnFx"></span>
+        </button>
+
+        <a class="btn btnMag" href="#notes">
+          <span class="btnIcon">📝</span>
+          <span>Read Notes</span>
+          <span class="btnFx"></span>
+        </a>
+
+        <button class="btn btnShine" id="btnCopyEmail" type="button">
+          <span class="btnIcon">📩</span>
+          <span>Copy Email</span>
+          <span class="btnFx"></span>
+        </button>
       </div>
 
-      <div class="cards" id="work">
+      <div class="statusRow">
+        <div class="statusPill" id="statusPill">
+          <span class="ping"></span>
+          <span id="statusText">Ready.</span>
+        </div>
+
+        <div class="mini">
+          <span class="miniKey">Now:</span>
+          <span class="miniVal">designing, coding, iterating</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panelTop">
+          <div class="panelTitle">Console</div>
+          <div class="panelMeta">
+            <span class="chip">UI ✓</span>
+            <span class="chip" id="chipBackend">Backend: not connected</span>
+          </div>
+        </div>
+
+        <pre class="console" id="console">Tip: Click “Run AI Demo”. Later we’ll point it to your Render backend.</pre>
+      </div>
+
+      <div class="scrollHint">
+        <span>Scroll</span>
+        <span class="arrow">↓</span>
+      </div>
+    </section>
+
+    <section class="section" id="work">
+      <div class="sectionHead">
+        <h2>Work</h2>
+        <p>Selected experiments and small products. Simple, fast, and real.</p>
+      </div>
+
+      <div class="cards">
         <article class="card">
-          <div class="card-title">AI Demo</div>
-          <p class="card-text">Connect a Replicate-backed endpoint and run a model from the UI.</p>
-          <button class="btn small" id="run-ai">Run AI</button>
-          <pre class="output" id="output">Ready.</pre>
+          <div class="cardBadge">AI</div>
+          <h3>Replicate Playground</h3>
+          <p>Run a model from the UI with a server endpoint that keeps your API key safe.</p>
+          <div class="cardActions">
+            <button class="miniBtn" id="miniRunAi" type="button">Run demo</button>
+            <a class="miniLink" href="#stack">How it works →</a>
+          </div>
         </article>
 
         <article class="card">
-          <div class="card-title">Projects</div>
-          <p class="card-text">A small collection of things I’m building and shipping.</p>
-          <a class="link" href="#">View projects →</a>
+          <div class="cardBadge">WEB</div>
+          <h3>Fast Landing Pages</h3>
+          <p>Modern UI, clean UX, good typography. The basics done properly.</p>
+          <div class="cardActions">
+            <a class="miniLink" href="#notes">Design notes →</a>
+          </div>
         </article>
 
         <article class="card">
-          <div class="card-title">Writing</div>
-          <p class="card-text">Notes on product, engineering, and lessons learned.</p>
-          <a class="link" href="#">Read posts →</a>
+          <div class="cardBadge">BUILD</div>
+          <h3>Mini Tools</h3>
+          <p>Small utilities that solve a clear problem. Shipping & iterating quickly.</p>
+          <div class="cardActions">
+            <a class="miniLink" href="#contact">Collaborate →</a>
+          </div>
         </article>
       </div>
     </section>
 
-    <section class="section" id="about">
-      <h2>About</h2>
-      <p>
-        I care about performance, clarity, and shipping. I like simple interfaces that feel great to use.
-        Currently exploring AI workflows and lightweight web stacks.
-      </p>
+    <section class="section" id="stack">
+      <div class="sectionHead">
+        <h2>Stack</h2>
+        <p>Beginner-friendly now, scalable later.</p>
+      </div>
+
+      <div class="stackGrid">
+        <div class="stackItem">
+          <div class="stackTitle">Frontend</div>
+          <p>HTML/CSS/JS today. Upgrade to React/Next later without rewriting everything.</p>
+        </div>
+        <div class="stackItem">
+          <div class="stackTitle">Hosting</div>
+          <p>Render Static Site for the UI, plus a Render Web Service for API endpoints.</p>
+        </div>
+        <div class="stackItem">
+          <div class="stackTitle">AI</div>
+          <p>Backend calls Replicate. The token lives in environment variables, not in the browser.</p>
+        </div>
+        <div class="stackItem">
+          <div class="stackTitle">Performance</div>
+          <p>CDN delivery, minimal JS, responsive layout, and motion that stays subtle.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="calloutTitle">Next up</div>
+        <p>
+          When your domain is verified, we’ll add a backend endpoint and wire the AI button to it.
+          You’ll have a real “AI demo” on your homepage.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="notes">
+      <div class="sectionHead">
+        <h2>Notes</h2>
+        <p>Short thoughts on building: clarity, speed, and quality.</p>
+      </div>
+
+      <div class="notes">
+        <article class="note">
+          <div class="noteTitle">Make it feel fast</div>
+          <p>Don’t overload the page. Use space, strong type, and one accent. Motion should be purposeful.</p>
+        </article>
+        <article class="note">
+          <div class="noteTitle">Keep secrets server-side</div>
+          <p>AI tokens never go into the browser. Use your backend service to call Replicate securely.</p>
+        </article>
+        <article class="note">
+          <div class="noteTitle">Ship v1, then polish</div>
+          <p>Launch something real, then iterate. A clean baseline beats a “perfect someday”.</p>
+        </article>
+      </div>
     </section>
 
     <section class="section" id="contact">
-      <h2>Contact</h2>
-      <p>
-        Email: <a class="link" href="mailto:you@example.com">you@example.com</a>
-        <span class="sep">•</span>
-        GitHub: <a class="link" href="#">@yourhandle</a>
-        <span class="sep">•</span>
-        X/LinkedIn: <a class="link" href="#">link</a>
-      </p>
+      <div class="sectionHead">
+        <h2>Contact</h2>
+        <p>Want to collaborate or chat? Send a message.</p>
+      </div>
+
+      <div class="contactCard">
+        <div class="contactRow">
+          <div class="contactKey">Email</div>
+          <div class="contactVal">
+            <a id="emailLink" class="link" href="mailto:you@example.com">you@example.com</a>
+            <button class="copyBtn" id="copySmall" type="button">Copy</button>
+          </div>
+        </div>
+
+        <div class="contactRow">
+          <div class="contactKey">GitHub</div>
+          <div class="contactVal">
+            <a class="link" href="#" target="_blank" rel="noreferrer">@yourhandle</a>
+          </div>
+        </div>
+
+        <div class="contactRow">
+          <div class="contactKey">Location</div>
+          <div class="contactVal muted">Tallinn-ish time zone vibes</div>
+        </div>
+      </div>
     </section>
 
     <footer class="footer">
       <span>© <span id="year"></span> Aleksander</span>
-      <span class="muted">Built on Render</span>
+      <span class="muted">Built with HTML/CSS/JS • Hosted on Render</span>
     </footer>
   </main>
 
