@@ -34,9 +34,7 @@
     <!-- HOME -->
     <section class="tabPanel isActive" id="tab-home" role="tabpanel">
       <div class="hero">
-        <div class="kicker">⚪ AI dubbing • voice-preserving • lip-sync</div>
-
-        <h1 class="h1">
+                <h1 class="h1">
           Translate your video to <span class="grad">every language</span>
           — keep your voice, sync the lips.
         </h1>
@@ -76,6 +74,7 @@
                         <span class="previewText" id="previewText">No output yet</span>
                       </div>
                       <div class="previewHint" id="previewHint">Generated video will appear here</div>
+                      <video id="outputVideo" class="outputVideo" controls playsinline hidden></video>
                     </div>
                   </div>
                 </div>
@@ -99,10 +98,10 @@
                   <span class="btnGlow"></span>
                 </button>
 
-                <a class="btnGhost btnLink" id="btnDownload" href="#" download hidden aria-disabled="true" tabindex="-1">
+                <button class="btnGhost btnLink" id="btnDownload" type="button" hidden aria-disabled="true" tabindex="-1">
                   <span class="btnLabel">Download</span>
                   <span class="btnGlow"></span>
-                </a>
+                </button>
               </div>
 
               <div class="statusRow">
