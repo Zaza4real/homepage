@@ -74,10 +74,10 @@
 
   
   const GENERATING_MESSAGES = [
-    "The longer the video, the longer it takes ⏳",
-    "Be patient — we're doing God's work here 😇",
-    "Aligning lips, preserving voices, bending physics…",
-    "High-quality dubbing takes a moment ✨"
+    "Longer videos travel deeper paths through the machine ⏳",
+    "Stay with us — good dubbing is a small act of digital divinity 😇",
+    "Aligning lips, preserving voices, politely bending reality…",
+    "Crafting your translated video frame by frame ✨"
   ];
   let genMsgIdx = 0;
   let genMsgTimer = null;
@@ -85,11 +85,23 @@
   function startGeneratingMessages() {
     stopGeneratingMessages();
     genMsgIdx = 0;
+    const hint = document.getElementById("previewHint");
+    if (hint) {
+      hint.classList.remove("hintPop");
+      void hint.offsetWidth; // reflow
+      hint.classList.add("hintPop");
+    }
     setPreviewHint(GENERATING_MESSAGES[genMsgIdx]);
     genMsgTimer = setInterval(() => {
       genMsgIdx = (genMsgIdx + 1) % GENERATING_MESSAGES.length;
-      setPreviewHint(GENERATING_MESSAGES[genMsgIdx]);
-    }, 2800);
+      const hint = document.getElementById("previewHint");
+    if (hint) {
+      hint.classList.remove("hintPop");
+      void hint.offsetWidth; // reflow
+      hint.classList.add("hintPop");
+    }
+    setPreviewHint(GENERATING_MESSAGES[genMsgIdx]);
+    }, 5200);
   }
 
   function stopGeneratingMessages() {
@@ -125,20 +137,29 @@
     return `${base}-translated.mp4`;
   }
   async function downloadViaBlob(url, filename) {
+    // Best effort: force a real file download (avoid the browser opening a video player).
+    // Requires CORS on the outputUrl OR a same-origin proxy.
     const res = await fetch(url, { mode: "cors" });
     if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
 
+    const originalBlob = await res.blob();
+
+    // Re-wrap as octet-stream to discourage inline playback in some browsers (esp. Safari).
+    const blob = new Blob([originalBlob], { type: "application/octet-stream" });
+
+    const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = blobUrl;
     a.download = filename;
     a.rel = "noopener";
+    a.style.display = "none";
     document.body.appendChild(a);
-    a.click();
-    a.remove();
 
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+    // This should stay in-page (no fullscreen). If a browser ignores download attr, it may still open.
+    a.click();
+
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 2500);
   }
   function makeDownloadUrl(rawUrl, filename) {
     try {
