@@ -407,21 +407,33 @@
       setStatus(`Error: ${e?.message || e}`);
     }
   }
-
   // ---- Mini showcase (English ➜ French)
   function attachMiniShowcase() {
     const vids = {
       english: $("miniEnglish"),
       french: $("miniFrench"),
     };
+    const tiles = {
+      english: vids.english?.closest(".miniVid") || null,
+      french: vids.french?.closest(".miniVid") || null,
+    };
     const buttons = Array.from(document.querySelectorAll(".miniPlay"));
 
     // no loop by default (keeps audio sane)
     Object.values(vids).forEach((v) => { if (v) v.loop = false; });
 
+    function setPlaying(key, on) {
+      const tile = tiles[key];
+      const btn = document.querySelector(`.miniPlay[data-play="${key}"]`);
+      if (tile) tile.classList.toggle("isPlaying", !!on);
+      if (btn) btn.textContent = on ? "❚❚" : "▶";
+    }
+
     function stopAll() {
-      Object.entries(vids).forEach(([_, v]) => { try { v?.pause(); } catch {} });
-      buttons.forEach((b) => { if (b) b.textContent = "▶"; });
+      Object.entries(vids).forEach(([key, v]) => {
+        try { v?.pause(); } catch {}
+        setPlaying(key, false);
+      });
     }
 
     buttons.forEach((btn) => {
@@ -432,23 +444,41 @@
 
         const isPlaying = !v.paused && !v.ended;
         stopAll();
+
         if (!isPlaying) {
-          v.play().catch(() => {});
-          btn.textContent = "❚❚";
+          v.play().then(() => setPlaying(key, true)).catch(() => {});
         }
       });
     });
 
+    // Sync UI with actual playback state
     Object.entries(vids).forEach(([key, v]) => {
-      v?.addEventListener("ended", () => {
-        const b = document.querySelector(`.miniPlay[data-play="${key}"]`);
-        if (b) b.textContent = "▶";
-      });
+      v?.addEventListener("play", () => setPlaying(key, true));
+      v?.addEventListener("pause", () => setPlaying(key, false));
+      v?.addEventListener("ended", () => setPlaying(key, false));
       v?.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
     });
+
+    // Auto-pause when the showcase scrolls out of view
+    // (pauses any playing preview as soon as it is not meaningfully visible)
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.35) {
+            stopAll();
+          }
+        }
+      }, { threshold: [0, 0.15, 0.35, 0.6, 1] });
+
+      const tab = document.querySelector(".showcaseTab");
+      if (tab) io.observe(tab);
+    } else {
+      // Fallback: pause on scroll
+      window.addEventListener("scroll", () => stopAll(), { passive: true });
+    }
   }
 
-  // ---- Button handlers
+
   function attachDownload() {
     const btn = $("btnDownload");
     if (!btn) return;
