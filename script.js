@@ -1,10 +1,9 @@
-// LYPO frontend demo script (v10) — clean init (fixes broken buttons + preview)
+// LYPO frontend demo script (v12) — fixed languages + working buttons
 (() => {
   if (window.__LYPO_INIT__) return;
   window.__LYPO_INIT__ = true;
 
-  // === CONFIG ===
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com"; // change if needed
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const POLL_INTERVAL_MS = 1400;
   const POLL_TIMEOUT_MS = 8 * 60 * 1000;
 
@@ -13,7 +12,7 @@
 
   const $ = (id) => document.getElementById(id);
 
-  // ---------- UI helpers ----------
+  // ---- UI helpers
   function setStatus(text) {
     const st = $("statusText");
     if (st) st.textContent = text;
@@ -69,7 +68,7 @@
     if (typeof text === "string") setStatus(text);
   }
 
-  // ---------- Download ----------
+  // ---- Download
   function resetDownload() {
     const btn = $("btnDownload");
     if (!btn) return;
@@ -94,7 +93,6 @@
     return `${base}-translated.mp4`;
   }
   async function downloadViaBlob(url, filename) {
-    // Requires CORS access to fetch the file
     const res = await fetch(url, { mode: "cors" });
     if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
     const blob = await res.blob();
@@ -111,7 +109,6 @@
     setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
   }
   function makeDownloadUrl(rawUrl, filename) {
-    // Best-effort: add attachment disposition for S3/GCS signed URLs
     try {
       const u = new URL(rawUrl);
       const host = u.host || "";
@@ -128,7 +125,7 @@
     }
   }
 
-  // ---------- Tabs ----------
+  // ---- Tabs
   function attachTabs() {
     const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
     const panels = Array.from(document.querySelectorAll(".tabPanel"));
@@ -150,7 +147,7 @@
     });
   }
 
-  // ---------- Networking ----------
+  // ---- Networking
   async function fetchJson(url, options = {}) {
     const res = await fetch(url, options);
     const isJson = (res.headers.get("content-type") || "").includes("application/json");
@@ -161,73 +158,67 @@
     return isJson ? res.json() : null;
   }
 
-  // ---------- Languages ----------
+  // ---- Languages (Replicate expects full names)
   async function loadLanguages() {
-    const sel = $("targetLang");
-    if (!sel) return;
+    const select = $("targetLang");
+    if (!select) return;
 
-    sel.innerHTML = `<option>Loading…</option>`;
-    try {
-      const data = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
-      const langs = data?.languages || [];
-      sel.innerHTML = "";
-      for (const name of langs) {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        sel.appendChild(opt);
-      }
-      if (langs.includes("Spanish")) sel.value = "Spanish";
-    } catch (e) {
-      // fallback minimal list
-      sel.innerHTML = "";
-      ["Spanish", "French", "German", "Italian", "Portuguese", "Japanese", "Korean"].forEach((l) => {
-        const opt = document.createElement("option");
-        opt.value = l;
-        opt.textContent = l;
-        sel.appendChild(opt);
-      });
-      log(`Could not load languages from backend, using fallback. Error: ${e.message}`);
+    const MAP = {
+      "en":"English","es":"Spanish","fr":"French","de":"German","it":"Italian","pt":"Portuguese",
+      "nl":"Dutch","tr":"Turkish","ko":"Korean","da":"Danish","ar":"Arabic","ro":"Romanian",
+      "zh":"Chinese","ja":"Japanese","sv":"Swedish","id":"Indonesian","uk":"Ukrainian","el":"Greek",
+      "cs":"Czech","bg":"Bulgarian","ms":"Malay","sk":"Slovak","hr":"Croatian","ta":"Tamil","fi":"Finnish","ru":"Russian",
+      "pl":"Polish","hi":"Hindi","fil":"Filipino"
     };
-  
 
-
-    function normalizeItem(item) {
-      if (typeof item === "string") return { code: item, name: NAMES[item] || item };
+    function normalize(item) {
       if (!item) return null;
-      const code = item.code || item.value || item.lang || item.id;
-      const name = item.name || item.label || item.title || (code ? (NAMES[code] || code) : null);
-      if (!code) return null;
-      return { code, name: name || code };
+      if (typeof item === "string") {
+        const v = MAP[item] || item;
+        return { value: v, label: v };
+      }
+      const raw = item.name || item.label || item.title || item.value || item.code;
+      if (!raw) return null;
+      const code = (item.code || "").toLowerCase();
+      const v = MAP[raw] || MAP[code] || raw;
+      return { value: v, label: v };
     }
 
     function fill(list) {
       select.innerHTML = "";
-      list.forEach(({ code, name }) => {
+      list.forEach((it) => {
         const opt = document.createElement("option");
-        opt.value = code;
-        opt.textContent = name;
+        opt.value = it.value;      // IMPORTANT: send full name
+        opt.textContent = it.label;
         select.appendChild(opt);
       });
     }
 
     try {
       const raw = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
-      const items = (raw || []).map(normalizeItem).filter(Boolean);
+      const items = (raw || []).map(normalize).filter(Boolean);
+
       if (items.length) {
-        items.sort((a, b) => a.name.localeCompare(b.name));
-        fill(items);
+        const seen = new Set();
+        const uniq = [];
+        for (const it of items) {
+          if (seen.has(it.value)) continue;
+          seen.add(it.value);
+          uniq.push(it);
+        }
+        uniq.sort((a,b) => a.label.localeCompare(b.label));
+        fill(uniq);
         return;
       }
       throw new Error("Empty language list");
     } catch {
-      const fallback = Object.entries(NAMES).map(([code, name]) => ({ code, name }));
-      fallback.sort((a, b) => a.name.localeCompare(b.name));
-      fill(fallback);
+      const fallback = ['Arabic', 'Arabic (Egypt)', 'Arabic (Saudi Arabia)', 'Bulgarian', 'Chinese', 'Chinese (Mandarin, Simplified)', 'Chinese (Taiwanese Mandarin, Traditional)', 'Croatian', 'Czech', 'Danish', 'Dutch', 'English', 'English (Australia)', 'English (Canada)', 'English (India)', 'English (UK)', 'English (United States)', 'Filipino', 'Finnish', 'French', 'French (Canada)', 'French (France)', 'German', 'German (Austria)', 'German (Germany)', 'German (Switzerland)', 'Greek', 'Hindi', 'Indonesian', 'Italian', 'Japanese', 'Korean', 'Malay', 'Mandarin', 'Polish', 'Portuguese', 'Portuguese (Brazil)', 'Portuguese (Portugal)', 'Romanian', 'Russian', 'Russian (Russia)', 'Slovak', 'Spanish', 'Spanish (Mexico)', 'Spanish (Spain)', 'Swedish', 'Tamil', 'Turkish', 'Turkish (Türkiye)', 'Ukrainian', 'Ukrainian (Ukraine)'];
+      const items = fallback.map((x) => ({ value: x, label: x }));
+      fill(items);
     }
   }
 
-  // ---------- Backend health ----------
+  // ---- Backend health
   async function checkBackend() {
     try {
       await fetchJson(`${BACKEND_BASE_URL}/health`);
@@ -237,7 +228,7 @@
     }
   }
 
-  // ---------- Upload picker ----------
+  // ---- Cost estimate + upload picker
   function formatUSD(n) {
     const val = Number.isFinite(n) ? n : 0;
     return `$${val.toFixed(2)}`;
@@ -268,7 +259,6 @@
       setPreviewTitle("No output yet");
       setPreviewHint("Generated video will appear here");
 
-      // Cost estimate
       const costEl = $("costEstimate");
       const pay = $("btnPay");
       if (!file) {
@@ -289,15 +279,14 @@
       tmp.src = URL.createObjectURL(file);
     });
 
-    // Drag & drop ONLY on the upload button
-    ["dragenter", "dragover"].forEach((ev) => {
+    ["dragenter","dragover"].forEach((ev) => {
       pickBtn.addEventListener(ev, (e) => {
         e.preventDefault();
         e.stopPropagation();
         pickBtn.classList.add("dragOver");
       });
     });
-    ["dragleave", "drop"].forEach((ev) => {
+    ["dragleave","drop"].forEach((ev) => {
       pickBtn.addEventListener(ev, (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -312,7 +301,7 @@
     });
   }
 
-  // ---------- Job polling ----------
+  // ---- Polling + run
   async function pollJob(jobId) {
     const start = Date.now();
     while (Date.now() - start < POLL_TIMEOUT_MS) {
@@ -329,10 +318,10 @@
     const input = $("videoFile");
     const select = $("targetLang");
     const file = input?.files?.[0];
-    const lang = select?.value;
+    const outputLanguage = select?.value; // full name
 
     if (!file) return setStatus("Please choose a video first.");
-    if (!lang) return setStatus("Please select a target language.");
+    if (!outputLanguage) return setStatus("Please select a target language.");
 
     resetDownload();
     clearOutputVideo();
@@ -345,7 +334,7 @@
 
       const fd = new FormData();
       fd.append("video", file);
-      fd.append("output_language", lang);
+      fd.append("output_language", outputLanguage);
 
       const up = await fetchJson(`${BACKEND_BASE_URL}/api/dub-upload`, { method: "POST", body: fd });
       const jobId = up?.id || up?.jobId || up?.predictionId;
@@ -357,14 +346,11 @@
       setLoading(false, "Ready ✅");
       showSkeleton(false);
 
-      // Preview (playable, no autoplay)
       showOutputVideo(final.outputUrl);
-      setPreviewTitle("Output ready");
-      setPreviewHint("Preview is playable. Click Download to save the MP4.");
-
-      // Download
       enableDownload(final.outputUrl);
 
+      setPreviewTitle("Output ready");
+      setPreviewHint("Preview is playable. Click Download to save the MP4.");
     } catch (e) {
       setLoading(false, "Error");
       showSkeleton(false);
@@ -375,7 +361,7 @@
     }
   }
 
-  // ---------- Button handlers ----------
+  // ---- Button handlers
   function attachDownload() {
     const btn = $("btnDownload");
     if (!btn) return;
@@ -387,7 +373,6 @@
       const filename = guessMp4Name();
       const url = makeDownloadUrl(raw, filename);
 
-      // Attempt 1: direct anchor click (works if server forces attachment)
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
@@ -396,7 +381,6 @@
       a.click();
       a.remove();
 
-      // Attempt 2: blob download (works if CORS allows)
       try { await downloadViaBlob(raw, filename); } catch {}
     });
   }
@@ -404,9 +388,7 @@
   function attachPay() {
     const btn = $("btnPay");
     if (!btn) return;
-    btn.addEventListener("click", () => {
-      setStatus("Payment is not connected yet.");
-    });
+    btn.addEventListener("click", () => setStatus("Payment is not connected yet."));
   }
 
   function setYear() {
@@ -414,7 +396,6 @@
     if (y) y.textContent = String(new Date().getFullYear());
   }
 
-  // Prevent any click on preview box from triggering other UI
   function lockPreviewBox() {
     $("previewBox")?.addEventListener("click", (e) => {
       e.preventDefault();
@@ -422,7 +403,7 @@
     });
   }
 
-  // ---------- INIT ----------
+  // ---- INIT
   attachTabs();
   setYear();
   attachUploadPicker();
