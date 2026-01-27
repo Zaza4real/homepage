@@ -67,15 +67,41 @@ if (window.__LYPO_INIT__) {
   function setDownload(url) {
     const btn = $("btnDownload");
     const video = $("outputVideo");
+    const hint = $("previewHint");
+    const title = $("previewText");
     if (!btn) return;
 
     if (!url) {
       resetDownload();
+      showSkeleton(false);
       if (video) {
         video.hidden = true;
         video.removeAttribute("src");
         video.load?.();
       }
+      if (title) title.textContent = "No output yet";
+      if (hint) hint.textContent = "Generated video will appear here";
+      return;
+    }
+
+    btn.hidden = false;
+    btn.dataset.url = url;
+    btn.classList.add("isReady");
+    btn.setAttribute("aria-disabled", "false");
+    btn.removeAttribute("tabindex");
+
+    // Preview (no autoplay, no popups)
+    showSkeleton(false);
+    if (video) {
+      video.hidden = false;
+      video.src = url;
+      video.load?.();
+    }
+    if (title) title.textContent = "Output ready";
+    if (hint) hint.textContent = "You can preview it here. Click Download to save the MP4.";
+
+    // Do NOT auto-click download anymore (many browsers block async-triggered downloads).
+  }
       return;
     }
 
@@ -127,7 +153,40 @@ if (window.__LYPO_INIT__) {
 
   
 
-  async function downloadViaBlob(url, filename = "lypo-output.mp4") {
+  
+
+
+  function showSkeleton(on) {
+    const sk = $("previewSkeleton");
+    if (!sk) return;
+    sk.hidden = !on;
+  }
+
+  function makeDownloadUrl(rawUrl, filename) {
+    // Best-effort "force download" for common storage/CDN URLs (S3/GCS signed URLs).
+    try {
+      const u = new URL(rawUrl);
+      const host = u.host || "";
+      const isS3Signed = u.searchParams.has("X-Amz-Signature") || host.includes("amazonaws.com");
+      const isGcs = host.includes("storage.googleapis.com");
+
+      if (isS3Signed) {
+        // AWS S3 supports response-content-disposition on signed URLs
+        u.searchParams.set("response-content-disposition", `attachment; filename="${filename}"`);
+        u.searchParams.set("response-content-type", "video/mp4");
+        return u.toString();
+      }
+      if (isGcs) {
+        // GCS supports response-content-disposition
+        u.searchParams.set("response-content-disposition", `attachment; filename="${filename}"`);
+        return u.toString();
+      }
+      return rawUrl;
+    } catch (_) {
+      return rawUrl;
+    }
+  }
+async function downloadViaBlob(url, filename = "lypo-output.mp4") {
     // Best-effort: force download even if the MP4 would normally stream/play.
     // Requires CORS permission on the outputUrl.
     const res = await fetch(url, { mode: "cors" });
@@ -406,8 +465,11 @@ if (window.__LYPO_INIT__) {
 
       const outV = $("outputVideo");
       if (outV) { outV.hidden = true; outV.removeAttribute("src"); outV.load?.(); }
+      showSkeleton(true);
+      const ptxt = $("previewText");
+      if (ptxt) ptxt.textContent = "Generating…";
       const hint = $("previewHint");
-      if (hint) hint.textContent = "Generated video will appear here";
+      if (hint) hint.textContent = "Working on it — preview will appear when ready.";
       setLoading(true, "Uploading…");
       log(`Uploading: ${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`);
       log(`Language: ${lang}`);
@@ -443,8 +505,6 @@ if (window.__LYPO_INIT__) {
       if (final?.outputUrl) {
         setStatus("Ready ✅");
         setDownload(final.outputUrl);
-        const hint = $("previewHint");
-        if (hint) hint.textContent = "Preview ready (no autoplay). Download starts automatically.";
 
       } else {
         log("No outputUrl returned. Ensure backend returns outputUrl on success.");
@@ -478,17 +538,31 @@ if (window.__LYPO_INIT__) {
 
     $("btnDownload")?.addEventListener("click", async () => {
       const btn = $("btnDownload");
-      const url = btn?.dataset?.url;
-      if (!url || btn?.getAttribute("aria-disabled") === "true") return;
+      const raw = btn?.dataset?.url;
+      if (!raw || btn?.getAttribute("aria-disabled") === "true") return;
+      const filename = guessMp4Name();
+      const url = makeDownloadUrl(raw, filename);
       try {
+        // Attempt 1 (user-gesture friendly): plain anchor click.
+        // If the server returns Content-Disposition: attachment, this will download immediately.
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
         setStatus("Downloading…");
-        await downloadViaBlob(url, guessMp4Name());
+
+        // Attempt 2: blob-forced download (works when CORS allows fetching the MP4).
+        // Some browsers won’t download on attempt 1 if headers don’t force attachment.
+        await downloadViaBlob(raw, filename);
         setStatus("Downloaded ✅");
       } catch (e) {
-        // If CORS blocks blob download, we can only open the URL.
-        // Keep the button highlighted and tell the user what to change server-side.
-        setStatus("Download blocked by server (CORS) ⚠️");
-        log(`Download blocked (CORS). Ask backend to enable CORS on outputUrl or proxy it. ${e?.message || ""}`);
+        // If CORS blocks blob download, attempt 1 is still the best we can do client-side.
+        // If it opened a player instead, you need server-side Content-Disposition or a proxy download endpoint.
+        setStatus("If it plays instead of downloads: enable attachment headers on outputUrl ⚠️");
+        log(`Download note: if outputUrl streams, set Content-Disposition: attachment (or proxy it). ${e?.message || ""}`);
       }
     });
 
