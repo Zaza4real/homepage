@@ -1,16 +1,90 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Homepage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aleksander — Homepage</title>
+  <meta name="description" content="Aleksander's homepage — building modern web + AI projects." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Hi, I’m Aleksander 👋</h1>
-  <p>This is my homepage.</p>
+  <div class="bg"></div>
 
-  <button id="run-ai">Run AI</button>
-  <pre id="output"></pre>
+  <header class="top">
+    <a class="brand" href="#">Aleksander</a>
+
+    <nav class="nav">
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a class="pill" href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="badge">⚡ Building with AI + web</div>
+
+      <h1>
+        A modern homepage for
+        <span class="grad">projects, experiments, and writing</span>.
+      </h1>
+
+      <p class="sub">
+        I’m Aleksander. I build fast, clean web experiences and experiment with AI APIs.
+        This site is my home base.
+      </p>
+
+      <div class="cta">
+        <a class="btn primary" href="#work">See my work</a>
+        <a class="btn" href="#contact">Get in touch</a>
+      </div>
+
+      <div class="cards" id="work">
+        <article class="card">
+          <div class="card-title">AI Demo</div>
+          <p class="card-text">Connect a Replicate-backed endpoint and run a model from the UI.</p>
+          <button class="btn small" id="run-ai">Run AI</button>
+          <pre class="output" id="output">Ready.</pre>
+        </article>
+
+        <article class="card">
+          <div class="card-title">Projects</div>
+          <p class="card-text">A small collection of things I’m building and shipping.</p>
+          <a class="link" href="#">View projects →</a>
+        </article>
+
+        <article class="card">
+          <div class="card-title">Writing</div>
+          <p class="card-text">Notes on product, engineering, and lessons learned.</p>
+          <a class="link" href="#">Read posts →</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <h2>About</h2>
+      <p>
+        I care about performance, clarity, and shipping. I like simple interfaces that feel great to use.
+        Currently exploring AI workflows and lightweight web stacks.
+      </p>
+    </section>
+
+    <section class="section" id="contact">
+      <h2>Contact</h2>
+      <p>
+        Email: <a class="link" href="mailto:you@example.com">you@example.com</a>
+        <span class="sep">•</span>
+        GitHub: <a class="link" href="#">@yourhandle</a>
+        <span class="sep">•</span>
+        X/LinkedIn: <a class="link" href="#">link</a>
+      </p>
+    </section>
+
+    <footer class="footer">
+      <span>© <span id="year"></span> Aleksander</span>
+      <span class="muted">Built on Render</span>
+    </footer>
+  </main>
 
   <script src="script.js"></script>
 </body>
