@@ -904,7 +904,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
   display:flex;
   align-items:center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   padding: 10px 12px;
 }
 .capTag{
@@ -983,8 +983,8 @@ button.btnLink{ display:inline-flex; align-items:center; }
   align-items:center;
   justify-content: space-between;
   gap: 14px;
-  padding: 10px 12px;
-  border-radius: 16px;
+  padding: 12px 14px;
+  border-radius: 18px;
   background: rgba(0,0,0,.22);
   border: 1px solid rgba(255,255,255,.10);
   box-shadow: 0 22px 62px rgba(0,0,0,.32);
@@ -1027,8 +1027,8 @@ button.btnLink{ display:inline-flex; align-items:center; }
 
 .miniVid{
   position: relative;
-  width: 86px;
-  height: 126px; /* portrait */
+  width: 138px;
+  height: 78px;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.12);
