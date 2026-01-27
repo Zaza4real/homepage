@@ -7,6 +7,7 @@ if (window.__LYPO_INIT__) {
   const BACKEND_BASE_URL = "https://lypo-backend.onrender.com"; // <-- set this
   const POLL_INTERVAL_MS = 1400;
   const POLL_TIMEOUT_MS = 8 * 60 * 1000;
+  const PRICE_PER_30S_EUR = 2.89;
 
   const $ = (id) => document.getElementById(id);
 
@@ -15,6 +16,7 @@ if (window.__LYPO_INIT__) {
   }
 
   function log(line) {
+    // Console removed from UI; keep this as a no-op unless a #console element exists.
     const consoleEl = $("console");
     if (!consoleEl) return;
     consoleEl.textContent = `[${nowTime()}] ${line}\n\n` + consoleEl.textContent;
@@ -30,40 +32,43 @@ if (window.__LYPO_INIT__) {
     if (el) el.textContent = text;
   }
 
-
-  function setLoading(isLoading, statusText) {
-    const pill = $("statusPill");
-    if (pill) pill.classList.toggle("isLoading", !!isLoading);
-
-    const runBtn = $("btnRun");
-    const healthBtn = $("btnHealth");
-    const pickBtn = $("btnPickVideo");
-    const fileInput = $("videoFile");
-    const langSel = $("targetLang");
-
-    [runBtn, healthBtn, pickBtn, fileInput, langSel].forEach((el) => {
-      if (!el) return;
-      if (el.tagName === "INPUT" || el.tagName === "SELECT") {
-        el.disabled = !!isLoading;
-      } else {
-        el.disabled = !!isLoading;
-        el.classList.toggle("isLoading", !!isLoading);
-      }
-    });
-
-    if (typeof statusText === "string") setStatus(statusText);
+  function euro(n) {
+    // Use comma decimals to match €2,89 in the UI.
+    const fixed = Number.isFinite(n) ? n.toFixed(2) : "0.00";
+    return fixed.replace(".", ",");
   }
 
-  function setVideoName(file) {
-    const nameEl = $("videoName");
-    if (!nameEl) return;
-    if (!file) {
-      nameEl.textContent = "or drop it here";
+  function setLoading(isLoading, text) {
+    const pill = $("statusPill");
+    const progress = $("progressWrap");
+    const run = $("btnRun");
+    const pay = $("btnPay");
+
+    if (pill) pill.classList.toggle("isLoading", !!isLoading);
+    if (progress) progress.hidden = !isLoading;
+    if (run) run.classList.toggle("isLoading", !!isLoading);
+    if (pay) pay.classList.toggle("isLoading", !!isLoading);
+    if (typeof text === "string") setStatus(text);
+  }
+
+  function resetDownload() {
+    const a = $("btnDownload");
+    if (!a) return;
+    a.hidden = true;
+    a.removeAttribute("href");
+  }
+
+  function setDownload(url) {
+    const a = $("btnDownload");
+    if (!a) return;
+    if (!url) {
+      resetDownload();
       return;
     }
-    const mb = Math.round(file.size / 1024 / 1024);
-    nameEl.textContent = `${file.name} • ${mb} MB`;
+    a.hidden = false;
+    a.href = url;
   }
+
   async function fetchJson(url, options = {}) {
     const res = await fetch(url, options);
     const isJson = (res.headers.get("content-type") || "").includes("application/json");
@@ -178,6 +183,104 @@ if (window.__LYPO_INIT__) {
     }
   }
 
+  // ---- Upload UI (button + drag & drop) + price estimate ----
+  let lastEstimatedCost = null;
+  let lastDurationSec = null;
+
+  function updateCostUI() {
+    const el = $("costEstimate");
+    const pay = $("btnPay");
+
+    if (!el) return;
+
+    if (!lastDurationSec || !Number.isFinite(lastDurationSec) || lastDurationSec <= 0) {
+      el.textContent = "";
+      if (pay) pay.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Pay"));
+      return;
+    }
+
+    const mins = Math.round((lastDurationSec / 60) * 10) / 10;
+    el.textContent = `Est. length: ${mins} min • Est. cost: €${euro(lastEstimatedCost)}`;
+    if (pay) pay.querySelector(".btnLabel")?.replaceChildren(document.createTextNode(`Pay €${euro(lastEstimatedCost)}`));
+  }
+
+  async function computeDurationSeconds(file) {
+    try {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.src = url;
+      await new Promise((resolve, reject) => {
+        video.onloadedmetadata = () => resolve();
+        video.onerror = () => reject(new Error("Could not read video metadata"));
+      });
+      const d = Number(video.duration);
+      URL.revokeObjectURL(url);
+      return Number.isFinite(d) ? d : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function handleSelectedFile(file) {
+    const nameEl = $("videoName");
+    if (nameEl) nameEl.textContent = file ? file.name : "or drop it here";
+
+    resetDownload();
+
+    lastDurationSec = file ? await computeDurationSeconds(file) : null;
+    if (lastDurationSec && Number.isFinite(lastDurationSec)) {
+      lastEstimatedCost = (lastDurationSec / 30) * PRICE_PER_30S_EUR;
+    } else {
+      lastEstimatedCost = null;
+    }
+    updateCostUI();
+  }
+
+  function initUploadUI() {
+    const input = $("videoFile");
+    const btn = $("btnPickVideo");
+    if (!input || !btn) return;
+
+    btn.addEventListener("click", () => input.click());
+
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      if (file) handleSelectedFile(file);
+    });
+
+    // Drag & drop
+    const prevent = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    ["dragenter", "dragover"].forEach((evt) => {
+      btn.addEventListener(evt, (e) => {
+        prevent(e);
+        btn.classList.add("dragOver");
+      });
+    });
+    ["dragleave", "drop"].forEach((evt) => {
+      btn.addEventListener(evt, (e) => {
+        prevent(e);
+        btn.classList.remove("dragOver");
+      });
+    });
+    btn.addEventListener("drop", (e) => {
+      const file = e.dataTransfer?.files?.[0];
+      if (!file) return;
+      // Some browsers require a DataTransfer to programmatically set input.files
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+      } catch {
+        // If it fails, we still handle the file for UI/estimate.
+      }
+      handleSelectedFile(file);
+    });
+  }
+
   async function pollJob(jobId) {
     const t0 = Date.now();
     while (true) {
@@ -206,13 +309,18 @@ if (window.__LYPO_INIT__) {
     }
   }
 
-  
   async function runUploadDub() {
-    // One place to turn loading UI on/off reliably
+    const runBtn = $("btnRun");
+    const payBtn = $("btnPay");
+
     try {
+      resetDownload();
+      if (runBtn) runBtn.disabled = true;
+      if (payBtn) payBtn.disabled = true;
+
       const ok = await checkBackendHealth();
       if (!ok) {
-        setLoading(false, "Backend not reachable ⚠️");
+        setStatus("Backend not reachable ⚠️");
         return;
       }
 
@@ -220,15 +328,17 @@ if (window.__LYPO_INIT__) {
       const lang = $("targetLang")?.value;
 
       if (!file) {
-        setLoading(false, "Choose a video file ⚠️");
+        setStatus("Choose a video file ⚠️");
         return;
       }
       if (!lang) {
-        setLoading(false, "Choose a target language ⚠️");
+        setStatus("Choose a target language ⚠️");
         return;
       }
 
       setLoading(true, "Uploading…");
+      log(`Uploading: ${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`);
+      log(`Language: ${lang}`);
 
       const form = new FormData();
       form.append("video", file);
@@ -247,24 +357,28 @@ if (window.__LYPO_INIT__) {
 
       setLoading(true, "Processing…");
       const final = await pollJob(jobId);
-      if (!final) {
-        setLoading(false, "Timed out ⚠️");
-        return;
-      }
+      if (!final) return;
 
       const finalStatus = (final?.status || "").toLowerCase();
-      if (["failed", "error", "canceled", "cancelled"].includes(finalStatus)) {
+      if (["failed","error","canceled","cancelled"].includes(finalStatus)) {
         setLoading(false, "Failed ⚠️");
+        log(`Job failed: ${final?.error || "Unknown error"}`);
         return;
       }
 
       setLoading(false, "Done ✅");
 
       if (final?.outputUrl) {
-        window.open(final.outputUrl, "_blank");
+        setDownload(final.outputUrl);
+      } else {
+        log("No outputUrl returned. Ensure backend returns outputUrl on success.");
       }
     } catch (e) {
       setLoading(false, "Error ⚠️");
+      log(`Error: ${e.message}`);
+    } finally {
+      if (runBtn) runBtn.disabled = false;
+      if (payBtn) payBtn.disabled = false;
     }
   }
 
@@ -275,56 +389,19 @@ if (window.__LYPO_INIT__) {
 
     initTabs();
     initMagneticCta();
+    initUploadUI();
 
-
-    // File upload UI (custom button + drag & drop)
-    const fileInput = $("videoFile");
-    const pickBtn = $("btnPickVideo");
-
-    pickBtn?.addEventListener("click", () => fileInput?.click());
-
-    fileInput?.addEventListener("change", () => {
-      setVideoName(fileInput.files?.[0]);
-      setStatus("Ready.");
-    });
-
-    ["dragenter", "dragover"].forEach((ev) => {
-      pickBtn?.addEventListener(ev, (e) => {
-        e.preventDefault();
-        pickBtn.classList.add("dragOver");
-      });
-    });
-
-    ["dragleave", "drop"].forEach((ev) => {
-      pickBtn?.addEventListener(ev, (e) => {
-        e.preventDefault();
-        pickBtn.classList.remove("dragOver");
-      });
-    });
-
-    pickBtn?.addEventListener("drop", (e) => {
-      const f = e.dataTransfer?.files?.[0];
-      if (!f) return;
-      if (fileInput) fileInput.files = e.dataTransfer.files;
-      setVideoName(f);
-      setStatus("Ready.");
-    });
-
-    setVideoName(fileInput?.files?.[0]);
-    $("btnHealth")?.addEventListener("click", async () => {
-      try {
-        setLoading(true, "Checking backend…");
-        const ok = await checkBackendHealth();
-        if (ok) await loadLanguages();
-        setLoading(false, ok ? "Ready." : "Backend not reachable ⚠️");
-      } catch {
-        setLoading(false, "Error ⚠️");
-      }
+    // Payment button placeholder (wire this to Stripe/checkout later)
+    $("btnPay")?.addEventListener("click", () => {
+      // For now, just take the user to pricing so you have a clean flow
+      activateTab("pricing");
+      setStatus("Checkout coming soon — wire this to your payment system.");
     });
 
     $("btnRun")?.addEventListener("click", runUploadDub);
 
     // initial
     checkBackendHealth().then((ok) => ok && loadLanguages());
+    updateCostUI();
   })();
 }
