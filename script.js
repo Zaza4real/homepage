@@ -1,6 +1,5 @@
-
 // LYPO frontend demo script (v7) — clean init + working buttons
-(() => {
+() => {
   if (window.__LYPO_INIT__) return;
   window.__LYPO_INIT__ = true;
 
@@ -279,7 +278,6 @@
         });
       }
     }
-  }
 
   async function checkBackend() {
     try {
@@ -473,6 +471,7 @@
   attachTabs();
   setYear();
   attachUploadPicker();
+  $("previewBox")?.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
   attachDownload();
   attachPay();
   resetDownload();
@@ -483,4 +482,4 @@
 
   loadLanguages();
   checkBackend();
-})();
+;
