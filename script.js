@@ -460,14 +460,49 @@
   function attachMiniShowcase() {
     const buttons = Array.from(document.querySelectorAll(".miniPlay"));
     const vids = {
-      english: document.querySelectorAll(".miniVidEl")[0] || null,
-      french: document.querySelectorAll(".miniVidEl")[1] || null
+      english: document.getElementById("miniEnglish"),
+      french: document.getElementById("miniFrench")
     };
 
+    // Ensure they don't auto-loop (audio would be annoying)
+    Object.values(vids).forEach((v) => { if (v) v.loop = false; });
+
     function stopAll() {
-      Object.values(vids).forEach((v) => { try { v?.pause(); } catch {} });
+      Object.entries(vids).forEach(([key, v]) => {
+        try { v?.pause(); } catch {}
+      });
       buttons.forEach((b) => { if (b) b.textContent = "▶"; });
     }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.play;
+        const v = vids[key];
+        if (!v) return;
+
+        const isPlaying = !v.paused && !v.ended;
+        stopAll();
+
+        if (!isPlaying) {
+          v.play().catch(() => {});
+          btn.textContent = "❚❚";
+        }
+      });
+    });
+
+    // When a clip ends, reset button state
+    Object.entries(vids).forEach(([key, v]) => {
+      v?.addEventListener("ended", () => {
+        const b = document.querySelector(`.miniPlay[data-play="${key}"]`);
+        if (b) b.textContent = "▶";
+      });
+    });
+
+    // Clicking on the tiny video does nothing (only the play button)
+    document.querySelectorAll(".miniVidEl").forEach((v) => {
+      v.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
+    });
+  }
 
     buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
