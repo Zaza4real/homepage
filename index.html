@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LYPO — Video Translation with Voice + Lip Sync</title>
-  <meta name="description" content="Translate your video to every language while keeping your voice and syncing lips." />
+  <title>LYPO — Video Translation</title>
+  <meta name="description" content="Translate videos to every language while keeping voice and syncing lips." />
   <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -22,16 +22,16 @@
     </a>
 
     <nav class="tabs" role="tablist" aria-label="LYPO tabs">
-      <button class="tabBtn isActive" role="tab" aria-selected="true" data-tab="home">Demo</button>
-      <button class="tabBtn" role="tab" aria-selected="false" data-tab="features">Features</button>
-      <button class="tabBtn" role="tab" aria-selected="false" data-tab="pricing">Pricing</button>
-      <button class="tabBtn" role="tab" aria-selected="false" data-tab="docs">Docs</button>
-      <button class="tabBtn" role="tab" aria-selected="false" data-tab="about">About</button>
+      <button class="tabBtn isActive" role="tab" aria-selected="true" data-tab="home" type="button">Demo</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="features" type="button">Features</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="pricing" type="button">Pricing</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="docs" type="button">Docs</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="about" type="button">About</button>
     </nav>
   </header>
 
   <main class="container">
-    <!-- HOME (front page: demo only) -->
+    <!-- HOME -->
     <section class="tabPanel isActive" id="tab-home" role="tabpanel">
       <div class="hero">
         <div class="kicker">⚪ AI dubbing • voice-preserving • lip-sync</div>
@@ -42,57 +42,42 @@
         </h1>
 
         <p class="sub">
-          LYPO turns one video into multilingual versions while preserving your voice identity
-          and aligning lips with the new translation.
+          Upload a video, select a language, and run the backend API demo.
+          Your Replicate key stays on the server.
         </p>
 
-        <!-- 4 animated LED buttons that switch tabs -->
-        <div class="ctaRow" aria-label="Quick actions">
-          <button class="ctaBtn ctaGlow" type="button" data-go="features">
-            <span class="ctaIcon">✨</span><span>Features</span><span class="ctaFx"></span>
-          </button>
-
-          <button class="ctaBtn ctaPulse" type="button" data-go="pricing">
-            <span class="ctaIcon">⚡</span><span>Pricing</span><span class="ctaFx"></span>
-          </button>
-
-          <button class="ctaBtn ctaMag" type="button" data-go="docs">
-            <span class="ctaIcon">🧩</span><span>Docs</span><span class="ctaFx"></span>
-          </button>
-
-          <button class="ctaBtn ctaShine" type="button" data-go="about">
-            <span class="ctaIcon">👋</span><span>About</span><span class="ctaFx"></span>
-          </button>
+        <!-- 4 animated CTA shortcuts (switch tabs) -->
+        <div class="ctaRow" aria-label="Shortcuts">
+          <button class="ctaBtn ctaGlow" type="button" data-go="features"><span class="ctaIcon">✨</span><span>Features</span><span class="ctaFx"></span></button>
+          <button class="ctaBtn ctaPulse" type="button" data-go="pricing"><span class="ctaIcon">⚡</span><span>Pricing</span><span class="ctaFx"></span></button>
+          <button class="ctaBtn ctaMag" type="button" data-go="docs"><span class="ctaIcon">🧩</span><span>Docs</span><span class="ctaFx"></span></button>
+          <button class="ctaBtn ctaShine" type="button" data-go="about"><span class="ctaIcon">👋</span><span>About</span><span class="ctaFx"></span></button>
         </div>
 
-<label class="field">
-  <span>Upload video file</span>
-  <input id="videoFile" type="file" accept="video/*" />
-</label>
+        <div class="demoCard">
+          <div class="demoTop">
+            <div class="demoTitle">Backend API Video Translator Demo</div>
+            <div class="chips">
+              <span class="chip">UI ✓</span>
+              <span class="chip" id="chipBackend">Backend: not connected</span>
+            </div>
+          </div>
 
-<label class="field">
-  <span>Target language</span>
-  <select id="targetLang"></select>
-</label>
-<label class="field">
-  <span>Upload video file</span>
-  <input id="videoFile" type="file" accept="video/*" />
-</label>
-
-<label class="field">
-  <span>Target language</span>
-  <select id="targetLang"></select>
-</label>
-
+          <div class="demoBody">
+            <div class="form">
+              <label class="field">
+                <span>Choose video file</span>
+                <input id="videoFile" type="file" accept="video/*" />
+              </label>
 
               <label class="field">
                 <span>Target language</span>
-                <input id="targetLang" placeholder="e.g. es, fr, de, ja" value="es" />
+                <select id="targetLang"></select>
               </label>
 
               <div class="actions">
                 <button class="btnPrimary" id="btnRun" type="button">
-                  Run translation
+                  Upload & translate
                   <span class="btnGlow"></span>
                 </button>
 
@@ -107,11 +92,11 @@
                   <span class="ping"></span>
                   <span id="statusText">Ready.</span>
                 </div>
-                <div class="hint">Tip: Use a public MP4 URL.</div>
+                <div class="hint">Tip: small MP4 works fastest.</div>
               </div>
             </div>
 
-            <pre class="console" id="console">Paste a video URL → choose language → Run translation.</pre>
+            <pre class="console" id="console">Choose a file → select language → Upload & translate.</pre>
           </div>
         </div>
       </div>
@@ -122,22 +107,10 @@
       <div class="panel">
         <h2>Features</h2>
         <div class="grid2">
-          <div class="tile">
-            <div class="tileTitle">Voice-preserving</div>
-            <p>Keep the speaker’s identity across languages instead of using a generic voice.</p>
-          </div>
-          <div class="tile">
-            <div class="tileTitle">Lip sync</div>
-            <p>Align mouth movement to the translated speech for natural playback.</p>
-          </div>
-          <div class="tile">
-            <div class="tileTitle">API-first</div>
-            <p>Integrate in products, pipelines, or creator tools. Built to automate.</p>
-          </div>
-          <div class="tile">
-            <div class="tileTitle">Fast iteration</div>
-            <p>Start simple (URL in → result out). Add batching and queues later.</p>
-          </div>
+          <div class="tile"><div class="tileTitle">Voice-preserving</div><p>Keep speaker identity across languages.</p></div>
+          <div class="tile"><div class="tileTitle">Lip sync</div><p>Align mouth movement to translated speech.</p></div>
+          <div class="tile"><div class="tileTitle">API-first</div><p>Integrate into creator tools and pipelines.</p></div>
+          <div class="tile"><div class="tileTitle">Scales</div><p>Move from demo to batch processing later.</p></div>
         </div>
       </div>
     </section>
@@ -148,40 +121,18 @@
         <h2>Pricing</h2>
         <div class="pricing">
           <div class="priceCard">
-            <div class="priceTop">
-              <div class="priceName">Starter</div>
-              <div class="priceValue">€—</div>
-            </div>
-            <ul>
-              <li>1–2 languages</li>
-              <li>Basic lip sync</li>
-              <li>Email support</li>
-            </ul>
+            <div class="priceTop"><div class="priceName">Starter</div><div class="priceValue">€—</div></div>
+            <ul><li>Few languages</li><li>Basic support</li><li>Low volume</li></ul>
           </div>
           <div class="priceCard featured">
-            <div class="priceTop">
-              <div class="priceName">Pro</div>
-              <div class="priceValue">€—</div>
-            </div>
-            <ul>
-              <li>All languages</li>
-              <li>Better voice consistency</li>
-              <li>Higher concurrency</li>
-            </ul>
+            <div class="priceTop"><div class="priceName">Pro</div><div class="priceValue">€—</div></div>
+            <ul><li>All languages</li><li>Better consistency</li><li>Higher concurrency</li></ul>
           </div>
           <div class="priceCard">
-            <div class="priceTop">
-              <div class="priceName">Enterprise</div>
-              <div class="priceValue">Let’s talk</div>
-            </div>
-            <ul>
-              <li>Custom models & SLAs</li>
-              <li>Private deployments</li>
-              <li>Security reviews</li>
-            </ul>
+            <div class="priceTop"><div class="priceName">Enterprise</div><div class="priceValue">Let’s talk</div></div>
+            <ul><li>SLAs</li><li>Security reviews</li><li>Custom workflow</li></ul>
           </div>
         </div>
-        <p class="muted">Replace the €— with your real pricing when ready.</p>
       </div>
     </section>
 
@@ -189,19 +140,14 @@
     <section class="tabPanel" id="tab-docs" role="tabpanel">
       <div class="panel">
         <h2>Docs</h2>
-        <p class="muted">This site assumes a backend that exposes:</p>
-
+        <p class="muted">Frontend calls these backend endpoints:</p>
         <div class="codeCard">
-          <pre class="code">
-GET  /health
-POST /api/dub        { videoUrl, targetLanguage, keepVoice, lipsync }
-GET  /api/dub/:id    -> { status, outputUrl? }   (optional but recommended)
-          </pre>
+          <pre class="code">GET  /health
+GET  /api/languages
+POST /api/dub-upload   (multipart form: video file + output_language)
+GET  /api/dub/:id      (poll status + outputUrl)</pre>
         </div>
-
-        <p class="muted">
-          Your Replicate token must live in Render environment variables (never in the browser).
-        </p>
+        <p class="muted">Replicate token stays in Render env vars (server-side).</p>
       </div>
     </section>
 
@@ -209,11 +155,8 @@ GET  /api/dub/:id    -> { status, outputUrl? }   (optional but recommended)
     <section class="tabPanel" id="tab-about" role="tabpanel">
       <div class="panel">
         <h2>About LYPO</h2>
-        <p>
-          LYPO helps creators and teams publish globally by converting one video into many languages
-          while preserving the original voice identity and syncing lips with the new translation.
-        </p>
-        <p class="muted">Want a contact section here? Add email + socials in this panel.</p>
+        <p>LYPO translates videos into new languages while preserving voice identity and syncing lips.</p>
+        <p class="muted">Add contact/social links here when ready.</p>
       </div>
     </section>
 
@@ -223,6 +166,7 @@ GET  /api/dub/:id    -> { status, outputUrl? }   (optional but recommended)
     </footer>
   </main>
 
+  <!-- IMPORTANT: include script.js ONCE -->
   <script src="script.js"></script>
 </body>
 </html>
