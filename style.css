@@ -1090,3 +1090,51 @@ button.btnLink{ display:inline-flex; align-items:center; }
     min-width: 140px;
   }
 }
+
+
+/* Subtle caption under showcase title */
+.showTabCaption{
+  font-size: 12px;
+  color: rgba(255,255,255,.58);
+  letter-spacing: .2px;
+}
+
+/* Waveform overlay (only visible while playing) */
+.miniWave{
+  position:absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display:flex;
+  align-items:flex-end;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.30);
+  border: 1px solid rgba(255,255,255,.14);
+  opacity: 0;
+  pointer-events:none;
+  transition: opacity .2s ease;
+}
+.miniWave span{
+  width: 3px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.86);
+  opacity: .9;
+  animation: wave 0.95s ease-in-out infinite;
+}
+.miniWave span:nth-child(2){ animation-delay: .12s; }
+.miniWave span:nth-child(3){ animation-delay: .24s; }
+.miniWave span:nth-child(4){ animation-delay: .36s; }
+.miniWave span:nth-child(5){ animation-delay: .48s; }
+
+@keyframes wave{
+  0%{ transform: translateY(0); height: 8px; opacity:.65; }
+  35%{ transform: translateY(-3px); height: 16px; opacity:1; }
+  70%{ transform: translateY(0); height: 10px; opacity:.75; }
+  100%{ transform: translateY(0); height: 8px; opacity:.65; }
+}
+
+/* When playing, show waveform */
+.miniVid.isPlaying .miniWave{ opacity: 1; }
