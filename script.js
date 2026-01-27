@@ -456,12 +456,48 @@
     });
   }
 
-  // ---- INIT
+  
+  function attachMiniShowcase() {
+    const buttons = Array.from(document.querySelectorAll(".miniPlay"));
+    const vids = {
+      english: document.querySelectorAll(".miniVidEl")[0] || null,
+      french: document.querySelectorAll(".miniVidEl")[1] || null
+    };
+
+    function stopAll() {
+      Object.values(vids).forEach((v) => { try { v?.pause(); } catch {} });
+      buttons.forEach((b) => { if (b) b.textContent = "▶"; });
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.play;
+        const v = vids[key];
+        if (!v) return;
+
+        // Toggle play for this one, stop the other
+        const isPlaying = !v.paused && !v.ended;
+        stopAll();
+        if (!isPlaying) {
+          v.play().catch(() => {});
+          btn.textContent = "❚❚";
+        }
+      });
+    });
+
+    // Clicking on the tiny video itself does nothing (only the play button)
+    document.querySelectorAll(".miniVidEl").forEach((v) => {
+      v.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
+    });
+  }
+
+// ---- INIT
   attachTabs();
   setYear();
   attachUploadPicker();
   attachDownload();
   attachPay();
+  attachMiniShowcase();
   lockPreviewBox();
 
   resetDownload();
