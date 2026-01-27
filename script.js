@@ -515,7 +515,6 @@
     });
   }
 
-
   // ---- INIT
   attachTabs();
   setYear();
