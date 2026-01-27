@@ -649,78 +649,84 @@ a{ color:inherit; text-decoration:none; }
   box-shadow:none !important;
 }
 
-/* Upload row: button + preview window */
-.uploadRow{
-  display:grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap:12px;
-  align-items:stretch;
-}
-.uploadBtnCompact{
-  padding:12px 12px;
-  border-radius:18px;
-}
-.uploadBtnCompact .uploadIcon{
-  width:38px; height:38px;
-  border-radius:14px;
-  font-size:18px;
-}
-.previewBox{
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.32);
-  padding:14px 14px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  box-shadow: 0 16px 50px rgba(0,0,0,.35);
-}
-.previewTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-.previewTitle{
-  font-weight:1000;
-  letter-spacing:.01em;
-  color: rgba(255,255,255,.92);
-}
-.previewDot{
-  width:10px; height:10px;
-  border-radius:999px;
-  background: rgba(255,255,255,.32);
-  box-shadow: 0 0 0 8px rgba(255,255,255,0);
-}
-.previewBody{
-  color: rgba(255,255,255,.72);
-  line-height:1.6;
-  font-size:13px;
-}
-.previewBox.isReady{
-  border-color: rgba(0,225,255,.40);
-  background: rgba(0,225,255,.07);
-}
-.previewBox.isReady .previewDot{
-  background: rgba(0,225,255,.90);
-  animation: ping 1.4s ease-out infinite;
-}
-
-/* Download highlight when ready */
-.btnGhost.isReady{
-  border-color: rgba(0,225,255,.45);
-  box-shadow: 0 0 0 1px rgba(0,225,255,.18), 0 18px 60px rgba(0,0,0,.45);
-}
-.btnGhost.isReady .btnGlow{
-  opacity:1;
-  background: radial-gradient(220px 70px at 30% 30%, rgba(0,225,255,.28), transparent 60%);
-}
-
 @media (max-width: 980px){
-  .uploadRow{ grid-template-columns: 1fr; }
   .tabs{ display:none; }
   .container{ padding-top: 120px; }
   .logo{ font-size: 40px; letter-spacing: .20em; }
   .tile{ grid-column: span 12; }
   .priceCard{ grid-column: span 12; }
+}
+
+
+
+/* Force hidden attribute to always hide even if display is set elsewhere */
+[hidden] { display: none !important; }
+
+/* Upload button + output window side-by-side */
+.uploadGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.uploadBtn{
+  padding: 14px 14px; /* slightly smaller than before */
+  min-height: 82px;
+}
+
+.previewBox{
+  min-height: 82px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(10,12,18,.55);
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.previewBox:before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  background: radial-gradient(80% 80% at 30% 20%, rgba(120,160,255,.24), rgba(0,0,0,0));
+  pointer-events:none;
+}
+
+.previewInner{
+  position:relative;
+  z-index:1;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding: 16px 16px 10px;
+}
+
+.previewIcon{
+  font-size: 18px;
+  filter: drop-shadow(0 8px 20px rgba(120,160,255,.35));
+}
+
+.previewText{
+  font-weight: 700;
+  letter-spacing: .1px;
+}
+
+.previewHint{
+  position:relative;
+  z-index:1;
+  padding: 0 16px 14px;
+  opacity:.7;
+  font-size: 12px;
+}
+
+/* Download button: hidden until ready, then highlighted */
+#btnDownload.isReady{
+  border-color: rgba(140,255,210,.55);
+  box-shadow: 0 0 0 1px rgba(140,255,210,.25), 0 18px 50px rgba(0,0,0,.45);
+  transform: translateY(-1px);
+}
+
+#btnDownload.isReady .btnGlow{
+  opacity: 1;
 }
