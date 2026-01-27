@@ -1143,8 +1143,8 @@ button.btnLink{ display:inline-flex; align-items:center; }
 /* Logo spinner replaces the O in LYPO */
 .logoSpinner{
   display:inline-block;
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   margin: 0 2px;
   vertical-align: -4px;
   border-radius: 999px;
