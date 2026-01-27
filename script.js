@@ -162,63 +162,69 @@
   }
 
   // ---------- Languages ----------
+  
   async function loadLanguages() {
     const select = $("targetLang");
     if (!select) return;
 
-    const NAMES = {
-      "ar": "Arabic",
-      "bg": "Bulgarian",
-      "bn": "Bengali",
-      "cs": "Czech",
-      "da": "Danish",
-      "de": "German",
-      "el": "Greek",
-      "en": "English",
-      "es": "Spanish",
-      "et": "Estonian",
-      "fa": "Persian",
-      "fi": "Finnish",
-      "fr": "French",
-      "he": "Hebrew",
-      "hi": "Hindi",
-      "hu": "Hungarian",
-      "id": "Indonesian",
-      "it": "Italian",
-      "ja": "Japanese",
-      "ko": "Korean",
-      "lt": "Lithuanian",
-      "lv": "Latvian",
-      "ms": "Malay",
-      "nl": "Dutch",
-      "no": "Norwegian",
-      "pl": "Polish",
-      "pt": "Portuguese",
-      "pt-BR": "Portuguese (Brazil)",
-      "ro": "Romanian",
-      "ru": "Russian",
-      "sk": "Slovak",
-      "sv": "Swedish",
-      "sw": "Swahili",
-      "th": "Thai",
-      "tl": "Filipino",
-      "tr": "Turkish",
-      "uk": "Ukrainian",
-      "ur": "Urdu",
-      "vi": "Vietnamese",
-      "zh": "Chinese",
-      "zh-CN": "Chinese (Simplified)",
-      "zh-TW": "Chinese (Traditional)"
-    };
-
-    function normalizeItem(item) {
-      if (typeof item === "string") return { code: item, name: NAMES[item] || item };
+    // Replicate model expects *names* (not ISO codes). We'll always submit the exact allowed string.
+    function normalize(item) {
       if (!item) return null;
-      const code = item.code || item.value || item.lang || item.id;
-      const name = item.name || item.label || item.title || (code ? (NAMES[code] || code) : null);
-      if (!code) return null;
-      return { code, name: name || code };
+
+      // If backend returns a string, it might already be the full allowed name.
+      if (typeof item === "string") return { value: item, label: item };
+
+      // If backend returns objects, prefer .name / .label as the allowed string.
+      const label = item.name || item.label || item.title || item.value || item.code;
+      if (!label) return null;
+
+      // Some backends may return ISO codes; map a few common ones to the model's expected names.
+      const MAP = {
+        "en":"English","es":"Spanish","fr":"French","de":"German","it":"Italian","pt":"Portuguese",
+        "nl":"Dutch","tr":"Turkish","ko":"Korean","da":"Danish","ar":"Arabic","ro":"Romanian",
+        "zh":"Chinese","ja":"Japanese","sv":"Swedish","id":"Indonesian","uk":"Ukrainian","el":"Greek",
+        "cs":"Czech","bg":"Bulgarian","ms":"Malay","sk":"Slovak","hr":"Croatian","ta":"Tamil","fi":"Finnish","ru":"Russian","pl":"Polish","hi":"Hindi","fil":"Filipino"
+      };
+      const mapped = MAP[label] || MAP[(item.code || "").toLowerCase()] || label;
+      return { value: mapped, label: mapped };
     }
+
+    function fill(list) {
+      select.innerHTML = "";
+      list.forEach(({ value, label }) => {
+        const opt = document.createElement("option");
+        opt.value = value;   // IMPORTANT: value is the exact model-accepted string
+        opt.textContent = label;
+        select.appendChild(opt);
+      });
+    }
+
+    try {
+      const raw = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
+      const items = (raw || []).map(normalize).filter(Boolean);
+
+      // If backend returns codes, mapping above converts many to full names.
+      if (items.length) {
+        // De-dupe + sort
+        const seen = new Set();
+        const uniq = [];
+        for (const it of items) {
+          if (seen.has(it.value)) continue;
+          seen.add(it.value);
+          uniq.push(it);
+        }
+        uniq.sort((a,b) => a.label.localeCompare(b.label));
+        fill(uniq);
+        return;
+      }
+      throw new Error("Empty languages");
+    } catch {
+      // Fallback: a curated list of model-supported language names.
+      const fallback = ["Arabic", "Arabic (Egypt)", "Arabic (Saudi Arabia)", "Bulgarian", "Chinese", "Chinese (Mandarin, Simplified)", "Chinese (Taiwanese Mandarin, Traditional)", "Croatian", "Czech", "Danish", "Dutch", "English", "English (Australia)", "English (Canada)", "English (India)", "English (UK)", "English (United States)", "Filipino", "Finnish", "French", "French (Canada)", "French (France)", "German", "German (Austria)", "German (Germany)", "German (Switzerland)", "Greek", "Hindi", "Indonesian", "Italian", "Japanese", "Korean", "Malay", "Mandarin", "Polish", "Portuguese", "Portuguese (Brazil)", "Portuguese (Portugal)", "Romanian", "Russian", "Russian (Russia)", "Slovak", "Spanish", "Spanish (Mexico)", "Spanish (Spain)", "Swedish", "Tamil", "Turkish", "Turkish (Türkiye)", "Ukrainian", "Ukrainian (Ukraine)"].map((x) => ({ value: x, label: x }));
+      fill(fallback);
+    }
+  }
+
 
     function fill(list) {
       select.innerHTML = "";
