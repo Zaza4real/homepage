@@ -28,13 +28,6 @@
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="docs" type="button">Docs</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="about" type="button">About</button>
     </nav>
-
-    <div class="headerRight">
-      <button class="btnPrimary headerAuthBtn" id="headerAuth" data-auth-page="1" type="button">
-        <span class="btnLabel" id="headerAuthLabel">Login</span>
-        <span class="btnGlow"></span>
-      </button>
-    </div>
   </header>
 
   <main class="container">
@@ -119,16 +112,10 @@
                 <select id="targetLang"></select>
               </label>
 
-              <div class="hint" style="margin-bottom:10px;font-size:12px;opacity:.8;">If the popup buttons don’t respond, use the full page: <a href="auth.html" style="color:rgba(255,255,255,.9);text-decoration:underline;">Account page</a></div>
-        <div class="actions">
+              <div class="actions">
                 <button class="btnPrimary" id="btnRun" type="button">
                   <span class="btnLabel">Upload & translate</span>
                   <span class="btnSpinner" aria-hidden="true"></span>
-                  <span class="btnGlow"></span>
-                </button>
-
-                <button class="btnGhost" id="btnLogin" hidden aria-hidden="true" type="button">
-                  <span class="btnLabel">Login</span>
                   <span class="btnGlow"></span>
                 </button>
 
@@ -154,8 +141,6 @@
                   Tip: 30 seconds of video costs <strong>$2.89</strong>.
                   <span class="hintSep">•</span>
                   <span id="costEstimate" class="costEstimate"></span>
-                  <span class="hintSep">•</span>
-                  <span id="lyposBalance" class="costEstimate">Balance: — LYPOS</span>
                 </div>
                 <div class="progressWrap" id="progressWrap" hidden>
                   <div class="progressBar" aria-hidden="true"></div>
@@ -232,41 +217,6 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
   </main>
 
   <!-- IMPORTANT: include script.js ONCE -->
-  <script src="script.js" defer></script>
-
-  <!-- Auth modal (hidden; does not affect layout) -->
-  <div class="modal" id="authModal" hidden aria-hidden="true">
-    <div class="modalBackdrop" data-close="1"></div>
-    <div class="modalCard" role="dialog" aria-modal="true" aria-label="Account">
-      <div class="modalTop">
-        <div class="modalTitle">Account</div>
-        <button class="modalCloseBtn" type="button" data-close="1" aria-label="Close">✕</button>
-      </div>
-      <div class="modalBody">
-        <label class="field">
-          <span>Email</span>
-          <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" />
-        </label>
-        <label class="field">
-          <span>Password</span>
-          <input id="authPass" type="password" placeholder="••••••••" autocomplete="current-password" />
-        </label>
-        <div class="hint" id="authMsg" style="min-height:18px; color: rgba(255,255,255,.75); font-size:12px;"></div>
-        <div class="actions">
-          <button class="btnPrimary" id="btnDoLogin" type="button">
-            <span class="btnLabel">Login</span><span class="btnGlow"></span>
-          </button>
-          <button class="btnGhost" id="btnDoSignup" type="button">
-            <span class="btnLabel">Create account</span><span class="btnGlow"></span>
-          </button>
-          <button class="btnGhost" id="btnLogout" type="button" hidden>
-            <span class="btnLabel">Logout</span><span class="btnGlow"></span>
-          </button>
-        </div>
-        <div class="modalNote">Credits are <strong>LYPOS</strong>. <strong>$1 = 100 LYPOS</strong>.</div>
-      </div>
-    </div>
-  </div>
-
+  <script src="script.js"></script>
 </body>
 </html>
