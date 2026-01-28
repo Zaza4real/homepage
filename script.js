@@ -754,12 +754,13 @@ function showAuthModal(show) {
 
 
 // Buy credits (integrated modal, opens Stripe in a new tab)
+// Buy credits (inline)
 (function attachBuyCredits(){
   const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const AUTH_TOKEN_KEY = "lypo_token_v1";
   const CREDITS_PER_USD = 100; // matches backend LYPOS_PER_USD
+
   const payBtn = document.getElementById("btnPay");
-  const modal = document.getElementById("payModal");
   const usdInput = document.getElementById("payUsd");
   const preview = document.getElementById("payCreditsPreview");
   const msg = document.getElementById("payMsg");
@@ -774,27 +775,6 @@ function showAuthModal(show) {
     const credits = Math.max(0, Math.round(usd * CREDITS_PER_USD));
     preview.textContent = `${credits} credits`;
   }
-  function openModal(){
-    if (!modal) return;
-    setMsg("");
-    hint && (hint.style.display = "none");
-    openLink && (openLink.href = "#");
-    setPreview();
-    modal.hidden = false;
-    modal.setAttribute("aria-hidden","false");
-    setTimeout(()=>usdInput?.focus?.(), 50);
-  }
-  function closeModal(){
-    if (!modal) return;
-    modal.hidden = true;
-    modal.setAttribute("aria-hidden","true");
-  }
-
-  // close handlers
-  document.querySelectorAll("[data-close-pay='1']").forEach((el)=>{
-    el.addEventListener("click", (e)=>{ e.preventDefault(); closeModal(); });
-  });
-  document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeModal(); });
 
   // quick buttons
   document.querySelectorAll("[data-usd]").forEach((btn)=>{
@@ -802,18 +782,17 @@ function showAuthModal(show) {
       const v = Number(btn.getAttribute("data-usd") || 0);
       if (usdInput) usdInput.value = String(v || 5);
       setPreview();
+      setMsg("");
     });
   });
-  usdInput?.addEventListener("input", setPreview);
+  usdInput?.addEventListener("input", ()=>{ setPreview(); setMsg(""); });
 
-  payBtn?.addEventListener("click", async () => {
+  // Pay button just focuses the inline card
+  payBtn?.addEventListener("click", () => {
     const token = localStorage.getItem(AUTH_TOKEN_KEY) || "";
-    if (!token) {
-      // reuse existing auth modal if present
-      try { showAuthModal(true); } catch {}
-      return;
-    }
-    openModal();
+    if (!token) { try { showAuthModal(true); } catch {} return; }
+    usdInput?.focus?.();
+    usdInput?.scrollIntoView?.({behavior:"smooth", block:"center"});
   });
 
   goBtn?.addEventListener("click", async () => {
@@ -825,6 +804,8 @@ function showAuthModal(show) {
       if (!Number.isFinite(usd) || usd <= 0) { setMsg("Please enter a valid amount."); return; }
 
       setMsg("Opening secure checkout…");
+      hint && (hint.style.display = "none");
+      openLink && (openLink.href = "#");
 
       const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
         method: "POST",
@@ -839,42 +820,24 @@ function showAuthModal(show) {
       const url = payload?.url;
       if (!url) throw new Error("Missing checkout URL");
 
-      // open in a new tab/window (keep user on site)
       const w = window.open(url, "_blank", "noopener,noreferrer");
       if (!w) {
-        // popup blocked
         if (openLink) openLink.href = url;
         if (hint) hint.style.display = "block";
         setMsg("Your browser blocked the popup. Use the link below to open checkout.");
         return;
       }
 
-      closeModal();
+      setMsg("Checkout opened in a new tab.");
     } catch (e) {
       setMsg(`Payment error: ${e?.message || e}`);
     }
   });
+
+  setPreview();
 })();
 
-    const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify({ usd }),
-    });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Failed to create checkout session");
-
-    if (!data.url) throw new Error("Missing checkout URL");
-    window.location.href = data.url;
-  } catch (e) {
-    setStatus?.(`Payment error: ${e.message || e}`);
-    alert(e.message || e);
-  }
-});
 
 
   function setYear() {
