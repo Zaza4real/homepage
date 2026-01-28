@@ -79,4 +79,69 @@
       });
     });
   });
+
+  // ---- Forgot / Reset password
+  function getHashParams() {
+    const h = (location.hash || "").replace(/^#/, "");
+    const out = {};
+    if (!h) return out;
+    for (const part of h.split("&")) {
+      const [k, v] = part.split("=");
+      if (k) out[decodeURIComponent(k)] = decodeURIComponent(v || "");
+    }
+    return out;
+  }
+
+  async function requestPasswordReset() {
+    const email = $("authEmailPage")?.value?.trim();
+    if (!email) return setMsg("Please enter your email first.");
+    try {
+      await apiFetch("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email })
+      });
+      setMsg("If an account exists for that email, a reset link has been sent.");
+    } catch (e) {
+      // Always show a generic message to avoid account enumeration
+      setMsg("If an account exists for that email, a reset link has been sent.");
+    }
+  }
+
+  async function doResetPassword() {
+    const params = getHashParams();
+    const token = params.reset || "";
+    const email = (params.email || $("authEmailPage")?.value || "").trim();
+    const p1 = $("resetPass1")?.value || "";
+    const p2 = $("resetPass2")?.value || "";
+    if (!token) return setMsg("Missing reset token.");
+    if (!email) return setMsg("Missing email.");
+    if (p1.length < 6) return setMsg("Password too short (min 6).");
+    if (p1 !== p2) return setMsg("Passwords do not match.");
+    try {
+      await apiFetch("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ email, token, newPassword: p1 })
+      });
+      setMsg("Password updated. You can now sign in.");
+      // clean hash and hide reset panel
+      history.replaceState(null, "", location.pathname);
+      const wrap = $("resetWrap"); if (wrap) wrap.style.display = "none";
+    } catch (e) {
+      setMsg(e.message || "Could not reset password.");
+    }
+  }
+
+  const btnForgot = $("btnForgotPage");
+  if (btnForgot) btnForgot.addEventListener("click", requestPasswordReset);
+
+  const btnReset = $("btnResetPass");
+  if (btnReset) btnReset.addEventListener("click", doResetPassword);
+
+  // If opened from email link: auth.html#reset=...&email=...
+  const hp = getHashParams();
+  if (hp.reset) {
+    const wrap = $("resetWrap");
+    if (wrap) wrap.style.display = "block";
+    if (hp.email && $("authEmailPage")) $("authEmailPage").value = hp.email;
+  }
 })();
