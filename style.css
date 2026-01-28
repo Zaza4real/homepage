@@ -1171,3 +1171,40 @@ button.btnLink{ display:inline-flex; align-items:center; }
   text-transform: uppercase;
   color: rgba(255,255,255,.55);
 }
+
+/* ---------------------------
+   Auth modal (minimal; matches existing vibe)
+---------------------------- */
+.authModal{
+  position:fixed;
+  inset:0;
+  z-index:60;
+}
+.authModal[hidden]{ display:none !important; }
+.authBackdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.60);
+  backdrop-filter: blur(14px);
+}
+.authCard{
+  position:relative;
+  width:min(540px, calc(100% - 28px));
+  margin: 96px auto 0;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.52);
+  box-shadow: 0 35px 120px rgba(0,0,0,.68);
+  overflow:hidden;
+}
+.authTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 12px 14px;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+}
+.authTitle{ font-weight: 1000; letter-spacing:.01em; }
+.authBody{ padding: 14px; display:grid; gap: 12px; }
