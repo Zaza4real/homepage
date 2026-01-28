@@ -1,4 +1,9 @@
 // Account dashboard
+const token = localStorage.getItem("lypo_token_v1");
+if (!token) {
+  window.location.href = "auth.html";
+}
+
 (() => {
   const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const AUTH_TOKEN_KEY = "lypo_token_v1";
