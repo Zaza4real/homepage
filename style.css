@@ -343,6 +343,18 @@ a{ color:inherit; text-decoration:none; }
 }
 
 .actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+/* Main page action buttons — match the rest of the UI */
+.mainActionsRow > button,
+.mainActionsRow > a{ flex: 0 0 auto; }
+
+/* Only shrink the two main buttons (and optional login/download buttons) */
+#btnRun, #btnPay, #btnDownload, #btnLogin{
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: .01em;
+}
 .btnPrimary,.btnGhost{
   position:relative;
   border-radius:14px;
@@ -353,456 +365,6 @@ a{ color:inherit; text-decoration:none; }
   transition: transform .12s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
   overflow:hidden;
 }
-
-/* Compact primary/ghost buttons in the main action row (matches original compact look). */
-.actions > button,
-.actions > a{ flex: 0 0 auto; }
-
-.actions .btnPrimary,
-.actions .btnGhost{
-  padding:6px 10px;
-  border-radius:12px;
-  font-size:12px;
-}
-
-/* Make <a> buttons look identical to button buttons */
-.btnLink{ text-decoration:none; display:inline-flex; align-items:center; }
-.btnPrimary{ background:rgba(255,255,255,.86); color:rgba(0,0,0,.92); }
-.btnGhost{ background:rgba(255,255,255,.06); color:rgba(255,255,255,.86); }
-.btnPrimary:hover,.btnGhost:hover{
-  transform:translateY(-1px);
-  border-color:rgba(255,255,255,.20);
-  box-shadow: 0 12px 40px rgba(0,0,0,.35);
-}
-.btnGlow{
-  position:absolute; inset:-3px;
-  border-radius:16px;
-  pointer-events:none;
-  opacity:0;
-  background: radial-gradient(200px 70px at 20% 30%, rgba(255,255,255,.25), transparent 60%);
-  transition: opacity .18s ease;
-}
-.btnPrimary:hover .btnGlow,
-.btnGhost:hover .btnGlow{ opacity:1; }
-
-.statusRow{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
-.statusPill{
-  display:inline-flex; gap:10px; align-items:center;
-  padding:10px 12px;
-  border-radius:999px;
-  border:1px solid var(--border);
-  background:rgba(0,0,0,.24);
-}
-
-.hintSep{ opacity:.65; margin: 0 8px; }
-.costEstimate{ color: rgba(255,255,255,.82); }
-
-/* Indeterminate progress bar (shown while uploading/processing) */
-.progressWrap{
-  width: 100%;
-  max-width: 520px;
-  height: 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.30);
-  overflow:hidden;
-}
-.progressBar{
-  position:relative;
-  width:100%;
-  height:100%;
-}
-.progressBar::before{
-  content:"";
-  position:absolute;
-  top:-2px; bottom:-2px;
-  width: 40%;
-  left:-40%;
-  background: linear-gradient(90deg,
-    rgba(0,225,255,.00),
-    rgba(0,225,255,.80),
-    rgba(142,84,255,.80),
-    rgba(255,120,120,.70),
-    rgba(0,225,255,.00)
-  );
-  filter: blur(0.2px);
-  animation: progressSweep 1.15s ease-in-out infinite;
-}
-@keyframes progressSweep{
-  0%{ left:-45%; }
-  100%{ left:105%; }
-}
-.ping{
-  width:10px; height:10px; border-radius:999px;
-  background:rgba(255,255,255,.92);
-  box-shadow:0 0 0 0 rgba(255,255,255,.30);
-  animation: ping 1.6s ease-out infinite;
-}
-@keyframes ping{
-  0%{ box-shadow:0 0 0 0 rgba(255,255,255,.30); }
-  70%{ box-shadow:0 0 0 12px rgba(255,255,255,0); }
-  100%{ box-shadow:0 0 0 0 rgba(255,255,255,0); }
-}
-.hint{ color:var(--muted); font-size:13px; }
-
-.console{
-  margin:0;
-  padding:12px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(0,0,0,.20);
-  color:rgba(255,255,255,.80);
-  overflow:auto;
-  max-height:280px;
-  line-height:1.55;
-}
-
-/* Panels */
-.panel{
-  border-radius:var(--r);
-  border:1px solid var(--border);
-  background:rgba(0,0,0,.22);
-  box-shadow:var(--shadow);
-  padding:18px;
-}
-.panel h2{ margin:0 0 12px; letter-spacing:-0.02em; }
-.grid2{ display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; }
-.tile{
-  grid-column: span 6;
-  padding:16px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.05);
-}
-.tileTitle{ font-weight:1000; margin-bottom:6px; }
-.tile p{ margin:0; color:var(--muted); line-height:1.6; }
-
-.pricing{ display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; }
-.priceCard{
-  grid-column: span 4;
-  padding:16px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.05);
-}
-.priceCard.featured{
-  border-color: rgba(255,255,255,.20);
-  background: rgba(255,255,255,.08);
-  box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 24px 80px rgba(0,0,0,.35);
-}
-.priceTop{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
-.priceName{ font-weight:1000; }
-.priceValue{ color:rgba(255,255,255,.80); }
-.priceCard ul{ margin:0; padding-left:18px; color:rgba(255,255,255,.78); line-height:1.7; }
-
-.codeCard{
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.22);
-  padding: 12px;
-}
-.code{ margin:0; color: rgba(255,255,255,.80); line-height:1.55; overflow:auto; }
-
-.footer{
-  margin-top:22px;
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  color:rgba(255,255,255,.55);
-  font-size:14px;
-  padding:0 2px;
-}
-.muted{ color:var(--muted); }
-
-/* --- Modern upload + loaders + progress + pricing hint --- */
-.btnLabel{ display:inline-flex; align-items:center; gap:8px; }
-
-/* Upload button (modern, darker, matches CTA vibe) */
-.upload{ width:100%; }
-.uploadBtn{
-  position:relative;
-  width:100%;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:14px 14px;
-  border-radius:18px;
-  border:1px dashed rgba(255,255,255,.22);
-  background:rgba(0,0,0,.30);
-  color:rgba(255,255,255,.92);
-  cursor:pointer;
-  text-align:left;
-  overflow:hidden;
-  transition: transform .12s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
-}
-.uploadBtn:hover{
-  transform:translateY(-1px);
-  background:rgba(0,0,0,.38);
-  border-color:rgba(255,255,255,.32);
-  box-shadow: 0 16px 50px rgba(0,0,0,.45);
-}
-.uploadBtn:active{ transform: translateY(0) scale(.99); }
-.uploadIcon{
-  width:42px; height:42px;
-  display:grid; place-items:center;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(0,0,0,.35);
-  box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
-  flex:0 0 auto;
-  font-size:18px;
-}
-.uploadText{ display:flex; flex-direction:column; gap:4px; }
-.uploadText strong{ font-weight:1000; letter-spacing:.01em; }
-.uploadText em{
-  font-style:normal;
-  color:rgba(255,255,255,.70);
-  font-size:13px;
-}
-.uploadFx{
-  position:absolute; inset:-2px;
-  border-radius:20px;
-  pointer-events:none;
-  opacity:0;
-  background: conic-gradient(from 180deg,
-    rgba(0,225,255,.55),
-    rgba(142,84,255,.55),
-    rgba(255,120,120,.50),
-    rgba(0,225,255,.55)
-  );
-  filter: blur(14px);
-  transition: opacity .18s ease;
-}
-.uploadBtn:hover .uploadFx{ opacity:.65; }
-.uploadBtn.dragOver{
-  border-style:solid;
-  border-color: rgba(0,225,255,.55);
-  background: rgba(0,225,255,.08);
-}
-
-/* Hint row (slightly darker) */
-.hint{ color: rgba(255,255,255,.68); }
-.hint strong{ color: rgba(255,255,255,.88); }
-.hintSep{ margin:0 8px; opacity:.65; }
-.costEstimate{ color: rgba(255,255,255,.85); }
-
-/* Progress bar (indeterminate) */
-.progressWrap{
-  width:100%;
-  margin-top:8px;
-  border-radius:999px;
-  background: rgba(0,0,0,.32);
-  border: 1px solid rgba(255,255,255,.12);
-  overflow:hidden;
-}
-.progressBar{
-  position:relative;
-  height:10px;
-}
-.progressBar::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  width:45%;
-  border-radius:999px;
-  background: conic-gradient(from 180deg,
-    rgba(0,225,255,.90),
-    rgba(142,84,255,.90),
-    rgba(255,120,120,.85),
-    rgba(0,225,255,.90)
-  );
-  filter: blur(.0px);
-  animation: indet 1.15s ease-in-out infinite;
-}
-@keyframes indet{
-  0%{ transform: translateX(-120%); }
-  100%{ transform: translateX(260%); }
-}
-
-/* Loading indicators */
-@keyframes spin{ to{ transform: rotate(360deg); } }
-
-.loader,
-.btnSpinner{
-  width:22px; height:22px;
-  border-radius:999px;
-  background: conic-gradient(
-    rgba(0,225,255,1),
-    rgba(142,84,255,1),
-    rgba(255,120,120,1),
-    rgba(0,225,255,1)
-  );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
-  animation: spin .8s linear infinite;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.18) inset, 0 0 24px rgba(142,84,255,.20);
-}
-.loader{ display:none; }
-.statusPill.isLoading .loader{ display:inline-block; }
-.statusPill.isLoading .ping{ display:none; }
-
-.btnSpinner{
-  display:none;
-  margin-left:10px;
-  width:18px; height:18px;
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 0);
-}
-.btnPrimary.isLoading .btnSpinner,
-.btnGhost.isLoading .btnSpinner{ display:inline-block; }
-
-.btnPrimary:disabled,
-.btnGhost:disabled,
-.uploadBtn:disabled{
-  opacity:.65;
-  cursor:not-allowed;
-  transform:none !important;
-  box-shadow:none !important;
-}
-
-@media (max-width: 980px){
-  .tabs{ display:none; }
-  .container{ padding-top: 120px; }
-  .logo{ font-size: 40px; letter-spacing: .20em; }
-  .tile{ grid-column: span 12; }
-  .priceCard{ grid-column: span 12; }
-}
-
-
-
-/* Force hidden attribute to always hide even if display is set elsewhere */
-[hidden] { display: none !important; }
-
-/* Upload button + output window side-by-side */
-.uploadGrid{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: stretch;
-}
-
-.uploadBtn{
-  padding: 14px 14px; /* slightly smaller than before */
-  min-height: 82px;
-}
-
-.previewBox{
-  min-height: 82px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(10,12,18,.55);
-  box-shadow: 0 12px 40px rgba(0,0,0,.35);
-  position: relative;
-  overflow: hidden;
-}
-
-.previewBox:before{
-  content:"";
-  position:absolute;
-  inset:-1px;
-  background: radial-gradient(80% 80% at 30% 20%, rgba(120,160,255,.24), rgba(0,0,0,0));
-  pointer-events:none;
-}
-
-.previewInner{
-  position:relative;
-  z-index:1;
-  display:flex;
-  gap:10px;
-  align-items:center;
-  padding: 16px 16px 10px;
-}
-
-.previewIcon{
-  font-size: 18px;
-  filter: drop-shadow(0 8px 20px rgba(120,160,255,.35));
-}
-
-.previewText{
-  font-weight: 700;
-  letter-spacing: .1px;
-}
-
-.previewHint{
-  position:relative;
-  z-index:1;
-  padding: 0 16px 14px;
-  opacity:.7;
-  font-size: 12px;
-}
-
-/* Download button: hidden until ready, then highlighted */
-#btnDownload.isReady{
-  border-color: rgba(140,255,210,.55);
-  box-shadow: 0 0 0 1px rgba(140,255,210,.25), 0 18px 50px rgba(0,0,0,.45);
-  transform: translateY(-1px);
-}
-
-#btnDownload.isReady .btnGlow{
-  opacity: 1;
-}
-
-
-/* Output video preview inside the output window (no autoplay) */
-.outputVideo{
-  width: calc(100% - 24px);
-  margin: 6px 12px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.28);
-  display:block;
-}
-button.btnLink{ display:inline-flex; align-items:center; }
-
-
-/* “Snapshot” placeholder while generating */
-.previewSkeleton{
-  width: calc(100% - 24px);
-  margin: 6px 12px 12px;
-  height: 158px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.12);
-  background:
-    radial-gradient(110px 70px at 28% 35%, rgba(0,225,255,.22), transparent 60%),
-    radial-gradient(120px 80px at 70% 55%, rgba(142,84,255,.20), transparent 60%),
-    linear-gradient(120deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-  position: relative;
-  overflow: hidden;
-}
-.previewSkeleton::before{
-  content:"";
-  position:absolute;
-  inset:-40% -60%;
-  transform: rotate(18deg);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
-  animation: skShine 1.25s ease-in-out infinite;
-}
-.previewSkeleton::after{
-  content:"▶";
-  position:absolute;
-  left: 14px;
-  bottom: 12px;
-  width: 40px;
-  height: 40px;
-  display:grid;
-  place-items:center;
-  border-radius: 14px;
-  background: rgba(0,0,0,.35);
-  border: 1px solid rgba(255,255,255,.14);
-  color: rgba(255,255,255,.92);
-  box-shadow: 0 18px 46px rgba(0,0,0,.35);
-}
-@keyframes skShine{
-  0%{ transform: translateX(-20%) rotate(18deg); opacity:.0; }
-  35%{ opacity: .9; }
-  100%{ transform: translateX(40%) rotate(18deg); opacity:.0; }
-}
-
-
-/* Preview window: not pressable/clickable (except the video controls) */
-.previewBox{ cursor: default; pointer-events: none; }
-.previewBox *{ pointer-events: none; }
-.previewBox video{ pointer-events: auto; } /* allow playback controls only */
 
 
 /* Remove the “fog” overlay when an output video is ready */
@@ -1206,6 +768,18 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .modalTitle{ font-weight: 1000; letter-spacing:.02em; }
 .modalBody{ padding:14px; display:grid; gap:12px; }
 .modalBody .actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+/* Main page action buttons — match the rest of the UI */
+.mainActionsRow > button,
+.mainActionsRow > a{ flex: 0 0 auto; }
+
+/* Only shrink the two main buttons (and optional login/download buttons) */
+#btnRun, #btnPay, #btnDownload, #btnLogin{
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: .01em;
+}
 .modalNote{ font-size:12px; color: rgba(255,255,255,.62); }
 
 
@@ -1323,3 +897,6 @@ button.btnLink{ display:inline-flex; align-items:center; }
   font-size:12px;
 }
 .actions .btnLabel{ font-size:12px; }
+
+/* Keep checkout button comfortable size inside buy card */
+#btnPayGo{ padding:12px 14px; border-radius:14px; font-size:13px; }
