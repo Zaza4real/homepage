@@ -18,7 +18,7 @@
 
   <header class="header">
     <a class="logoWrap" href="#" aria-label="LYPO Home" data-go="home">
-      <span class="logo">LYP <span class="logoSpinner" aria-hidden="true"></span><span class="logoTagline">Sounds like magic…</span></span>
+      <span class="logo"><span class="logoLine"><span class="logoWord" aria-label="LYPO">LYP</span><span class="logoSpinner" aria-hidden="true"></span><span class="logoAfter">Sounds like magic…</span></span></span>
     </a>
 
     <nav class="tabs" role="tablist" aria-label="LYPO tabs">
@@ -34,17 +34,29 @@
     <!-- HOME -->
     <section class="tabPanel isActive" id="tab-home" role="tabpanel">
       <div class="hero">
-                <h1 class="h1">
+        <div class="kicker">⚪ AI dubbing • voice-preserving • lip-sync</div>
+
+        <h1 class="h1">
           Translate your video to <span class="grad">every language</span>
           — keep your voice, sync the lips.
         </h1>
 
         <p class="sub">
-          Upload a video, select a language, sit back and enjoy the magic...
+          Upload a video, select a language, and run the backend API demo.
+          Your Replicate key stays on the server.
         </p>
-<div class="demoCard">
+
+        <!-- 4 animated CTA shortcuts (switch tabs) -->
+        <div class="ctaRow" aria-label="Shortcuts">
+          <button class="ctaBtn ctaGlow" type="button" data-go="features"><span class="ctaIcon">✨</span><span>Features</span><span class="ctaFx"></span></button>
+          <button class="ctaBtn ctaPulse" type="button" data-go="pricing"><span class="ctaIcon">⚡</span><span>Pricing</span><span class="ctaFx"></span></button>
+          <button class="ctaBtn ctaMag" type="button" data-go="docs"><span class="ctaIcon">🧩</span><span>Docs</span><span class="ctaFx"></span></button>
+          <button class="ctaBtn ctaShine" type="button" data-go="about"><span class="ctaIcon">👋</span><span>About</span><span class="ctaFx"></span></button>
+        </div>
+
+        <div class="demoCard">
           <div class="demoTop">
-            <div class="demoTitle">LYPO Video Translator</div>
+            <div class="demoTitle">Backend API Video Translator Demo</div>
             <div class="chips">
               <span class="chip">UI ✓</span>
               <span class="chip" id="chipBackend">Backend: not connected</span>
@@ -53,59 +65,10 @@
 
           <div class="demoBody">
             <div class="form">
-
-              <!-- SHOWCASE (mini, portrait) -->
-              <div class="showcaseTab" aria-label="Example translations">
-                <div class="showTabLeft">
-                  <div class="showTabTitle">Mini showcase</div>
-                  <div class="showTabSub">English ➜ French</div>
-                  <div class="showTabCaption">Same voice. New language.</div>
-                </div>
-
-                <div class="showTabMedia">
-                  <div class="miniVid">
-                    <video class="miniVidEl" id="miniEnglish" src="english.mp4" playsinline preload="metadata"></video>
-                    <button class="miniPlay" type="button" data-play="english" aria-label="Play English sample">▶</button>
-                    <div class="miniWave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-                    <div class="miniCap">English</div>
-                  </div>
-
-                  <div class="miniArrow" aria-hidden="true">➜</div>
-
-                  <div class="miniVid">
-                    <video class="miniVidEl" id="miniFrench" src="french.mp4" playsinline preload="metadata"></video>
-                    <button class="miniPlay" type="button" data-play="french" aria-label="Play French sample">▶</button>
-                    <div class="miniWave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-                    <div class="miniCap">French</div>
-                  </div>
-                </div>
-              </div>
-              <div class="field">
-                <span>Upload video</span>
-                <div class="upload">
-                  <input id="videoFile" type="file" accept="video/*" hidden />
-                  <div class="uploadGrid">
-                    <button class="uploadBtn" id="btnPickVideo" type="button">
-                      <span class="uploadIcon">🎬</span>
-                      <span class="uploadText">
-                        <strong>Choose a video</strong>
-                        <em id="videoName">or drop it here</em>
-                      </span>
-                      <span class="uploadFx"></span>
-                    </button>
-
-                    <div class="previewBox" id="previewBox" aria-label="Output window">
-                      <div class="previewInner">
-                        <span class="previewIcon" aria-hidden="true">🪟</span>
-                        <span class="previewText" id="previewText">No output yet</span>
-                      </div>
-                      <div class="previewHint" id="previewHint">Generated video will appear here</div>
-                      <div id="previewSkeleton" class="previewSkeleton" hidden aria-hidden="true"></div>
-                      <video id="outputVideo" class="outputVideo" controls playsinline hidden></video>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <label class="field">
+                <span>Choose video file</span>
+                <input id="videoFile" type="file" accept="video/*" />
+              </label>
 
               <label class="field">
                 <span>Target language</span>
@@ -114,39 +77,26 @@
 
               <div class="actions">
                 <button class="btnPrimary" id="btnRun" type="button">
-                  <span class="btnLabel">Upload & translate</span>
-                  <span class="btnSpinner" aria-hidden="true"></span>
+                  Upload & translate
                   <span class="btnGlow"></span>
                 </button>
 
-                <button class="btnGhost" id="btnPay" type="button">
-                  <span class="btnLabel">Pay</span>
-                  <span class="btnSpinner" aria-hidden="true" data-spinner="pay"></span>
-                  <span class="btnGlow"></span>
-                </button>
-
-                <button class="btnGhost btnLink" id="btnDownload" type="button" hidden aria-disabled="true" tabindex="-1">
-                  <span class="btnLabel">Download</span>
+                <button class="btnGhost" id="btnHealth" type="button">
+                  Check backend
                   <span class="btnGlow"></span>
                 </button>
               </div>
 
               <div class="statusRow">
-                <div class="statusPill" id="statusPill">
-                  <span class="loader" id="statusLoader" aria-hidden="true"></span>
-                  <span class="ping" id="statusDot" aria-hidden="true"></span>
+                <div class="statusPill">
+                  <span class="ping"></span>
                   <span id="statusText">Ready.</span>
                 </div>
-                <div class="hint">
-                  Tip: 30 seconds of video costs <strong>$2.89</strong>.
-                  <span class="hintSep">•</span>
-                  <span id="costEstimate" class="costEstimate"></span>
-                </div>
-                <div class="progressWrap" id="progressWrap" hidden>
-                  <div class="progressBar" aria-hidden="true"></div>
-                </div>
+                <div class="hint">Tip: small MP4 works fastest.</div>
               </div>
             </div>
+
+            <pre class="console" id="console">Choose a file → select language → Upload & translate.</pre>
           </div>
         </div>
       </div>
@@ -171,11 +121,11 @@
         <h2>Pricing</h2>
         <div class="pricing">
           <div class="priceCard">
-            <div class="priceTop"><div class="priceName">Starter</div><div class="priceValue">$—</div></div>
+            <div class="priceTop"><div class="priceName">Starter</div><div class="priceValue">€—</div></div>
             <ul><li>Few languages</li><li>Basic support</li><li>Low volume</li></ul>
           </div>
           <div class="priceCard featured">
-            <div class="priceTop"><div class="priceName">Pro</div><div class="priceValue">$—</div></div>
+            <div class="priceTop"><div class="priceName">Pro</div><div class="priceValue">€—</div></div>
             <ul><li>All languages</li><li>Better consistency</li><li>Higher concurrency</li></ul>
           </div>
           <div class="priceCard">
