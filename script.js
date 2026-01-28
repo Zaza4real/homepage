@@ -104,8 +104,7 @@ function showAuthModal(show) {
   async function ensureLoggedIn() {
     if (authToken && currentUser) return true;
     openAuthModal();
-    setStatus("Please login or create an account.");
-    return false;
+    throw new Error("Please login to continue.");
   }
 
 
@@ -305,8 +304,7 @@ function showAuthModal(show) {
 
     btn.addEventListener("click", async () => {
       try {
-        const ok = await ensureLoggedIn();
-        if (!ok) return;
+        await ensureLoggedIn();
 
         // Simple packs (USD) — change these later if you want
         const raw = prompt("How many dollars of credits do you want to buy? (e.g. 5, 10, 25)", "10");
@@ -593,8 +591,7 @@ function showAuthModal(show) {
     startGeneratingMessages();
 
     try {
-      const ok = await ensureLoggedIn();
-      if (!ok) return;
+      await ensureLoggedIn();
 
         // Deduct credits before uploading
         const seconds = await getSelectedVideoDurationSeconds();
@@ -733,18 +730,44 @@ function showAuthModal(show) {
     });
   }
 
-// removed legacy duplicate btnPay handler
+document.getElementById("btnPay")?.addEventListener("click", async () => {
+  try {
+    const token = localStorage.getItem("lypo_token") || "";
+    if (!token) {
+      // not logged in -> open login modal
+      showAuthModal(true);
+      return;
+    }
+
+    // default pack amount — you can change to 5/10/20 later
+    const usd = 10;
+
+    setStatus?.("Opening secure checkout…");
+
+    const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ usd }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Failed to create checkout session");
+
+    if (!data.url) throw new Error("Missing checkout URL");
+    window.location.href = data.url;
+  } catch (e) {
+    setStatus?.(`Payment error: ${e.message || e}`);
+    alert(e.message || e);
+  }
+});
 
 
   function setYear() {
     const y = $("year");
     if (y) y.textContent = String(new Date().getFullYear());
-  }
-
-
-  function modalCardStopPropagation() {
-    const card = document.querySelector("#authModal .modalCard");
-    card?.addEventListener("click", (e) => e.stopPropagation());
   }
 
   function lockPreviewBox() {
@@ -763,7 +786,6 @@ function showAuthModal(show) {
   attachAuth();
   attachMiniShowcase();
   lockPreviewBox();
-  modalCardStopPropagation();
 
   resetDownload();
   clearOutputVideo();
