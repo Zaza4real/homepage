@@ -28,6 +28,13 @@
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="docs" type="button">Docs</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="about" type="button">About</button>
     </nav>
+
+    <div class="headerRight">
+      <button class="btnPrimary headerAuthBtn" id="headerAuth" type="button">
+        <span class="btnLabel" id="headerAuthLabel">Login</span>
+        <span class="btnGlow"></span>
+      </button>
+    </div>
   </header>
 
   <main class="container">
@@ -249,6 +256,9 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
           </button>
           <button class="btnGhost" id="btnDoSignup" type="button">
             <span class="btnLabel">Create account</span><span class="btnGlow"></span>
+          </button>
+          <button class="btnGhost" id="btnLogout" type="button" hidden>
+            <span class="btnLabel">Logout</span><span class="btnGlow"></span>
           </button>
         </div>
         <div class="modalNote">Credits are <strong>LYPOS</strong>. <strong>$1 = 100 LYPOS</strong>.</div>
