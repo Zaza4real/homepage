@@ -23,7 +23,7 @@
     const logoutBtn = $("btnLogout");
 
     const loggedIn = Boolean(authToken && currentUser);
-    const txt = loggedIn ? `Account` : "Login";
+    const txt = loggedIn ? `Dashboard` : "Login";
     if (label) label.textContent = txt;
     if (headerBtn) headerBtn.setAttribute("aria-label", txt);
     if (btnLogin) btnLogin.querySelector(".btnLabel").textContent = txt;
@@ -219,9 +219,12 @@ function showAuthModal(show) {
     // Open modal from either button
     const open = () => { setAuthMsg(""); openAuthModal(); };
     btnLogin?.addEventListener("click", open);
-    headerBtn?.addEventListener("click", (e) => {
-      if (headerBtn?.dataset?.authPage === "1") { window.location.href = "auth.html"; return; }
-      open();
+    headerBtn?.addEventListener("click", () => {
+      if (authToken && currentUser) {
+        window.location.href = "dashboard.html";
+        return;
+      }
+      window.location.href = "auth.html";
     });
 
     // Close modal (backdrop / X)
