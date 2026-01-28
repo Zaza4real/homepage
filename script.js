@@ -797,4 +797,4 @@ document.getElementById("btnPay")?.addEventListener("click", async () => {
   checkBackend();
 
   $("btnRun")?.addEventListener("click", runUploadDub);
-})();
+});
