@@ -1,4 +1,52 @@
+
+// ===== Next-level polish: page transitions + active nav =====
+(function setupPolish(){
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ready = () => document.body.classList.add('isPageReady');
+  if (prefersReduced) ready();
+  else window.requestAnimationFrame(ready);
+
+  // Set active tab based on current page (auth/dashboard) when header uses tabs.
+  const path = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  const tabForPage = (path.includes('dashboard') ? 'docs' : (path.includes('auth') ? 'about' : null));
+  if (tabForPage){
+    document.querySelectorAll('.header .tabBtn').forEach(btn => {
+      const isActive = btn.dataset.tab === tabForPage;
+      btn.classList.toggle('isActive', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+  }
+
+  // Smooth leave on navigation for normal links.
+  const isInternal = (url) => {
+    try{
+      const u = new URL(url, location.href);
+      return u.origin === location.origin;
+    }catch{ return false; }
+  };
+
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href]');
+    if (!a) return;
+    if (a.target && a.target !== '_self') return;
+    const href = a.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+    if (!isInternal(href)) return;
+
+    // Only fade between full page navigations (.html or different pathname)
+    const dest = new URL(href, location.href);
+    if (dest.pathname === location.pathname && dest.search === location.search) return;
+
+    e.preventDefault();
+    if (prefersReduced){ location.href = dest.href; return; }
+    document.body.classList.add('isPageLeaving');
+    window.setTimeout(() => { location.href = dest.href; }, 160);
+  }, true);
+})();
+
 // GLOBAL DOM helper — must be defined before any usage
+
+
 const $ = (id) => document.getElementById(id);
 
 async function getSelectedVideoDurationSeconds() {
