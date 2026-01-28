@@ -17,7 +17,7 @@
   </div>
 
   <header class="header">
-    <a class="logoWrap" href="index.html" aria-label="LYPO Home">
+    <a class="logoWrap" href="#" aria-label="LYPO Home" data-go="home">
       <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
     </a>
 
@@ -30,7 +30,6 @@
     </nav>
 
     <div class="headerRight">
-      <a class="btnGhost headerNavBtn" href="dashboard.html" data-nav="dashboard"><span class="btnLabel">Dashboard</span><span class="btnGlow"></span></a>
       <button class="btnPrimary headerAuthBtn" id="headerAuth" data-auth-page="1" type="button">
         <span class="btnLabel" id="headerAuthLabel">Login</span>
         <span class="btnGlow"></span>
@@ -132,18 +131,48 @@
                   <span class="btnLabel">Login</span>
                   <span class="btnGlow"></span>
                 </button>
-
-                <button class="btnGhost" id="btnPay" type="button">
-                  <span class="btnLabel">Pay</span>
-                  <span class="btnSpinner" aria-hidden="true" data-spinner="pay"></span>
-                  <span class="btnGlow"></span>
-                </button>
-
-                <button class="btnGhost btnLink" id="btnDownload" type="button" hidden aria-disabled="true" tabindex="-1">
+<button class="btnGhost btnLink" id="btnDownload" type="button" hidden aria-disabled="true" tabindex="-1">
                   <span class="btnLabel">Download</span>
                   <span class="btnGlow"></span>
                 </button>
+              
+              <div class="buyCard" id="buyCard" aria-label="Buy credits">
+                <div class="buyCardTop">
+                  <div class="buyTitle">Buy Credits</div>
+                  <div class="buySub muted">Choose an amount and we’ll open Stripe checkout in a new tab.</div>
+                </div>
+
+                <div class="payQuick">
+                  <button class="chipBtn" type="button" data-usd="5">$5</button>
+                  <button class="chipBtn" type="button" data-usd="10">$10</button>
+                  <button class="chipBtn" type="button" data-usd="20">$20</button>
+                </div>
+
+                <div class="buyRow">
+                  <label class="field buyField">
+                    <span>Amount (USD)</span>
+                    <input id="payUsd" type="number" inputmode="decimal" min="1" step="1" value="10" />
+                  </label>
+
+                  <div class="buyPreview">
+                    You’ll get <strong id="payCreditsPreview">—</strong>
+                  </div>
+                </div>
+
+                <div class="buyActions">
+                  <button class="btnPrimary" id="btnPayGo" type="button">
+                    <span class="btnLabel">Buy Credit</span>
+                    <span class="btnSpinner" aria-hidden="true" data-spinner="paygo"></span>
+                    <span class="btnGlow"></span>
+                  </button>
+                  <div class="buyMsg muted" id="payMsg"></div>
+                </div>
+
+                <div class="muted" id="payPopupHint" style="display:none; margin-top:10px">
+                  Popup blocked? <a id="payOpenLink" href="#" target="_blank" rel="noopener noreferrer">Open checkout</a>
+                </div>
               </div>
+</div>
 
               <div class="statusRow">
                 <div class="statusPill" id="statusPill">
@@ -152,11 +181,11 @@
                   <span id="statusText">Ready.</span>
                 </div>
                 <div class="hint">
-                  Tip: 30 seconds of video costs <strong>$2.89</strong>.
+                  Tip: 30 seconds of video costs <strong>300 credits</strong>.
                   <span class="hintSep">•</span>
                   <span id="costEstimate" class="costEstimate"></span>
                   <span class="hintSep">•</span>
-                  <span id="lyposBalance" class="costEstimate">Balance: — LYPOS</span>
+                  <span id="lyposBalance" class="costEstimate">Balance: — Credits</span>
                 </div>
                 <div class="progressWrap" id="progressWrap" hidden>
                   <div class="progressBar" aria-hidden="true"></div>
@@ -233,7 +262,6 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
   </main>
 
   <!-- IMPORTANT: include script.js ONCE -->
-  <script src="header.js"></script>
   <script src="script.js" defer></script>
 
   <!-- Auth modal (hidden; does not affect layout) -->
@@ -265,10 +293,12 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
             <span class="btnLabel">Logout</span><span class="btnGlow"></span>
           </button>
         </div>
-        <div class="modalNote">Credits are <strong>LYPOS</strong>. <strong>$1 = 100 LYPOS</strong>.</div>
+        <div class="modalNote">Credits are <strong>Credits</strong>. <strong>$1 = 100 Credits</strong>.</div>
       </div>
     </div>
   </div>
+
+
 
 </body>
 </html>
