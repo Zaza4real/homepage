@@ -754,7 +754,7 @@ function showAuthModal(show) {
 
 document.getElementById("btnPay")?.addEventListener("click", async () => {
   try {
-    const token = localStorage.getItem("lypo_token") || "";
+    const token = localStorage.getItem("lypo_token_v1") || "";
     if (!token) {
       // not logged in -> open login modal
       showAuthModal(true);
