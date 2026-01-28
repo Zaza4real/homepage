@@ -11,9 +11,12 @@
     const headers = new Headers(opts.headers || {});
     if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
     const res = await fetch(`${BACKEND_BASE_URL}${path}`, { ...opts, headers });
-    const data = await res.json().catch(() => null);
+    let data = null;
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) data = await res.json().catch(() => null);
+    else data = await res.text().catch(() => null);
     if (!res.ok) {
-      const msg = data?.error || "Request failed";
+      const msg = data?.error || (typeof data==="string" && data.trim()) || `Request failed (${res.status})`;
       const e = new Error(msg);
       e.status = res.status;
       throw e;
@@ -21,7 +24,21 @@
     return data;
   }
 
+
+  async function ensureBackendUp() {
+    try {
+      const r = await fetch(`${BACKEND_BASE_URL}/health`);
+      if (!r.ok) throw new Error(`Backend unhealthy (${r.status})`);
+      return true;
+    } catch (e) {
+      setMsg(`Backend not reachable. Check Render backend URL and logs. (${e.message || e})`);
+      return false;
+    }
+  }
+
   async function doSignup() {
+    if (!(await ensureBackendUp())) return;
+
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
     if (!email || !password) { setMsg("Please enter email + password."); return; }
@@ -36,6 +53,8 @@
   }
 
   async function doLogin() {
+    if (!(await ensureBackendUp())) return;
+
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
     if (!email || !password) { setMsg("Please enter email + password."); return; }
