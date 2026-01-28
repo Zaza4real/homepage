@@ -354,6 +354,14 @@ a{ color:inherit; text-decoration:none; }
   overflow:hidden;
 }
 
+/* Slightly smaller primary/ghost buttons in the main action row (matches original compact look). */
+.actions .btnPrimary,
+.actions .btnGhost{
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:13px;
+}
+
 /* Make <a> buttons look identical to button buttons */
 .btnLink{ text-decoration:none; display:inline-flex; align-items:center; }
 .btnPrimary{ background:rgba(255,255,255,.86); color:rgba(0,0,0,.92); }

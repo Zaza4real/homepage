@@ -72,7 +72,13 @@
       return;
     }
     body.innerHTML = items.map((p) => {
-      const invoice = p.invoice_url ? `<a href="${p.invoice_url}" target="_blank" rel="noreferrer">Open</a>` : "—";
+      const docUrl = p.invoice_url;
+      let invoice = "—";
+      if (docUrl) {
+        const isPdf = String(docUrl).includes(".pdf");
+        // Note: download attribute may be ignored cross-origin, but it's harmless.
+        invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
+      }
       const amount = (p.amount_usd != null) ? `$${Number(p.amount_usd || 0).toFixed(2)}` : "—";
       const credits = (p.credits != null) ? p.credits : (p.lypos != null ? p.lypos : 0);
       return `<tr>
