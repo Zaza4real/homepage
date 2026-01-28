@@ -345,31 +345,77 @@ a{ color:inherit; text-decoration:none; }
 .actions{ display:flex; gap:10px; flex-wrap:wrap; }
 .btnPrimary,.btnGhost{
   position:relative;
-  border-radius:14px;
-  padding:12px 14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+
+  /* Liquid-glass */
+  border-radius:999px;
+  padding:10px 14px;
   font-weight:1000;
+  font-size:13px;
+  letter-spacing:.01em;
+
+  border:1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+
   cursor:pointer;
-  border:1px solid rgba(255,255,255,.14);
   transition: transform .12s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
   overflow:hidden;
+  user-select:none;
 }
 
-/* Slightly smaller primary/ghost buttons in the main action row (matches original compact look). */
-.actions .btnPrimary,
-.actions .btnGhost{
-  padding:10px 12px;
-  border-radius:12px;
-  font-size:13px;
+/* Glass highlight */
+.btnPrimary::before,.btnGhost::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:999px;
+  background: radial-gradient(220px 70px at 18% 30%, rgba(255,255,255,.18), transparent 62%),
+              radial-gradient(240px 90px at 88% 0%, rgba(0,225,255,.16), transparent 60%),
+              radial-gradient(260px 100px at 85% 70%, rgba(142,84,255,.14), transparent 62%);
+  opacity:.55;
+  pointer-events:none;
 }
 
-/* Keep Stripe "Buy Credit" button the same size as the main action button. */
-.buyActions .btnPrimary{
-  padding:10px 12px;
-  border-radius:12px;
-  font-size:13px;
+/* Subtle inner rim */
+.btnPrimary::after,.btnGhost::after{
+  content:"";
+  position:absolute;
+  inset:1px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  opacity:.85;
+  pointer-events:none;
 }
 
-/* Make <a> buttons look identical to button buttons */
+/* Primary = brighter glass */
+.btnPrimary{
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.22);
+}
+
+/* Ghost = calmer glass */
+.btnGhost{
+  background: rgba(255,255,255,.06);
+}
+
+.btnPrimary:hover,.btnGhost:hover{
+  transform:translateY(-1px);
+  border-color:rgba(255,255,255,.26);
+  background: rgba(255,255,255,.10);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.10), 0 18px 58px rgba(0,0,0,.45);
+}
+.btnPrimary:active,.btnGhost:active{ transform: translateY(0) scale(.99); }
+
+.btnGlow{ display:none; } /* old glow element no longer needed */
+
+
+/* Make <a> buttons look identical to button buttons *//* Make <a> buttons look identical to button buttons */
 .btnLink{ text-decoration:none; display:inline-flex; align-items:center; }
 .btnPrimary{ background:rgba(255,255,255,.86); color:rgba(0,0,0,.92); }
 .btnGhost{ background:rgba(255,255,255,.06); color:rgba(255,255,255,.86); }
@@ -1243,10 +1289,25 @@ button.btnLink{ display:inline-flex; align-items:center; }
 
 
 /* Auth page layout helpers (minimal, uses existing style language) */
-.shell{ max-width: 1100px; margin: 0 auto; padding: 18px; }
-.topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.shell{ max-width: 1100px; margin: 0 auto; padding: 120px 18px 44px; }
+.topbar{
+  position:fixed;
+  top:18px; left:50%;
+  transform:translateX(-50%);
+  width:min(1040px, calc(100% - 40px));
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.38);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-radius:999px;
+  box-shadow:var(--shadow);
+  z-index:10;
+}
 .brand{ display:flex; align-items:center; gap:12px; }
-.brand .logo{ width:34px; height:34px; border-radius:10px; background: rgba(255,255,255,.10); box-shadow: 0 0 0 1px rgba(255,255,255,.14) inset; }
+.brand .logo{ display:none; }
 .brandName{ font-weight:700; letter-spacing:.02em; }
 .brandTag{ font-size:12px; opacity:.75; }
 .main{ display:block; }
@@ -1295,6 +1356,9 @@ button.btnLink{ display:inline-flex; align-items:center; }
 /* Buy credits modal */
 .payQuick{ display:flex; gap:10px; flex-wrap:wrap; margin: 6px 0 12px; }
 .chipBtn{
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+
   appearance:none; border:1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   color: inherit;
@@ -1312,7 +1376,10 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .buyCardTop{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .buyTitle{font-weight:700}
 .payQuick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.chipBtn{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}
+.chipBtn{
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}
 .chipBtn:hover{background:rgba(255,255,255,.08)}
 .buyRow{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .buyField{min-width:180px}
@@ -1320,17 +1387,4 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .buyActions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .buyMsg{min-height:18px}
 
-/* Compact main action buttons (Upload & Translate / Buy Credits) */
-.actions .btnPrimary, .actions .btnGhost{
-  padding:8px 10px;
-  border-radius:12px;
-  font-size:13px;
-}
-.actions .btnLabel{ font-size:13px; }
 
-
-/* Make Upload & translate button slightly smaller (requested) */
-#btnRun.btnPrimary{
-  padding:8px 10px;
-  font-size:12px;
-}
