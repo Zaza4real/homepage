@@ -524,11 +524,40 @@
     });
   }
 
-  function attachPay() {
-    const btn = $("btnPay");
-    if (!btn) return;
-    btn.addEventListener("click", () => setStatus("Payment is not connected yet."));
+document.getElementById("btnPay")?.addEventListener("click", async () => {
+  try {
+    const token = localStorage.getItem("lypo_token") || "";
+    if (!token) {
+      // not logged in -> open login modal
+      showAuthModal(true);
+      return;
+    }
+
+    // default pack amount — you can change to 5/10/20 later
+    const usd = 10;
+
+    setStatus?.("Opening secure checkout…");
+
+    const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ usd }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Failed to create checkout session");
+
+    if (!data.url) throw new Error("Missing checkout URL");
+    window.location.href = data.url;
+  } catch (e) {
+    setStatus?.(`Payment error: ${e.message || e}`);
+    alert(e.message || e);
   }
+});
+
 
   function setYear() {
     const y = $("year");
