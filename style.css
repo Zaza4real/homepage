@@ -77,10 +77,10 @@ a{ color:inherit; text-decoration:none; }
   font-weight: 1000;
   text-transform: uppercase;
   color: rgba(255,255,255,.95);
+  /* Keep the glow subtle to avoid a hazy halo on some displays. */
   text-shadow:
-    0 0 18px rgba(255,255,255,.10),
-    0 0 48px rgba(255,255,255,.08),
-    0 12px 44px rgba(0,0,0,.70);
+    0 0 12px rgba(255,255,255,.08),
+    0 10px 34px rgba(0,0,0,.65);
   position: relative;
 }
 .logo::after{
@@ -89,7 +89,7 @@ a{ color:inherit; text-decoration:none; }
   inset:-10px -12px;
   border-radius:16px;
   background: radial-gradient(260px 70px at 15% 30%, rgba(255,255,255,.10), transparent 62%);
-  opacity:.9;
+  opacity:.35;
   pointer-events:none;
 }
 
@@ -357,8 +357,13 @@ a{ color:inherit; text-decoration:none; }
 /* Slightly smaller primary/ghost buttons in the main action row (matches original compact look). */
 .actions .btnPrimary,
 .actions .btnGhost{
-  display:inline-flex;
-  align-items:center;
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:13px;
+}
+
+/* Keep Stripe "Buy Credit" button the same size as the main action button. */
+.buyActions .btnPrimary{
   padding:10px 12px;
   border-radius:12px;
   font-size:13px;
