@@ -144,6 +144,10 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     }
 
     try {
+      // If Stripe redirected back with a successful payment, confirm it first so
+      // the new order + invoice/receipt link appears immediately.
+      await maybeConfirmStripeReturn();
+
       const me = await apiFetch("/api/auth/me");
       const email = me?.user?.email || "—";
       setText("dashEmailTop", `Email: ${email}`);
