@@ -98,7 +98,7 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       return;
     }
     body.innerHTML = items.map((p) => {
-      const docUrl = p.invoice_url;
+      const docUrl = (p.invoice_url && /^in_/.test(String(p.invoice_url))) ? null : p.invoice_url;
       let invoice = "—";
       if (docUrl) {
         const isPdf = String(docUrl).includes(".pdf");
