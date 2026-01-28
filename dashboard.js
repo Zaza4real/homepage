@@ -71,7 +71,8 @@ if (!token) {
       const st = await apiFetch("/api/admin/status");
       const card = $("adminCard");
       if (card) card.style.display = st.isAdmin ? "block" : "none";
-      if (st.isAdmin) {
+      if (true) {
+
         $("btnAdminAdd")?.addEventListener("click", async () => {
           const email = $("adminEmail")?.value?.trim();
           const amount = Number($("adminAmount")?.value || 0);
