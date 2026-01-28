@@ -1211,3 +1211,17 @@ button.btnLink{ display:inline-flex; align-items:center; }
   .headerRight{ margin-left:auto; }
   .headerAuthBtn{ padding: 9px 12px; }
 }
+
+
+/* Modal close button: same look as tab button, but not part of tabs */
+.modalCloseBtn{
+  appearance:none;
+  border:0;
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.9);
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+.modalCloseBtn:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
