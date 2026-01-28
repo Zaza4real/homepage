@@ -1,5 +1,7 @@
+// GLOBAL DOM helper — must be defined before any usage
+const $ = (id) => document.getElementById(id);
 
-  async function getSelectedVideoDurationSeconds() {
+async function getSelectedVideoDurationSeconds() {
     const input = $("videoFile");
     const file = input?.files?.[0];
     if (!file) throw new Error("Please choose a video first.");
@@ -128,10 +130,6 @@ function showAuthModal(show) {
     openAuthModal();
     throw new Error("Please login to continue.");
   }
-
-
-  const $ = (id) => document.getElementById(id);
-
   // ---- UI helpers
   function setStatus(text) {
     const st = $("statusText");
@@ -339,7 +337,7 @@ function showAuthModal(show) {
         await ensureLoggedIn();
 
         // Simple packs (USD) — change these later if you want
-        const raw = prompt("How many dollars of credits do you want to buy? (e.g. 5, 10, 25)", "10");
+        const raw = prompt("How many USD worth of credits do you want to buy? (e.g. 5, 10, 25)", "10");
         if (!raw) return;
         const usd = Number(raw);
         if (!Number.isFinite(usd) || usd <= 0) throw new Error("Invalid amount");
@@ -520,14 +518,9 @@ function showAuthModal(show) {
   }
 
   // ---- Cost estimate + upload picker
-  function formatUSD(n) {
-    const val = Number.isFinite(n) ? n : 0;
-    return `$${val.toFixed(2)}`;
-  }
-  function estimateCostFromSeconds(seconds) {
+  function estimateCreditsFromSeconds(seconds) {
     if (!Number.isFinite(seconds) || seconds <= 0) return null;
-    const units = Math.ceil(seconds / 30);
-    return units * PRICE_PER_30S_USD;
+    return Math.max(1, Math.ceil(seconds)) * CREDITS_PER_SECOND;
   }
 
   function attachUploadPicker() {
@@ -564,9 +557,9 @@ function showAuthModal(show) {
       tmp.preload = "metadata";
       tmp.onloadedmetadata = () => {
         const seconds = Number(tmp.duration);
-        const est = estimateCostFromSeconds(seconds);
-        if (costEl && est) costEl.textContent = `Estimated: ${formatUSD(est)}`;
-        if (pay && est) pay.querySelector(".btnLabel").textContent = `Pay (${formatUSD(est)})`;
+        const est = estimateCreditsFromSeconds(seconds);
+        if (costEl && est) costEl.textContent = `Estimated: ${est} credits`;
+        if (pay && est) pay.querySelector(".btnLabel").textContent = `Pay (buy credits)`;
         URL.revokeObjectURL(tmp.src);
       };
       tmp.src = URL.createObjectURL(file);
@@ -623,23 +616,20 @@ function showAuthModal(show) {
     startGeneratingMessages();
 
     try {
-      await ensureLoggedIn();
+      await ensureLoggedIn();      // Credits are charged server-side in /api/dub-upload (authoritative)
 
-        // Deduct credits before uploading
-        const seconds = await getSelectedVideoDurationSeconds();
-        try {
-          await apiFetch("/api/credits/charge", { method: "POST", body: JSON.stringify({ seconds }) }, true);
-          await refreshMeAndBalance(true);
-        } catch (err) {
-          if (err?.status === 402) {
-            setLoading(false, "Ready");
-            setStatus("Not enough credits. Click Pay to buy more.");
-            return;
-          }
-          throw err;
-        }
+      const seconds = await getSelectedVideoDurationSeconds();
+      const costCredits = Math.max(1, Math.ceil(seconds)) * CREDITS_PER_SECOND;
+      if (!confirm(`This video is ~${seconds}s. Cost: ${costCredits} credits. Continue?`)) {
+        setLoading(false, "Ready");
+        stopGeneratingMessages();
+        showSkeleton(false);
+        setPreviewTitle("Cancelled");
+        setPreviewHint("Upload cancelled.");
+        return;
+      }
 
-        setLoading(true, "Uploading…");
+      setLoading(true, "Uploading…");
 
       const fd = new FormData();
       fd.append("video", file);
