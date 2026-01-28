@@ -26,6 +26,38 @@
         </button>
       </div>
     </header>
+    <!-- ADMIN TOOL -->
+<section class="card" id="adminCard" style="margin-top:14px;">
+  <div class="cardHeader">
+    <h3 class="cardTitle" style="font-size:16px;">Admin • Add credits</h3>
+    <p class="cardSub">Top up any existing user account.</p>
+  </div>
+
+  <div class="grid2">
+    <label class="field">
+      <span class="fieldLabel">User email</span>
+      <input id="adminEmail" class="input" type="email" placeholder="user@email.com" />
+    </label>
+
+    <label class="field">
+      <span class="fieldLabel">Credits (+ / -)</span>
+      <input id="adminAmount" class="input" type="number" placeholder="e.g. 500 or -200" />
+    </label>
+  </div>
+
+  <label class="field" style="margin-top:12px;">
+    <span class="fieldLabel">Reason (optional)</span>
+    <input id="adminReason" class="input" type="text" placeholder="promo / refund / test" />
+  </label>
+
+  <div class="actions" style="margin-top:14px;">
+    <button class="btnPrimary" id="btnAdminAdd" type="button">
+      <span class="btnLabel">Apply</span><span class="btnGlow"></span>
+    </button>
+  </div>
+
+  <div class="hint" id="adminMsg" style="margin-top:10px;"></div>
+</section>
 
     <main class="main">
       
