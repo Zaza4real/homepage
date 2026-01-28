@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Account • LYPO</title>
+  <title>Account • LYP<span class="spinO" aria-hidden="true">O</span></title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="shell">
     <header class="topbar">
       <div class="brand">
+        <div class="logo"></div>
         <div class="brandTxt">
-          <div class="brandName">LYPO</div>
+          <div class="brandName">LYP<span class="spinO" aria-hidden="true">O</span></div>
           <div class="brandTag">Account</div>
         </div>
       </div>
@@ -25,58 +26,59 @@
         </button>
       </div>
     </header>
-
     <!-- ADMIN TOOL -->
-    <section class="card" id="adminCard" style="margin-top:14px;">
-      <div class="cardHeader">
-        <h3 class="cardTitle" style="font-size:16px;">Admin • Add credits</h3>
-        <p class="cardSub">Top up any existing user account.</p>
-      </div>
+<section class="card" id="adminCard" style="margin-top:14px;">
+  <div class="cardHeader">
+    <h3 class="cardTitle" style="font-size:16px;">Admin • Add credits</h3>
+    <p class="cardSub">Top up any existing user account.</p>
+  </div>
 
-      <div class="grid2">
-        <label class="field">
-          <span class="fieldLabel">User email</span>
-          <input id="adminEmail" class="input" type="email" placeholder="user@email.com" />
-        </label>
+  <div class="grid2">
+    <label class="field">
+      <span class="fieldLabel">User email</span>
+      <input id="adminEmail" class="input" type="email" placeholder="user@email.com" />
+    </label>
 
-        <label class="field">
-          <span class="fieldLabel">Credits (+ / -)</span>
-          <input id="adminAmount" class="input" type="number" placeholder="e.g. 500 or -200" />
-        </label>
-      </div>
+    <label class="field">
+      <span class="fieldLabel">Credits (+ / -)</span>
+      <input id="adminAmount" class="input" type="number" placeholder="e.g. 500 or -200" />
+    </label>
+  </div>
 
-      <label class="field" style="margin-top:12px;">
-        <span class="fieldLabel">Reason (optional)</span>
-        <input id="adminReason" class="input" type="text" placeholder="promo / refund / test" />
-      </label>
+  <label class="field" style="margin-top:12px;">
+    <span class="fieldLabel">Reason (optional)</span>
+    <input id="adminReason" class="input" type="text" placeholder="promo / refund / test" />
+  </label>
 
-      <div class="actions" style="margin-top:14px;">
-        <button class="btnPrimary" id="btnAdminAdd" type="button">
-          <span class="btnLabel">Apply</span><span class="btnGlow"></span>
-        </button>
-      </div>
+  <div class="actions" style="margin-top:14px;">
+    <button class="btnPrimary" id="btnAdminAdd" type="button">
+      <span class="btnLabel">Apply</span><span class="btnGlow"></span>
+    </button>
+  </div>
 
-      <div class="hint" id="adminMsg" style="margin-top:10px;"></div>
-    </section>
+  <div class="hint" id="adminMsg" style="margin-top:10px;"></div>
+</section>
 
     <main class="main">
-      <div class="dashRow" style="margin-top:10px;">
-        <div class="pill" id="dashEmailTop">Email: —</div>
-        <div class="pill" id="dashBalanceTop">Balance: —</div>
-        <div class="pill" id="dashAdminTop">Admin: —</div>
-        <div class="pill" id="dashVer">UI: ADMIN_V3</div>
-      </div>
-      <div class="hint" id="dashDiag" style="min-height:18px; margin-top:10px; color: rgba(255,255,255,.75); font-size:12px;"></div>
+      
 
-      <section class="card">
+<div class="dashRow" style="margin-top:10px;">
+  <div class="pill" id="dashEmail">Email: —</div>
+  <div class="pill" id="dashBalance">Balance: —</div>
+  <div class="pill" id="dashAdmin">Admin: —</div>
+  <div class="pill" id="dashVer">UI: ADMIN_V2</div>
+</div>
+<div class="hint" id="dashDiag" style="min-height:18px; margin-top:10px; color: rgba(255,255,255,.75); font-size:12px;"></div>
+
+<section class="card">
         <div class="cardHeader">
           <h2 class="cardTitle">Your account</h2>
           <p class="cardSub">Balance, payments/invoices, and generated videos.</p>
         </div>
 
         <div class="dashRow">
-          <div class="pill" id="dashEmailAccount">Email: —</div>
-          <div class="pill" id="dashBalanceAccount">Balance: — credits</div>
+          <div class="pill" id="dashEmail">Email: —</div>
+          <div class="pill" id="dashBalance">Balance: — LYP<span class="spinO" aria-hidden="true">O</span>S</div>
         </div>
 
         <div class="hint" id="dashMsg" style="min-height:18px; margin-top:10px; color: rgba(255,255,255,.75); font-size:12px;"></div>
@@ -93,9 +95,9 @@
               <tr>
                 <th>Date</th>
                 <th>Amount</th>
-                <th>Credits</th>
+                <th>LYP<span class="spinO" aria-hidden="true">O</span>S</th>
                 <th>Status</th>
-                <th>Invoice / Receipt</th>
+                <th>Invoice</th>
               </tr>
             </thead>
             <tbody id="paymentsBody">
@@ -130,5 +132,58 @@
   </div>
 
   <script src="dashboard.js" defer></script>
+
+<script>
+(function(){
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+  const token = localStorage.getItem("lypo_token_v1") || "";
+  const diag = document.getElementById("dashDiag");
+  const set = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent=txt; };
+  const setDiag = (t) => { if(diag) diag.textContent = t || ""; };
+
+  if(!token){
+    set("dashAdmin","Admin: NO TOKEN");
+    setDiag("You are not logged in. Go to Login and then return to Dashboard.");
+    return;
+  }
+
+  fetch(BACKEND_BASE_URL + "/api/auth/me", { headers: { Authorization: "Bearer " + token } })
+    .then(async r => {
+          const ct = (r.headers.get("content-type") || "");
+          if (ct.includes("application/json")) {
+            const j = await r.json().catch(() => null);
+            return { ok: r.ok, status: r.status, j };
+          }
+          const text = await r.text().catch(() => "");
+          return { ok: false, status: r.status, j: null, nonJson: text };
+        })
+    .then(({ok, status, j}) => {
+      if(!ok){ set("dashAdmin","Admin: AUTH FAIL"); setDiag("Login token invalid (status "+status+"). Please log in again."); return; }
+      set("dashEmail","Email: " + (j.user && j.user.email ? j.user.email : "—"));
+      return fetch(BACKEND_BASE_URL + "/api/credits", { headers: { Authorization: "Bearer " + token } })
+        .then(r => r.json().then(j2 => ({ok:r.ok, status:r.status, j2})))
+        .then(({ok, status, j2}) => { if(ok) set("dashBalance","Balance: " + j2.balance + " credits"); else set("dashBalance","Balance: error"); });
+    })
+    .then(() => {
+      return fetch(BACKEND_BASE_URL + "/api/admin/status", { headers: { Authorization: "Bearer " + token } })
+        .then(async r => {
+          const ct = (r.headers.get("content-type") || "");
+          if (ct.includes("application/json")) {
+            const j = await r.json().catch(() => null);
+            return { ok: r.ok, status: r.status, j };
+          }
+          const text = await r.text().catch(() => "");
+          return { ok: false, status: r.status, j: null, nonJson: text };
+        })
+        .then(({ok, status, j}) => {
+          if(!ok){ set("dashAdmin","Admin: CHECK FAIL"); setDiag("Admin status endpoint failed (status "+status+"). Backend may not be deployed with admin routes."); return; }
+          if(j && j.isAdmin){ set("dashAdmin","Admin: YES"); setDiag(""); }
+          else { set("dashAdmin","Admin: NO"); setDiag("Not admin. Set ADMIN_EMAILS (or ADMIN_EMAIL) on the BACKEND service to your login email and redeploy."); }
+        });
+    })
+    .catch(e => { set("dashAdmin","Admin: ERROR"); setDiag("Network error: " + (e && e.message ? e.message : e)); });
+})();
+</script>
+
 </body>
 </html>

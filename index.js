@@ -38,6 +38,7 @@ app.use((req, res, next) => {
    Auth + Credits + Stripe (LYPOS)
 ---------------------------- */
 const LYPOS_PER_USD = 100;
+const CREDITS_PER_SECOND = Number(process.env.CREDITS_PER_SECOND || 10);
 const PRICE_PER_30S_USD = Number(process.env.PRICE_PER_30S_USD || 2.89);
 const PRICE_PER_30S_LYPOS = Math.round(PRICE_PER_30S_USD * LYPOS_PER_USD);
 
@@ -83,11 +84,17 @@ async function initDb() {
       status TEXT NOT NULL DEFAULT 'starting',
       input_url TEXT,
       output_url TEXT,
+      cost_credits INTEGER NOT NULL DEFAULT 0,
+      refunded BOOLEAN NOT NULL DEFAULT false,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `);
-}
+
+  // Migrations for existing databases
+  await pool.query(`ALTER TABLE videos ADD COLUMN IF NOT EXISTS cost_credits INTEGER NOT NULL DEFAULT 0;`);
+  await pool.query(`ALTER TABLE videos ADD COLUMN IF NOT EXISTS refunded BOOLEAN NOT NULL DEFAULT false;`);
+  await pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS invoice_url TEXT;`);
 }
 
 function normEmail(email) {
@@ -196,6 +203,33 @@ function auth(req, res, next) {
   }
 }
 
+// ---- Admin guard
+// Backend env: ADMIN_EMAILS="admin1@example.com,admin2@example.com"
+function adminAllowSet() {
+  // Support both ADMIN_EMAILS (comma-separated) and legacy ADMIN_EMAIL (single email)
+  const raw = String(process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "");
+  return new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function isAdminEmail(email) {
+  const allow = adminAllowSet();
+  const e = normEmail(email);
+  return !!e && allow.size > 0 && allow.has(e);
+}
+
+function requireAdmin(req, res, next) {
+  const email = normEmail(req.user?.email);
+  if (!isAdminEmail(email)) {
+    return res.status(403).json({ error: "NOT_AUTHORIZED" });
+  }
+  return next();
+}
+
 // Stripe webhook must use RAW body — define BEFORE express.json
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   const sig = req.headers["stripe-signature"];
@@ -264,6 +298,13 @@ app.get("/api/auth/me", auth, async (req, res) => {
   const email = req.user?.email;
   const u = await getUserByEmail(email);
   if (!u) return res.status(401).json({ error: "Invalid user" });
+
+// ---- Admin: check if current user is admin
+app.get("/api/admin/status", auth, (req, res) => {
+  const email = normEmail(req.user?.email);
+  return res.json({ isAdmin: isAdminEmail(email), email });
+});
+
   res.json({ user: publicUserRow(u) });
 });
 
@@ -275,11 +316,40 @@ app.get("/api/credits", auth, async (req, res) => {
   res.json({ balance: Number(u.balance || 0) });
 });
 
+// ---- Admin: add credits to a user
+// Backend env: ADMIN_EMAILS="admin1@example.com,admin2@example.com"
+// POST /api/admin/add-credits { email, amount, reason? }
+app.post("/api/admin/add-credits", auth, requireAdmin, async (req, res) => {
+  const email = normEmail(req.body?.email);
+  const amountRaw = req.body?.amount;
+  const amount = Math.trunc(Number(amountRaw));
+  const reason = String(req.body?.reason || "").slice(0, 300);
+
+  if (!email) return res.status(400).json({ error: "Missing email" });
+  if (!Number.isFinite(amount) || amount === 0) return res.status(400).json({ error: "Invalid amount" });
+
+  const u = await getUserByEmail(email);
+  if (!u) return res.status(404).json({ error: "NO_USER" });
+
+  await addBalance(email, amount);
+  const updated = await getUserByEmail(email);
+
+  // Optional audit trail in logs
+  console.log("✅ Admin added credits", {
+    admin: normEmail(req.user.email),
+    email,
+    amount,
+    reason
+  });
+
+  return res.json({ ok: true, user: publicUserRow(updated) });
+});
+
 app.post("/api/credits/charge", auth, async (req, res) => {
   const email = req.user.email;
   const seconds = Number(req.body?.seconds || 0);
-  const units = Math.max(1, Math.ceil(seconds / 30));
-  const cost = units * PRICE_PER_30S_LYPOS;
+  const s = Math.max(1, Math.ceil(seconds));
+  const cost = s * CREDITS_PER_SECOND;
 
   const result = await chargeBalance(email, cost);
   if (!result.ok && result.code === "NO_USER") return res.status(401).json({ error: "Invalid user" });
