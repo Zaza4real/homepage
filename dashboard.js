@@ -89,3 +89,34 @@
     load();
   });
 })();
+// Admin add credits handler
+document.getElementById("btnAdminAdd")?.addEventListener("click", async () => {
+  const email = document.getElementById("adminEmail").value.trim();
+  const amount = Number(document.getElementById("adminAmount").value);
+  const reason = document.getElementById("adminReason").value.trim();
+  const msg = document.getElementById("adminMsg");
+
+  if (!email || !amount) {
+    msg.textContent = "Enter email and credit amount.";
+    return;
+  }
+
+  try {
+    const res = await fetch("https://lypo-backend.onrender.com/api/admin/add-credits", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("lypo_token_v1")}`
+      },
+      body: JSON.stringify({ email, amount, reason })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed");
+
+    msg.textContent = `✅ ${data.user.email} now has ${data.user.balance} credits`;
+  } catch (e) {
+    msg.textContent = "❌ " + e.message;
+  }
+});
+
