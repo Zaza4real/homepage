@@ -1,3 +1,25 @@
+
+  async function getSelectedVideoDurationSeconds() {
+    const input = $("videoFile");
+    const file = input?.files?.[0];
+    if (!file) throw new Error("Please choose a video first.");
+    const url = URL.createObjectURL(file);
+    try {
+      const v = document.createElement("video");
+      v.preload = "metadata";
+      v.src = url;
+      await new Promise((resolve, reject) => {
+        v.onloadedmetadata = () => resolve();
+        v.onerror = () => reject(new Error("Could not read video metadata"));
+      });
+      const seconds = Number(v.duration || 0);
+      if (!Number.isFinite(seconds) || seconds <= 0) return 30;
+      return Math.ceil(seconds);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
 // LYPO frontend demo script (v20) — fixed (no syntax errors)
 (() => {
   if (window.__LYPO_INIT__) return;
