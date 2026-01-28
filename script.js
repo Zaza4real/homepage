@@ -121,8 +121,8 @@ function showAuthModal(show) {
   function setBalanceUI(balance) {
     const el = $("lyposBalance");
     if (!el) return;
-    if (typeof balance === "number") el.textContent = `Balance: ${balance} Credits`;
-    else el.textContent = "Balance: — Credits";
+    if (typeof balance === "number") el.textContent = `Balance: ${balance} credits`;
+    else el.textContent = "Balance: — credits";
   }
 
   async function ensureLoggedIn() {

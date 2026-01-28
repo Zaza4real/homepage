@@ -10,7 +10,6 @@
   <div class="shell">
     <header class="topbar">
       <div class="brand">
-        <div class="logo"></div>
         <div class="brandTxt">
           <div class="brandName">LYPO</div>
           <div class="brandTag">Account</div>
@@ -26,51 +25,50 @@
         </button>
       </div>
     </header>
+
     <!-- ADMIN TOOL -->
-<section class="card" id="adminCard" style="margin-top:14px;">
-  <div class="cardHeader">
-    <h3 class="cardTitle" style="font-size:16px;">Admin • Add credits</h3>
-    <p class="cardSub">Top up any existing user account.</p>
-  </div>
+    <section class="card" id="adminCard" style="margin-top:14px;">
+      <div class="cardHeader">
+        <h3 class="cardTitle" style="font-size:16px;">Admin • Add credits</h3>
+        <p class="cardSub">Top up any existing user account.</p>
+      </div>
 
-  <div class="grid2">
-    <label class="field">
-      <span class="fieldLabel">User email</span>
-      <input id="adminEmail" class="input" type="email" placeholder="user@email.com" />
-    </label>
+      <div class="grid2">
+        <label class="field">
+          <span class="fieldLabel">User email</span>
+          <input id="adminEmail" class="input" type="email" placeholder="user@email.com" />
+        </label>
 
-    <label class="field">
-      <span class="fieldLabel">Credits (+ / -)</span>
-      <input id="adminAmount" class="input" type="number" placeholder="e.g. 500 or -200" />
-    </label>
-  </div>
+        <label class="field">
+          <span class="fieldLabel">Credits (+ / -)</span>
+          <input id="adminAmount" class="input" type="number" placeholder="e.g. 500 or -200" />
+        </label>
+      </div>
 
-  <label class="field" style="margin-top:12px;">
-    <span class="fieldLabel">Reason (optional)</span>
-    <input id="adminReason" class="input" type="text" placeholder="promo / refund / test" />
-  </label>
+      <label class="field" style="margin-top:12px;">
+        <span class="fieldLabel">Reason (optional)</span>
+        <input id="adminReason" class="input" type="text" placeholder="promo / refund / test" />
+      </label>
 
-  <div class="actions" style="margin-top:14px;">
-    <button class="btnPrimary" id="btnAdminAdd" type="button">
-      <span class="btnLabel">Apply</span><span class="btnGlow"></span>
-    </button>
-  </div>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btnPrimary" id="btnAdminAdd" type="button">
+          <span class="btnLabel">Apply</span><span class="btnGlow"></span>
+        </button>
+      </div>
 
-  <div class="hint" id="adminMsg" style="margin-top:10px;"></div>
-</section>
+      <div class="hint" id="adminMsg" style="margin-top:10px;"></div>
+    </section>
 
     <main class="main">
-      
+      <div class="dashRow" style="margin-top:10px;">
+        <div class="pill" id="dashEmailTop">Email: —</div>
+        <div class="pill" id="dashBalanceTop">Balance: —</div>
+        <div class="pill" id="dashAdminTop">Admin: —</div>
+        <div class="pill" id="dashVer">UI: ADMIN_V3</div>
+      </div>
+      <div class="hint" id="dashDiag" style="min-height:18px; margin-top:10px; color: rgba(255,255,255,.75); font-size:12px;"></div>
 
-<div class="dashRow" style="margin-top:10px;">
-  <div class="pill" id="dashEmailTop">Email: —</div>
-  <div class="pill" id="dashBalanceTop">Balance: —</div>
-  <div class="pill" id="dashAdmin">Admin: —</div>
-  <div class="pill" id="dashVer">UI: ADMIN_V2</div>
-</div>
-<div class="hint" id="dashDiag" style="min-height:18px; margin-top:10px; color: rgba(255,255,255,.75); font-size:12px;"></div>
-
-<section class="card">
+      <section class="card">
         <div class="cardHeader">
           <h2 class="cardTitle">Your account</h2>
           <p class="cardSub">Balance, payments/invoices, and generated videos.</p>
@@ -78,7 +76,7 @@
 
         <div class="dashRow">
           <div class="pill" id="dashEmailAccount">Email: —</div>
-          <div class="pill" id="dashBalanceAccount">Balance: — Credits</div>
+          <div class="pill" id="dashBalanceAccount">Balance: — credits</div>
         </div>
 
         <div class="hint" id="dashMsg" style="min-height:18px; margin-top:10px; color: rgba(255,255,255,.75); font-size:12px;"></div>
@@ -132,65 +130,5 @@
   </div>
 
   <script src="dashboard.js" defer></script>
-
-<script>
-(function(){
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
-  const token = localStorage.getItem("lypo_token_v1") || "";
-  const diag = document.getElementById("dashDiag");
-
-  function set(id, v){
-    const el = document.getElementById(id);
-    if(el) el.textContent = v;
-  }
-  function setDiag(v){
-    if(diag) diag.textContent = v || "";
-  }
-  async function readJsonOrThrow(res){
-    const ct = (res.headers.get("content-type") || "").toLowerCase();
-    if(ct.includes("application/json")){
-      try { return await res.json(); } catch { /* fall through */ }
-    }
-    const text = await res.text().catch(()=> "");
-    // Return a useful error instead of "Unexpected token '<'"
-    const preview = (text || "").trim().slice(0, 120);
-    throw new Error(`Expected JSON but got ${ct || "text/plain"} (status ${res.status}). ${preview}`);
-  }
-
-  (async ()=>{
-    try{
-      // If not logged in, just show placeholders and skip admin check.
-      if(!token){
-        set("dashAdmin","Admin: —");
-        setDiag("Login required.");
-        return;
-      }
-
-      const res = await fetch(BACKEND_BASE_URL + "/api/admin/status", {
-        headers: { Authorization: "Bearer " + token }
-      });
-
-      const data = await readJsonOrThrow(res);
-      if(!res.ok){
-        set("dashAdmin","Admin: CHECK FAIL");
-        setDiag((data && data.error) ? data.error : "Admin status check failed.");
-        return;
-      }
-
-      if(data && data.isAdmin){
-        set("dashAdmin","Admin: YES");
-        setDiag("");
-      } else {
-        set("dashAdmin","Admin: NO");
-        setDiag("Not admin. Set ADMIN_EMAIL or ADMIN_EMAILS on the BACKEND service to your login email and redeploy.");
-      }
-    } catch(e){
-      set("dashAdmin","Admin: ERROR");
-      setDiag("Network error: " + (e && e.message ? e.message : e));
-    }
-  })();
-})();
-</script>
-
 </body>
 </html>
