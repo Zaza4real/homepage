@@ -30,7 +30,7 @@
   const POLL_TIMEOUT_MS = 8 * 60 * 1000;
 
   // Pricing hint (USD)
-  const PRICE_PER_30S_USD = 2.89;
+  const CREDITS_PER_SECOND = 10;
 
 
   // ---- Auth (email + password) + Credits
