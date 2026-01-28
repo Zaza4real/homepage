@@ -133,7 +133,7 @@
                 </button>
 
                 <button class="btnGhost" id="btnPay" type="button">
-                  <span class="btnLabel">Pay</span>
+                  <span class="btnLabel">Buy Credits</span>
                   <span class="btnSpinner" aria-hidden="true" data-spinner="pay"></span>
                   <span class="btnGlow"></span>
                 </button>
@@ -264,6 +264,53 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
           </button>
         </div>
         <div class="modalNote">Credits are <strong>Credits</strong>. <strong>$1 = 100 Credits</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buy Credits Modal -->
+  <div class="modal" id="payModal" hidden aria-hidden="true">
+    <div class="modalBackdrop" data-close-pay="1"></div>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="Buy credits">
+      <div class="modalTop">
+        <div class="modalTitle">Buy credits</div>
+        <button class="modalCloseBtn" type="button" data-close-pay="1" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modalBody">
+        <p class="muted" style="margin-top:0">
+          Choose an amount and we’ll open Stripe checkout in a new tab.
+        </p>
+
+        <div class="payQuick">
+          <button class="chipBtn" type="button" data-usd="5">$5</button>
+          <button class="chipBtn" type="button" data-usd="10">$10</button>
+          <button class="chipBtn" type="button" data-usd="20">$20</button>
+        </div>
+
+        <label class="field">
+          <span>Amount (USD)</span>
+          <input id="payUsd" type="number" min="1" step="1" inputmode="numeric" value="5" />
+        </label>
+
+        <div class="miniRow">
+          <span class="muted">You’ll get</span>
+          <strong id="payCreditsPreview">500 credits</strong>
+        </div>
+
+        <div class="authMsg" id="payMsg" aria-live="polite"></div>
+
+        <div class="modalActions">
+          <button class="btnGhost" type="button" data-close-pay="1">Cancel</button>
+          <button class="btnPrimary" id="btnPayGo" type="button">
+            <span class="btnLabel">Continue to Stripe</span>
+            <span class="btnGlow"></span>
+          </button>
+        </div>
+
+        <div class="muted" id="payPopupHint" style="display:none; margin-top:10px">
+          Popup blocked? <a id="payOpenLink" href="#" target="_blank" rel="noopener noreferrer">Open checkout</a>
+        </div>
       </div>
     </div>
   </div>

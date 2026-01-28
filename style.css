@@ -1275,3 +1275,18 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .mutedCell{ opacity: .7; }
 .pill{ display:inline-flex; gap:8px; align-items:center; padding: 8px 10px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10); font-size: 12px; }
 .dashRow{ display:flex; flex-wrap:wrap; gap:10px; }
+
+
+/* Buy credits modal */
+.payQuick{ display:flex; gap:10px; flex-wrap:wrap; margin: 6px 0 12px; }
+.chipBtn{
+  appearance:none; border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: inherit;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.chipBtn:hover{ background: rgba(255,255,255,.09); }
+.miniRow{ display:flex; justify-content:space-between; align-items:center; margin-top: 8px; }
