@@ -148,7 +148,15 @@
   }
 
   fetch(BACKEND_BASE_URL + "/api/auth/me", { headers: { Authorization: "Bearer " + token } })
-    .then(r => r.json().then(j => ({ok:r.ok, status:r.status, j})))
+    .then(async r => {
+          const ct = (r.headers.get("content-type") || "");
+          if (ct.includes("application/json")) {
+            const j = await r.json().catch(() => null);
+            return { ok: r.ok, status: r.status, j };
+          }
+          const text = await r.text().catch(() => "");
+          return { ok: false, status: r.status, j: null, nonJson: text };
+        })
     .then(({ok, status, j}) => {
       if(!ok){ set("dashAdmin","Admin: AUTH FAIL"); setDiag("Login token invalid (status "+status+"). Please log in again."); return; }
       set("dashEmail","Email: " + (j.user && j.user.email ? j.user.email : "—"));
@@ -158,7 +166,15 @@
     })
     .then(() => {
       return fetch(BACKEND_BASE_URL + "/api/admin/status", { headers: { Authorization: "Bearer " + token } })
-        .then(r => r.json().then(j => ({ok:r.ok, status:r.status, j})))
+        .then(async r => {
+          const ct = (r.headers.get("content-type") || "");
+          if (ct.includes("application/json")) {
+            const j = await r.json().catch(() => null);
+            return { ok: r.ok, status: r.status, j };
+          }
+          const text = await r.text().catch(() => "");
+          return { ok: false, status: r.status, j: null, nonJson: text };
+        })
         .then(({ok, status, j}) => {
           if(!ok){ set("dashAdmin","Admin: CHECK FAIL"); setDiag("Admin status endpoint failed (status "+status+"). Backend may not be deployed with admin routes."); return; }
           if(j && j.isAdmin){ set("dashAdmin","Admin: YES"); setDiag(""); }
