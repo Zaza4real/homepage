@@ -41,6 +41,27 @@
             <span class="fieldLabel">Password</span>
             <input id="authPassPage" class="input" type="password" placeholder="••••••••" autocomplete="current-password" />
           </label>
+          <div style="margin-top:6px; display:flex; justify-content:flex-end;">
+            <button id="btnForgotPage" type="button" style="background:none;border:none;padding:0;color:rgba(255,255,255,.85);text-decoration:underline;cursor:pointer;font:inherit;">
+              Forgot password?
+            </button>
+          </div>
+
+          <div id="resetWrap" style="display:none; margin-top:14px;">
+            <div style="font-size:12px; opacity:.85; margin-bottom:10px;">Set a new password</div>
+            <label class="field">
+              <span class="fieldLabel">New password</span>
+              <input id="resetPass1" class="inp" type="password" autocomplete="new-password" placeholder="New password" />
+            </label>
+            <label class="field">
+              <span class="fieldLabel">Confirm new password</span>
+              <input id="resetPass2" class="inp" type="password" autocomplete="new-password" placeholder="Confirm new password" />
+            </label>
+            <button class="btnPrimary" id="btnResetPass" type="button" style="width:100%; margin-top:10px;">
+              <span class="btnLabel">Reset password</span><span class="btnGlow"></span>
+            </button>
+          </div>
+
         </div>
 
         <div id="authMsgPage" class="hint" style="min-height:18px; margin-top:10px; color: rgba(255,255,255,.75); font-size:12px;"></div>
