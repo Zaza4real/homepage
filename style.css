@@ -1245,3 +1245,33 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .fieldLabel{ font-size:12px; opacity:.8; }
 .input{ width:100%; padding: 12px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.20); color: rgba(255,255,255,.92); outline:none; }
 .input:focus{ border-color: rgba(255,255,255,.28); box-shadow: 0 0 0 4px rgba(255,255,255,.06); }
+
+
+/* Spinning colorful O in LYPO title */
+.spinO{
+  display:inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1em;
+  text-align:center;
+  border-radius: 999px;
+  background: conic-gradient(from 0deg, #ff4d4d, #ffd84d, #4dff7a, #4dd2ff, #a04dff, #ff4dd2, #ff4d4d);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.12));
+  animation: spinO 2.4s linear infinite;
+  transform-origin: center;
+}
+@keyframes spinO { to { transform: rotate(360deg); } }
+
+
+/* Dashboard tables */
+.tableWrap{ overflow:auto; border-radius: 14px; border: 1px solid rgba(255,255,255,.10); }
+.dashTable{ width:100%; border-collapse: collapse; font-size: 13px; }
+.dashTable th, .dashTable td{ padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); text-align:left; vertical-align: top; }
+.dashTable th{ font-size: 12px; opacity: .8; font-weight: 600; }
+.dashTable tr:last-child td{ border-bottom: 0; }
+.mutedCell{ opacity: .7; }
+.pill{ display:inline-flex; gap:8px; align-items:center; padding: 8px 10px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10); font-size: 12px; }
+.dashRow{ display:flex; flex-wrap:wrap; gap:10px; }
