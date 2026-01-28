@@ -28,7 +28,33 @@
   // Robust API fetch:
   // 1) Try /api/... as expected
   // 2) If backend is deployed without the /api prefix, retry without it
-  async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
+  
+  async function maybeConfirmStripeReturn() {
+    try {
+      const qs = new URLSearchParams(window.location.search || "");
+      const paid = qs.get("paid");
+      const sessionId = qs.get("session_id");
+      if (paid !== "1" || !sessionId) return false;
+
+      setMsg("Confirming your payment…");
+      await apiFetch(`/api/stripe/confirm?session_id=${encodeURIComponent(sessionId)}`);
+      setMsg("Payment confirmed. Credits added.");
+
+      // Remove params so refresh doesn't re-confirm
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("paid");
+        url.searchParams.delete("session_id");
+        window.history.replaceState({}, "", url.toString());
+      } catch {}
+      return true;
+    } catch (e) {
+      setMsg(`Payment confirm error: ${e.message || e}`);
+      return false;
+    }
+  }
+
+async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     if (!token) throw new Error("Please login first.");
 
     const headers = { "Authorization": `Bearer ${token}` };

@@ -1312,3 +1312,11 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .buyPreview{padding-bottom:10px}
 .buyActions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .buyMsg{min-height:18px}
+
+/* Compact main action buttons (Upload & Translate / Buy Credits) */
+.actions .btnPrimary, .actions .btnGhost{
+  padding:8px 10px;
+  border-radius:12px;
+  font-size:13px;
+}
+.actions .btnLabel{ font-size:13px; }
