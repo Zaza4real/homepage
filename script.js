@@ -10,6 +10,104 @@
   // Pricing hint (USD)
   const PRICE_PER_30S_USD = 2.89;
 
+
+  // ---- Auth (email + password) + Credits
+  const AUTH_TOKEN_KEY = "lypo_token_v1";
+  let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || "";
+  let currentUser = null;
+
+  function setAuthUI() {
+    const label = $("headerAuthLabel");
+    const headerBtn = $("headerAuth");
+    const btnLogin = $("btnLogin");
+    const logoutBtn = $("btnLogout");
+
+    const loggedIn = Boolean(authToken && currentUser);
+    const txt = loggedIn ? `Account` : "Login";
+    if (label) label.textContent = txt;
+    if (headerBtn) headerBtn.setAttribute("aria-label", txt);
+    if (btnLogin) btnLogin.querySelector(".btnLabel").textContent = txt;
+
+    if (logoutBtn) logoutBtn.hidden = !loggedIn;
+  }
+
+  function openAuthModal() {
+    const m = $("authModal");
+    if (!m) return;
+    m.hidden = false;
+    m.setAttribute("aria-hidden", "false");
+    setTimeout(() => $("authEmail")?.focus?.(), 50);
+  }
+  function closeAuthModal() {
+    const m = $("authModal");
+    if (!m) return;
+    m.hidden = true;
+    m.setAttribute("aria-hidden", "true");
+  }
+
+function showAuthModal(show) {
+    if (show) openAuthModal();
+    else closeAuthModal();
+  }
+
+  async function apiFetch(path, opts = {}, requireAuth = false) {
+    const headers = new Headers(opts.headers || {});
+    if (!headers.has("Content-Type") && !(opts.body instanceof FormData)) {
+      headers.set("Content-Type", "application/json");
+    }
+    if (requireAuth) {
+      if (!authToken) throw new Error("Please login first.");
+      headers.set("Authorization", `Bearer ${authToken}`);
+    }
+    const res = await fetch(`${BACKEND_BASE_URL}${path}`, { ...opts, headers });
+    let data = null;
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) data = await res.json().catch(() => null);
+    else data = await res.text().catch(() => null);
+    if (!res.ok) {
+      const msg = (data && data.error) ? data.error : (typeof data === "string" ? data : "Request failed");
+      const err = new Error(msg);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  async function refreshMeAndBalance(silent=false) {
+    try {
+      if (!authToken) { currentUser = null; setAuthUI(); setBalanceUI(null); return; }
+      const me = await apiFetch("/api/auth/me", { method: "GET" }, true);
+      currentUser = me.user;
+      setAuthUI();
+      const b = await apiFetch("/api/credits", { method: "GET" }, true);
+      setBalanceUI(b.balance);
+      if (!silent) setStatus("Logged in.");
+    } catch (e) {
+      // token expired/invalid
+      authToken = "";
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      currentUser = null;
+      setAuthUI();
+      setBalanceUI(null);
+      if (!silent) setStatus("Session expired. Please login again.");
+    }
+  }
+
+  function setBalanceUI(balance) {
+    const el = $("lyposBalance");
+    if (!el) return;
+    if (typeof balance === "number") el.textContent = `Balance: ${balance} LYPOS`;
+    else el.textContent = "Balance: — LYPOS";
+  }
+
+  async function ensureLoggedIn() {
+    if (authToken && currentUser) return true;
+    openAuthModal();
+    throw new Error("Please login to continue.");
+  }
+
+
   const $ = (id) => document.getElementById(id);
 
   // ---- UI helpers
@@ -112,26 +210,121 @@
       genMsgTimer = null;
     }
   }
+
+  function attachAuth() {
+    const btnLogin = $("btnLogin");
+    const headerBtn = $("headerAuth");
+    const closeEls = document.querySelectorAll('[data-close="1"]');
+
+    // Open modal from either button
+    const open = () => { setAuthMsg(""); openAuthModal(); };
+    btnLogin?.addEventListener("click", open);
+    headerBtn?.addEventListener("click", (e) => {
+      if (headerBtn?.dataset?.authPage === "1") { window.location.href = "auth.html"; return; }
+      open();
+    });
+
+    // Close modal (backdrop / X)
+    closeEls.forEach((el) => el.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); closeAuthModal(); }));
+
+    // ESC closes
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeAuthModal();
+    });
+
+    // Login / Signup
+    $("btnDoLogin")?.addEventListener("click", async () => {
+      try {
+        const email = $("authEmail")?.value?.trim();
+        const password = $("authPass")?.value || "";
+        setAuthMsg("Logging in…");
+        setStatus("Logging in…");
+        const out = await apiFetch("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({ email, password })
+        }, false);
+        authToken = out.token;
+        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+        currentUser = out.user;
+        setAuthUI();
+        closeAuthModal();
+        await refreshMeAndBalance(true);
+        setStatus("Logged in.");
+      } catch (e) {
+        setAuthMsg(`Login failed: ${e.message || e}`);
+        setStatus(`Login failed: ${e.message || e}`);
+      }
+    });
+
+    $("btnDoSignup")?.addEventListener("click", async () => {
+      try {
+        const email = $("authEmail")?.value?.trim();
+        const password = $("authPass")?.value || "";
+        setAuthMsg("Creating account…");
+        setStatus("Creating account…");
+        const out = await apiFetch("/api/auth/signup", {
+          method: "POST",
+          body: JSON.stringify({ email, password })
+        }, false);
+        authToken = out.token;
+        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+        currentUser = out.user;
+        setAuthUI();
+        closeAuthModal();
+        await refreshMeAndBalance(true);
+        setStatus("Account created.");
+      } catch (e) {
+        setAuthMsg(`Signup failed: ${e.message || e}`);
+        setStatus(`Signup failed: ${e.message || e}`);
+      }
+    });
+
+    $("btnLogout")?.addEventListener("click", () => {
+      authToken = "";
+      currentUser = null;
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      setAuthUI();
+      setBalanceUI(null);
+      closeAuthModal();
+      setStatus("Logged out.");
+    });
+
+    // If Stripe redirected back
+    const params = new URLSearchParams(location.search);
+    if (params.get("paid") === "1") {
+      setStatus("Payment received. Updating balance…");
+      refreshMeAndBalance(true);
+      // clean URL (no reload)
+      params.delete("paid");
+      const clean = `${location.pathname}${params.toString() ? "?" + params.toString() : ""}${location.hash}`;
+      history.replaceState({}, "", clean);
+    }
+
+    // Initial session restore
+    refreshMeAndBalance(true);
+  }
+
+
   function attachPay() {
     const btn = $("btnPay");
     if (!btn) return;
-  
+
     btn.addEventListener("click", async () => {
       try {
-        const email = prompt("Enter your email to receive credits:");
-        if (!email) return;
-  
+        await ensureLoggedIn();
+
+        // Simple packs (USD) — change these later if you want
+        const raw = prompt("How many dollars of credits do you want to buy? (e.g. 5, 10, 25)", "10");
+        if (!raw) return;
+        const usd = Number(raw);
+        if (!Number.isFinite(usd) || usd <= 0) throw new Error("Invalid amount");
+
         setLoading(true, "Opening payment…");
-  
-        const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
+        const data = await apiFetch("/api/stripe/create-checkout-session", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ packId: "pack10", email }), // example pack
-        });
-  
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Failed to start checkout");
-  
+          body: JSON.stringify({ usd })
+        }, true);
+
         window.location.href = data.url; // redirect to Stripe Checkout
       } catch (e) {
         setLoading(false, "Ready");
@@ -139,7 +332,7 @@
       }
     });
   }
-  
+
   // ---- Download (blob only; avoids fullscreen/player)
   function resetDownload() {
     const btn = $("btnDownload");
@@ -190,7 +383,7 @@
 
   // ---- Tabs
   function attachTabs() {
-    const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
+    const tabBtns = Array.from(document.querySelectorAll(".tabBtn")).filter((b) => b.dataset && b.dataset.tab);
     const panels = Array.from(document.querySelectorAll(".tabPanel"));
     const goHome = document.querySelector("[data-go='home']");
 
@@ -212,7 +405,10 @@
 
   // ---- Networking
   async function fetchJson(url, options = {}) {
-    const res = await fetch(url, options);
+    // Automatically attach JWT when available
+    const headers = new Headers(options.headers || {});
+    if (authToken) headers.set("Authorization", `Bearer ${authToken}`);
+    const res = await fetch(url, { ...options, headers });
     const isJson = (res.headers.get("content-type") || "").includes("application/json");
     if (!res.ok) {
       const body = isJson ? await res.json().catch(() => null) : await res.text().catch(() => "");
@@ -402,11 +598,28 @@
     startGeneratingMessages();
 
     try {
-      setLoading(true, "Uploading…");
+      await ensureLoggedIn();
+
+        // Deduct credits before uploading
+        const seconds = await getSelectedVideoDurationSeconds();
+        try {
+          await apiFetch("/api/credits/charge", { method: "POST", body: JSON.stringify({ seconds }) }, true);
+          await refreshMeAndBalance(true);
+        } catch (err) {
+          if (err?.status === 402) {
+            setLoading(false, "Ready");
+            setStatus("Not enough credits. Click Pay to buy more.");
+            return;
+          }
+          throw err;
+        }
+
+        setLoading(true, "Uploading…");
 
       const fd = new FormData();
       fd.append("video", file);
       fd.append("output_language", outputLanguage);
+      if (typeof seconds === "number" && Number.isFinite(seconds)) fd.append("seconds", String(seconds));
 
       const up = await fetchJson(`${BACKEND_BASE_URL}/api/dub-upload`, { method: "POST", body: fd });
       const jobId = up?.id || up?.jobId || up?.predictionId;
@@ -524,11 +737,40 @@
     });
   }
 
-  function attachPay() {
-    const btn = $("btnPay");
-    if (!btn) return;
-    btn.addEventListener("click", () => setStatus("Payment is not connected yet."));
+document.getElementById("btnPay")?.addEventListener("click", async () => {
+  try {
+    const token = localStorage.getItem("lypo_token") || "";
+    if (!token) {
+      // not logged in -> open login modal
+      showAuthModal(true);
+      return;
+    }
+
+    // default pack amount — you can change to 5/10/20 later
+    const usd = 10;
+
+    setStatus?.("Opening secure checkout…");
+
+    const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ usd }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Failed to create checkout session");
+
+    if (!data.url) throw new Error("Missing checkout URL");
+    window.location.href = data.url;
+  } catch (e) {
+    setStatus?.(`Payment error: ${e.message || e}`);
+    alert(e.message || e);
   }
+});
+
 
   function setYear() {
     const y = $("year");
@@ -548,6 +790,7 @@
   attachUploadPicker();
   attachDownload();
   attachPay();
+  attachAuth();
   attachMiniShowcase();
   lockPreviewBox();
 
