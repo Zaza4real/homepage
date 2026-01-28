@@ -776,7 +776,6 @@ document.getElementById("btnPay")?.addEventListener("click", async () => {
       e.stopPropagation();
     });
   }
-
   // ---- INIT
   attachTabs();
   setYear();
