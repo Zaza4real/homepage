@@ -354,6 +354,14 @@ a{ color:inherit; text-decoration:none; }
   overflow:hidden;
 }
 
+/* Slightly smaller primary/ghost buttons in the main action row (matches original compact look). */
+.actions .btnPrimary,
+.actions .btnGhost{
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:13px;
+}
+
 /* Make <a> buttons look identical to button buttons */
 .btnLink{ text-decoration:none; display:inline-flex; align-items:center; }
 .btnPrimary{ background:rgba(255,255,255,.86); color:rgba(0,0,0,.92); }
@@ -1231,7 +1239,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .shell{ max-width: 1100px; margin: 0 auto; padding: 18px; }
 .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
 .brand{ display:flex; align-items:center; gap:12px; }
-.logo{ width:34px; height:34px; border-radius:10px; background: rgba(255,255,255,.10); box-shadow: 0 0 0 1px rgba(255,255,255,.14) inset; }
+.brand .logo{ width:34px; height:34px; border-radius:10px; background: rgba(255,255,255,.10); box-shadow: 0 0 0 1px rgba(255,255,255,.14) inset; }
 .brandName{ font-weight:700; letter-spacing:.02em; }
 .brandTag{ font-size:12px; opacity:.75; }
 .main{ display:block; }
@@ -1277,40 +1285,38 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .dashRow{ display:flex; flex-wrap:wrap; gap:10px; }
 
 
-/* Compact main action buttons (match other buttons) */
-.actions #btnRun,
-.actions #btnPay{
-  padding:10px 12px;
-  border-radius:12px;
-  font-size:14px;
-}
-
-/* Buy Credits inline card */
-.buyCard{
-  width:100%;
-  margin-top:12px;
-  padding:14px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.20);
-  box-shadow: 0 16px 50px rgba(0,0,0,.30);
-}
-.buyCardTop{ display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
-.buyTitle{ font-weight:1000; letter-spacing:.02em; }
-.buySub{ font-size:13px; opacity:.8; }
-.payQuick{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+/* Buy credits modal */
+.payQuick{ display:flex; gap:10px; flex-wrap:wrap; margin: 6px 0 12px; }
 .chipBtn{
-  border-radius:999px;
-  padding:8px 10px;
-  border:1px solid rgba(255,255,255,.14);
+  appearance:none; border:1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.88);
-  cursor:pointer;
-  font-weight:900;
+  color: inherit;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
 }
-.chipBtn:hover{ transform: translateY(-1px); }
-.buyRow{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
-.buyField{ min-width: 180px; }
-.buyPreview{ font-size:13px; opacity:.9; }
-.buyActions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; }
-.buyMsg{ font-size:13px; }
+.chipBtn:hover{ background: rgba(255,255,255,.09); }
+.miniRow{ display:flex; justify-content:space-between; align-items:center; margin-top: 8px; }
+
+
+/* Inline buy credits card */
+.buyCard{margin-top:14px;padding:14px 14px 12px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(20,20,28,.35);backdrop-filter: blur(8px)}
+.buyCardTop{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.buyTitle{font-weight:700}
+.payQuick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.chipBtn{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}
+.chipBtn:hover{background:rgba(255,255,255,.08)}
+.buyRow{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.buyField{min-width:180px}
+.buyPreview{padding-bottom:10px}
+.buyActions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.buyMsg{min-height:18px}
+
+/* Compact main action buttons (Upload & Translate / Buy Credits) */
+.actions .btnPrimary, .actions .btnGhost{
+  padding:8px 10px;
+  border-radius:12px;
+  font-size:13px;
+}
+.actions .btnLabel{ font-size:13px; }
