@@ -1,6 +1,3 @@
-// GLOBAL DOM helper (must be first line, outside any IIFE)
-const $ = (id) => document.getElementById(id);
-
 
   async function getSelectedVideoDurationSeconds() {
     const input = $("videoFile");
@@ -132,6 +129,8 @@ function showAuthModal(show) {
     throw new Error("Please login to continue.");
   }
 
+
+  const $ = (id) => document.getElementById(id);
 
   // ---- UI helpers
   function setStatus(text) {

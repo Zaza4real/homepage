@@ -60,7 +60,45 @@
     }).join("");
   }
 
-  async function load(){
+  
+  async function loadAdmin() {
+    try {
+      const st = await apiFetch("/api/admin/status");
+      const card = $("adminCard");
+      if (card) card.style.display = st.isAdmin ? "block" : "none";
+      if (st.isAdmin) {
+        $("btnAdminAdd")?.addEventListener("click", async () => {
+          const email = $("adminEmail")?.value?.trim();
+          const amount = Number($("adminAmount")?.value || 0);
+          const reason = $("adminReason")?.value?.trim() || "";
+          const msgEl = $("adminMsg");
+          if (msgEl) msgEl.textContent = "";
+          if (!email) { if (msgEl) msgEl.textContent = "Enter a user email."; return; }
+          if (!Number.isFinite(amount) || amount === 0) { if (msgEl) msgEl.textContent = "Enter a non-zero credit amount."; return; }
+
+          try {
+            const res = await fetch(`${BACKEND_BASE_URL}/api/admin/add-credits`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ email, amount, reason })
+            });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+            if (msgEl) msgEl.textContent = `✅ Updated ${data.user.email}: new balance ${data.user.balance} credits`;
+          } catch (e) {
+            if (msgEl) msgEl.textContent = `❌ ${e.message || e}`;
+          }
+        });
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+async function load(){
     try{
       const me = await apiFetch("/api/auth/me");
       $("dashEmail").textContent = `Email: ${me.user.email}`;
@@ -87,5 +125,6 @@
       window.location.href = "auth.html";
     });
     load();
+    loadAdmin();
   });
 })();
