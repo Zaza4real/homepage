@@ -22,6 +22,9 @@
 
 // LYPO frontend demo script (v20) — fixed (no syntax errors)
 (() => {
+
+  // DOM helper (must be defined before any use)
+  const $ = (id) => document.getElementById(id);
   if (window.__LYPO_INIT__) return;
   window.__LYPO_INIT__ = true;
 
@@ -31,9 +34,6 @@
 
   // Pricing hint (USD)
   const CREDITS_PER_SECOND = 10;
-  // DOM helper (MUST be first)
-const $ = (id) => document.getElementById(id);
-
 
 
   // ---- Auth (email + password) + Credits
@@ -131,10 +131,6 @@ function showAuthModal(show) {
     openAuthModal();
     throw new Error("Please login to continue.");
   }
-
-
-  const $ = (id) => document.getElementById(id);
-
   // ---- UI helpers
   function setStatus(text) {
     const st = $("statusText");
@@ -523,14 +519,9 @@ function showAuthModal(show) {
   }
 
   // ---- Cost estimate + upload picker
-  function formatUSD(n) {
-    const val = Number.isFinite(n) ? n : 0;
-    return `$${val.toFixed(2)}`;
-  }
-  function estimateCostFromSeconds(seconds) {
+  function estimateCreditsFromSeconds(seconds) {
     if (!Number.isFinite(seconds) || seconds <= 0) return null;
-    const units = Math.ceil(seconds / 30);
-    return units * PRICE_PER_30S_USD;
+    return Math.max(1, Math.ceil(seconds)) * CREDITS_PER_SECOND;
   }
 
   function attachUploadPicker() {
@@ -567,9 +558,9 @@ function showAuthModal(show) {
       tmp.preload = "metadata";
       tmp.onloadedmetadata = () => {
         const seconds = Number(tmp.duration);
-        const est = estimateCostFromSeconds(seconds);
-        if (costEl && est) costEl.textContent = `Estimated: ${formatUSD(est)}`;
-        if (pay && est) pay.querySelector(".btnLabel").textContent = `Pay (${formatUSD(est)})`;
+        const est = estimateCreditsFromSeconds(seconds);
+        if (costEl && est) costEl.textContent = `Estimated: ${est} credits`;
+        if (pay && est) pay.querySelector(".btnLabel").textContent = `Pay (buy credits)`;
         URL.revokeObjectURL(tmp.src);
       };
       tmp.src = URL.createObjectURL(file);
@@ -630,6 +621,11 @@ function showAuthModal(show) {
 
         // Deduct credits before uploading
         const seconds = await getSelectedVideoDurationSeconds();
+        const costCredits = Math.max(1, Math.ceil(seconds)) * CREDITS_PER_SECOND;
+        if (!confirm(`This will cost ${costCredits} credits. Continue?`)) {
+          setLoading(false, "Ready");
+          return;
+        }
         try {
           await apiFetch("/api/credits/charge", { method: "POST", body: JSON.stringify({ seconds }) }, true);
           await refreshMeAndBalance(true);
