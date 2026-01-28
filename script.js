@@ -219,7 +219,10 @@ function showAuthModal(show) {
     // Open modal from either button
     const open = () => { setAuthMsg(""); openAuthModal(); };
     btnLogin?.addEventListener("click", open);
-    headerBtn?.addEventListener("click", open);
+    headerBtn?.addEventListener("click", (e) => {
+      if (headerBtn?.dataset?.authPage === "1") { window.location.href = "auth.html"; return; }
+      open();
+    });
 
     // Close modal (backdrop / X)
     closeEls.forEach((el) => el.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); closeAuthModal(); }));
