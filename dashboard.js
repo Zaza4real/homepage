@@ -60,64 +60,7 @@
     }).join("");
   }
 
-  
-  async function loadAdmin() {
-    const card = $("adminCard");
-    if (card) card.style.display = "none";
-    setAdminPill("Admin: checking…");
-
-    try {
-      const st = await apiFetch("/api/admin/status");
-      if (st && st.isAdmin) {
-        setAdminPill("Admin: YES");
-        if (card) card.style.display = "block";
-      } else {
-        setAdminPill("Admin: NO");
-        const msgEl = $("adminMsg");
-        if (msgEl) {
-          msgEl.textContent = "Not admin. Set ADMIN_EMAIL on the backend to your login email and redeploy.";
-        }
-      }
-
-      // Wire apply button only if card visible
-      if (card && card.style.display !== "none") {
-        $("btnAdminAdd")?.addEventListener("click", async () => {
-          const email = $("adminEmail")?.value?.trim();
-          const amount = Number($("adminAmount")?.value || 0);
-          const reason = $("adminReason")?.value?.trim() || "";
-          const msgEl = $("adminMsg");
-          if (msgEl) msgEl.textContent = "";
-
-          if (!email) { if (msgEl) msgEl.textContent = "Enter a user email."; return; }
-          if (!Number.isFinite(amount) || amount === 0) { if (msgEl) msgEl.textContent = "Enter a non-zero credit amount."; return; }
-
-          try {
-            const res = await fetch(`${BACKEND_BASE_URL}/api/admin/add-credits`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-              },
-              body: JSON.stringify({ email, amount, reason })
-            });
-            const data = await res.json().catch(() => null);
-            if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
-            if (msgEl) msgEl.textContent = `✅ Updated ${data.user.email}: new balance ${data.user.balance} credits`;
-          } catch (e) {
-            if (msgEl) msgEl.textContent = `❌ ${e.message || e}`;
-          }
-        });
-      }
-    } catch (e) {
-      setAdminPill("Admin: ERROR");
-      const msgEl = $("adminMsg");
-      if (msgEl) {
-        msgEl.textContent = `Admin check failed: ${e.message || e}. Make sure the backend is deployed with admin routes.`;
-      }
-    }
-  }
-
-async function load(){
+  async function load(){
     try{
       const me = await apiFetch("/api/auth/me");
       $("dashEmail").textContent = `Email: ${me.user.email}`;
@@ -144,6 +87,5 @@ async function load(){
       window.location.href = "auth.html";
     });
     load();
-    loadAdmin();
   });
 })();
