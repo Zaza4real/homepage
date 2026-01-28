@@ -1388,3 +1388,13 @@ padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);back
 .buyMsg{min-height:18px}
 
 
+
+
+/* Darker primary action buttons (Upload & Buy Credits) */
+#btnRun, #btnPay {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.25);
+}
+#btnRun:hover, #btnPay:hover {
+  background: rgba(255,255,255,0.25);
+}
