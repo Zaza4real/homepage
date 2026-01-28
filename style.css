@@ -1325,3 +1325,17 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .mutedCell{ opacity: .7; }
 .pill{ display:inline-flex; gap:8px; align-items:center; padding: 8px 10px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10); font-size: 12px; }
 .dashRow{ display:flex; flex-wrap:wrap; gap:10px; }
+
+
+/* Inline buy credits card (Stripe) */
+.buyCard{margin-top:14px;padding:14px 14px 12px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(20,20,28,.35);backdrop-filter: blur(8px)}
+.buyCardTop{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.buyTitle{font-weight:700}
+.payQuick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.chipBtn{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}
+.chipBtn:hover{background:rgba(255,255,255,.08)}
+.buyRow{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.buyField{min-width:180px}
+.buyPreview{padding-bottom:10px}
+.buyActions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.buyMsg{min-height:18px}

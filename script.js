@@ -328,33 +328,105 @@ function showAuthModal(show) {
   }
 
 
-  function attachPay() {
+    function attachPay() {
     const btn = $("btnPay");
+    const card = $("buyCard");
+    const input = $("payUsd");
+    const preview = $("payCreditsPreview");
+    const msg = $("payMsg");
+    const go = $("btnPayGo");
+    const hint = $("payPopupHint");
+    const openLink = $("payOpenLink");
+
+    // If buy card isn't on this page, keep a simple prompt fallback.
     if (!btn) return;
 
+    const LYPOS_PER_USD = 100;
+
+    function setPreview() {
+      if (!input || !preview) return;
+      const usd = Number(input.value || 0);
+      if (!Number.isFinite(usd) || usd <= 0) {
+        preview.textContent = "—";
+        return;
+      }
+      preview.textContent = `${Math.round(usd * LYPOS_PER_USD)} Credits`;
+    }
+
+    async function openStripe(usd) {
+      await ensureLoggedIn();
+      if (msg) msg.textContent = "";
+      if (hint) hint.style.display = "none";
+
+      setLoading(true, "Opening payment…");
+      const data = await apiFetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        body: JSON.stringify({ usd })
+      }, true);
+
+      if (!data?.url) throw new Error("Missing checkout URL");
+
+      // Open in a new tab so the user stays on the site
+      const win = window.open(data.url, "_blank", "noopener,noreferrer");
+      if (!win) {
+        if (hint) hint.style.display = "block";
+        if (openLink) openLink.href = data.url;
+        if (msg) msg.textContent = "Popup blocked — use the link below to open checkout.";
+      } else {
+        if (msg) msg.textContent = "Checkout opened in a new tab.";
+      }
+      setLoading(false, "Ready");
+    }
+
+    // Toggle the buy card when clicking "Buy Credits"
     btn.addEventListener("click", async () => {
       try {
-        await ensureLoggedIn();
+        if (!card) {
+          // fallback: prompt
+          const raw = prompt("How many USD worth of credits do you want to buy? (e.g. 5, 10, 25)", "10");
+          if (!raw) return;
+          const usd = Number(raw);
+          if (!Number.isFinite(usd) || usd <= 0) throw new Error("Invalid amount");
+          await openStripe(usd);
+          return;
+        }
 
-        // Simple packs (USD) — change these later if you want
-        const raw = prompt("How many USD worth of credits do you want to buy? (e.g. 5, 10, 25)", "10");
-        if (!raw) return;
-        const usd = Number(raw);
-        if (!Number.isFinite(usd) || usd <= 0) throw new Error("Invalid amount");
-
-        setLoading(true, "Opening payment…");
-        const data = await apiFetch("/api/stripe/create-checkout-session", {
-          method: "POST",
-          body: JSON.stringify({ usd })
-        }, true);
-
-        window.location.href = data.url; // redirect to Stripe Checkout
+        card.hidden = !card.hidden;
+        if (!card.hidden) {
+          input?.focus();
+          setPreview();
+        }
       } catch (e) {
         setLoading(false, "Ready");
         setStatus(`Payment error: ${e.message || e}`);
       }
     });
+
+    // Quick chips
+    card?.querySelectorAll(".chipBtn").forEach((b) => {
+      b.addEventListener("click", () => {
+        if (!input) return;
+        input.value = String(b.dataset.usd || "10");
+        setPreview();
+      });
+    });
+
+    input?.addEventListener("input", setPreview);
+    setPreview();
+
+    go?.addEventListener("click", async () => {
+      try {
+        const usd = Number(input?.value || 0);
+        if (!Number.isFinite(usd) || usd <= 0) throw new Error("Invalid amount");
+        await openStripe(usd);
+      } catch (e) {
+        setLoading(false, "Ready");
+        if (msg) msg.textContent = e.message || String(e);
+        setStatus(`Payment error: ${e.message || e}`);
+      }
+    });
   }
+
 
   // ---- Download (blob only; avoids fullscreen/player)
   function resetDownload() {
@@ -752,39 +824,6 @@ function showAuthModal(show) {
     });
   }
 
-document.getElementById("btnPay")?.addEventListener("click", async () => {
-  try {
-    const token = localStorage.getItem("lypo_token") || "";
-    if (!token) {
-      // not logged in -> open login modal
-      showAuthModal(true);
-      return;
-    }
-
-    // default pack amount — you can change to 5/10/20 later
-    const usd = 10;
-
-    setStatus?.("Opening secure checkout…");
-
-    const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify({ usd }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Failed to create checkout session");
-
-    if (!data.url) throw new Error("Missing checkout URL");
-    window.location.href = data.url;
-  } catch (e) {
-    setStatus?.(`Payment error: ${e.message || e}`);
-    alert(e.message || e);
-  }
-});
 
 
   function setYear() {
