@@ -108,27 +108,21 @@ function showAuthModal(show) {
       setBalanceUI(b.balance);
       if (!silent) setStatus("Logged in.");
     } catch (e) {
-      // Only clear session on auth errors. Network/5xx should NOT log the user out.
-      const status = e && typeof e.status === "number" ? e.status : null;
-      if (status === 401 || status === 403) {
-        authToken = "";
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        currentUser = null;
-        setAuthUI();
-        setBalanceUI(null);
-        if (!silent) setStatus("Session expired. Please login again.");
-      } else {
-        // keep token; backend may be waking up or temporarily unavailable
-        if (!silent) setStatus("Backend temporarily unavailable. Please try again in a moment.");
-      }
+      // token expired/invalid
+      authToken = "";
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      currentUser = null;
+      setAuthUI();
+      setBalanceUI(null);
+      if (!silent) setStatus("Session expired. Please login again.");
     }
   }
 
   function setBalanceUI(balance) {
     const el = $("lyposBalance");
     if (!el) return;
-    if (typeof balance === "number") el.textContent = `Balance: ${balance} LYPOS`;
-    else el.textContent = "Balance: — LYPOS";
+    if (typeof balance === "number") el.textContent = `Balance: ${balance} credits`;
+    else el.textContent = "Balance: — credits";
   }
 
   async function ensureLoggedIn() {
@@ -354,9 +348,7 @@ function showAuthModal(show) {
           body: JSON.stringify({ usd })
         }, true);
 
-        // Keep user on this site; open Stripe in a new tab (fallback to redirect if blocked)
-        const w = window.open(data.url, "_blank", "noopener,noreferrer");
-        if (!w) window.location.href = data.url;
+        window.location.href = data.url; // redirect to Stripe Checkout
       } catch (e) {
         setLoading(false, "Ready");
         setStatus(`Payment error: ${e.message || e}`);
@@ -759,6 +751,94 @@ function showAuthModal(show) {
       }
     });
   }
+
+
+// Buy credits (integrated modal, opens Stripe in a new tab)
+// Buy credits (inline)
+(function attachBuyCredits(){
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+  const AUTH_TOKEN_KEY = "lypo_token_v1";
+  const CREDITS_PER_USD = 100; // matches backend LYPOS_PER_USD
+
+  const payBtn = document.getElementById("btnPay");
+  const usdInput = document.getElementById("payUsd");
+  const preview = document.getElementById("payCreditsPreview");
+  const msg = document.getElementById("payMsg");
+  const goBtn = document.getElementById("btnPayGo");
+  const hint = document.getElementById("payPopupHint");
+  const openLink = document.getElementById("payOpenLink");
+
+  function setMsg(t){ if (msg) msg.textContent = t || ""; }
+  function setPreview(){
+    if (!usdInput || !preview) return;
+    const usd = Number(usdInput.value || 0);
+    const credits = Math.max(0, Math.round(usd * CREDITS_PER_USD));
+    preview.textContent = `${credits} credits`;
+  }
+
+  // quick buttons
+  document.querySelectorAll("[data-usd]").forEach((btn)=>{
+    btn.addEventListener("click", ()=>{
+      const v = Number(btn.getAttribute("data-usd") || 0);
+      if (usdInput) usdInput.value = String(v || 5);
+      setPreview();
+      setMsg("");
+    });
+  });
+  usdInput?.addEventListener("input", ()=>{ setPreview(); setMsg(""); });
+
+  // Pay button just focuses the inline card
+  payBtn?.addEventListener("click", () => {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY) || "";
+    if (!token) { try { showAuthModal(true); } catch {} return; }
+    usdInput?.focus?.();
+    usdInput?.scrollIntoView?.({behavior:"smooth", block:"center"});
+  });
+
+  goBtn?.addEventListener("click", async () => {
+    try {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY) || "";
+      if (!token) { try { showAuthModal(true); } catch {} return; }
+
+      const usd = Number(usdInput?.value || 0);
+      if (!Number.isFinite(usd) || usd <= 0) { setMsg("Please enter a valid amount."); return; }
+
+      setMsg("Opening secure checkout…");
+      hint && (hint.style.display = "none");
+      openLink && (openLink.href = "#");
+
+      const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ usd }),
+      });
+
+      const ct = res.headers.get("content-type") || "";
+      const payload = ct.includes("application/json") ? await res.json().catch(()=>({})) : await res.text().catch(()=> "");
+      if (!res.ok) throw new Error(payload?.error || (typeof payload === "string" ? payload : "Failed to create checkout session"));
+
+      const url = payload?.url;
+      if (!url) throw new Error("Missing checkout URL");
+
+      const w = window.open(url, "_blank", "noopener,noreferrer");
+      if (!w) {
+        if (openLink) openLink.href = url;
+        if (hint) hint.style.display = "block";
+        setMsg("Your browser blocked the popup. Use the link below to open checkout.");
+        return;
+      }
+
+      setMsg("Checkout opened in a new tab.");
+    } catch (e) {
+      setMsg(`Payment error: ${e?.message || e}`);
+    }
+  });
+
+  setPreview();
+})();
+
+
+
 
   function setYear() {
     const y = $("year");
