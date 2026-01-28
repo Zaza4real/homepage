@@ -45,6 +45,11 @@
     m.setAttribute("aria-hidden", "true");
   }
 
+function showAuthModal(show) {
+    if (show) openAuthModal();
+    else closeAuthModal();
+  }
+
   async function apiFetch(path, opts = {}, requireAuth = false) {
     const headers = new Headers(opts.headers || {});
     if (!headers.has("Content-Type") && !(opts.body instanceof FormData)) {
@@ -322,7 +327,6 @@
   }
 
   // ---- Download (blob only; avoids fullscreen/player)
-  // (blob only; avoids fullscreen/player)
   function resetDownload() {
     const btn = $("btnDownload");
     if (!btn) return;
@@ -779,6 +783,7 @@ document.getElementById("btnPay")?.addEventListener("click", async () => {
   attachUploadPicker();
   attachDownload();
   attachPay();
+  attachAuth();
   attachMiniShowcase();
   lockPreviewBox();
 
