@@ -143,7 +143,7 @@
                   <span id="statusText">Ready.</span>
                 </div>
                 <div class="hint">
-                  Tip: 30 seconds of video costs <strong>$2.89</strong> (<strong>289 LYPOS</strong>).  <span class="hintSep">•</span> <strong>$1 = 100 LYPOS</strong>.
+                  Tip: 30 seconds of video costs <strong>$2.89</strong>.
                   <span class="hintSep">•</span>
                   <span id="costEstimate" class="costEstimate"></span>
                   <span class="hintSep">•</span>
@@ -223,16 +223,18 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
     </footer>
   </main>
 
+  <!-- IMPORTANT: include script.js ONCE -->
+  <script src="script.js"></script>
 
-  <!-- Auth Modal (keeps design; only appears when needed) -->
-  <div class="authModal" id="authModal" hidden aria-hidden="true">
-    <div class="authBackdrop" data-auth-close="1"></div>
-    <div class="authCard" role="dialog" aria-modal="true" aria-label="Account">
-      <div class="authTop">
-        <div class="authTitle">Account</div>
-        <button class="tabBtn" type="button" data-auth-close="1" aria-label="Close">✕</button>
+  <!-- Auth modal (hidden; does not affect layout) -->
+  <div class="modal" id="authModal" hidden aria-hidden="true">
+    <div class="modalBackdrop" data-close="1"></div>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="Account">
+      <div class="modalTop">
+        <div class="modalTitle">Account</div>
+        <button class="tabBtn" type="button" data-close="1" aria-label="Close">✕</button>
       </div>
-      <div class="authBody">
+      <div class="modalBody">
         <label class="field">
           <span>Email</span>
           <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" />
@@ -243,23 +245,16 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
         </label>
         <div class="actions">
           <button class="btnPrimary" id="btnDoLogin" type="button">
-            <span class="btnLabel">Login</span>
-            <span class="btnGlow"></span>
+            <span class="btnLabel">Login</span><span class="btnGlow"></span>
           </button>
           <button class="btnGhost" id="btnDoSignup" type="button">
-            <span class="btnLabel">Create account</span>
-            <span class="btnGlow"></span>
+            <span class="btnLabel">Create account</span><span class="btnGlow"></span>
           </button>
         </div>
-        <p class="muted" style="margin:6px 2px 0; font-size:12px;">
-          Credits are called <strong>LYPOS</strong>. <strong>$1 = 100 LYPOS</strong>.
-        </p>
+        <div class="modalNote">Credits are <strong>LYPOS</strong>. <strong>$1 = 100 LYPOS</strong>.</div>
       </div>
     </div>
   </div>
 
-
-  <!-- IMPORTANT: include script.js ONCE -->
-  <script src="script.js"></script>
 </body>
 </html>
