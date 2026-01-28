@@ -78,7 +78,7 @@
 
         <div class="dashRow">
           <div class="pill" id="dashEmailAccount">Email: —</div>
-          <div class="pill" id="dashBalanceAccount">Balance: — LYPOS</div>
+          <div class="pill" id="dashBalanceAccount">Balance: — Credits</div>
         </div>
 
         <div class="hint" id="dashMsg" style="min-height:18px; margin-top:10px; color: rgba(255,255,255,.75); font-size:12px;"></div>
@@ -95,7 +95,7 @@
               <tr>
                 <th>Date</th>
                 <th>Amount</th>
-                <th>LYPOS</th>
+                <th>Credits</th>
                 <th>Status</th>
                 <th>Invoice</th>
               </tr>
@@ -138,47 +138,57 @@
   const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const token = localStorage.getItem("lypo_token_v1") || "";
   const diag = document.getElementById("dashDiag");
-  const set = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent=txt; };
-  const setDiag = (t) => { if(diag) diag.textContent = t || ""; };
 
-  if(!token){
-    set("dashAdmin","Admin: NO TOKEN");
-    set("dashEmailTop","Email: —");
-    set("dashBalanceTop","Balance: —");
-    set("dashEmailAccount","Email: —");
-    set("dashBalanceAccount","Balance: —");
-    setDiag("You are not logged in. Go to Login and then return to Dashboard.");
-    return;
+  function set(id, v){
+    const el = document.getElementById(id);
+    if(el) el.textContent = v;
+  }
+  function setDiag(v){
+    if(diag) diag.textContent = v || "";
+  }
+  async function readJsonOrThrow(res){
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    if(ct.includes("application/json")){
+      try { return await res.json(); } catch { /* fall through */ }
+    }
+    const text = await res.text().catch(()=> "");
+    // Return a useful error instead of "Unexpected token '<'"
+    const preview = (text || "").trim().slice(0, 120);
+    throw new Error(`Expected JSON but got ${ct || "text/plain"} (status ${res.status}). ${preview}`);
   }
 
-  fetch(BACKEND_BASE_URL + "/api/auth/me", { headers: { Authorization: "Bearer " + token } })
-    .then(r => r.json().then(j => ({ok:r.ok, status:r.status, j})))
-    .then(({ok, status, j}) => {
-      if(!ok){ set("dashAdmin","Admin: AUTH FAIL"); setDiag("Login token invalid (status "+status+"). Please log in again."); return; }
-      set("dashEmailTop","Email: " + (j.user && j.user.email ? j.user.email : "—"));
-      set("dashEmailAccount","Email: " + (j.user && j.user.email ? j.user.email : "—"));
-      return fetch(BACKEND_BASE_URL + "/api/credits", { headers: { Authorization: "Bearer " + token } })
-        .then(r => r.json().then(j2 => ({ok:r.ok, status:r.status, j2})))
-        .then(({ok, status, j2}) => {
-          if(ok) {
-            set("dashBalanceTop","Balance: " + j2.balance + " credits");
-            set("dashBalanceAccount","Balance: " + j2.balance + " credits");
-          } else {
-            set("dashBalanceTop","Balance: error");
-            set("dashBalanceAccount","Balance: error");
-          }
-        });
-    })
-    .then(() => {
-      return fetch(BACKEND_BASE_URL + "/api/admin/status", { headers: { Authorization: "Bearer " + token } })
-        .then(r => r.json().then(j => ({ok:r.ok, status:r.status, j})))
-        .then(({ok, status, j}) => {
-          if(!ok){ set("dashAdmin","Admin: CHECK FAIL"); setDiag("Admin status endpoint failed (status "+status+"). Backend may not be deployed with admin routes."); return; }
-          if(j && j.isAdmin){ set("dashAdmin","Admin: YES"); setDiag(""); }
-          else { set("dashAdmin","Admin: NO"); setDiag("Not admin. Set ADMIN_EMAIL or ADMIN_EMAILS on the BACKEND service to your login email and redeploy."); }
-        });
-    })
-    .catch(e => { set("dashAdmin","Admin: ERROR"); setDiag("Network error: " + (e && e.message ? e.message : e)); });
+  (async ()=>{
+    try{
+      // If not logged in, just show placeholders and skip admin check.
+      if(!token){
+        set("dashAdmin","Admin: —");
+        setDiag("Login required.");
+        return;
+      }
+
+      const res = await fetch(BACKEND_BASE_URL + "/api/admin/status", {
+        headers: { Authorization: "Bearer " + token }
+      });
+
+      const data = await readJsonOrThrow(res);
+      if(!res.ok){
+        set("dashAdmin","Admin: CHECK FAIL");
+        setDiag((data && data.error) ? data.error : "Admin status check failed.");
+        return;
+      }
+
+      if(data && data.isAdmin){
+        set("dashAdmin","Admin: YES");
+        setDiag("");
+      } else {
+        set("dashAdmin","Admin: NO");
+        setDiag("Not admin. Set ADMIN_EMAIL or ADMIN_EMAILS on the BACKEND service to your login email and redeploy.");
+      }
+    } catch(e){
+      set("dashAdmin","Admin: ERROR");
+      setDiag("Network error: " + (e && e.message ? e.message : e));
+    }
+  })();
 })();
 </script>
 

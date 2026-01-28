@@ -66,8 +66,8 @@
       if ($("dashEmailTop")) $("dashEmailTop").textContent = `Email: ${me.user.email}`;
       if ($("dashEmailAccount")) $("dashEmailAccount").textContent = `Email: ${me.user.email}`;
       const credits = await apiFetch("/api/credits");
-      if ($("dashBalanceTop")) $("dashBalanceTop").textContent = `Balance: ${credits.balance} LYPOS`;
-      if ($("dashBalanceAccount")) $("dashBalanceAccount").textContent = `Balance: ${credits.balance} LYPOS`;
+      if ($("dashBalanceTop")) $("dashBalanceTop").textContent = `Balance: ${credits.balance} Credits`;
+      if ($("dashBalanceAccount")) $("dashBalanceAccount").textContent = `Balance: ${credits.balance} Credits`;
 
       const payments = await apiFetch("/api/account/payments");
       renderPayments(payments.payments);
