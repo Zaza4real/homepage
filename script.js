@@ -1,6 +1,3 @@
-// GLOBAL DOM helper (must be first line, outside any IIFE)
-const $ = (id) => document.getElementById(id);
-
 
   async function getSelectedVideoDurationSeconds() {
     const input = $("videoFile");
@@ -132,6 +129,8 @@ function showAuthModal(show) {
     throw new Error("Please login to continue.");
   }
 
+
+  const $ = (id) => document.getElementById(id);
 
   // ---- UI helpers
   function setStatus(text) {
@@ -629,8 +628,8 @@ function showAuthModal(show) {
         // Deduct credits before uploading
         const seconds = await getSelectedVideoDurationSeconds();
         try {
-          await apiFetch("/api/credits/charge", { method: "POST", body: JSON.stringify({ seconds }) }, true);
-          await refreshMeAndBalance(true);
+      // Credits are charged server-side in /api/dub-upload based on video length
+await refreshMeAndBalance(true);
         } catch (err) {
           if (err?.status === 402) {
             setLoading(false, "Ready");
