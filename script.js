@@ -1,6 +1,7 @@
-// LYPO frontend — init on DOMContentLoaded
-
-document.addEventListener("DOMContentLoaded", () => {
+// LYPO frontend demo script (v20) — fixed (no syntax errors)
+(() => {
+  if (window.__LYPO_INIT__) return;
+  window.__LYPO_INIT__ = true;
 
   const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const POLL_INTERVAL_MS = 1400;
@@ -216,12 +217,12 @@ function showAuthModal(show) {
     const closeEls = document.querySelectorAll('[data-close="1"]');
 
     // Open modal from either button
-    const open = () => openAuthModal();
+    const open = () => { setAuthMsg(""); openAuthModal(); };
     btnLogin?.addEventListener("click", open);
     headerBtn?.addEventListener("click", open);
 
     // Close modal (backdrop / X)
-    closeEls.forEach((el) => el.addEventListener("click", closeAuthModal));
+    closeEls.forEach((el) => el.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); closeAuthModal(); }));
 
     // ESC closes
     document.addEventListener("keydown", (e) => {
@@ -233,6 +234,7 @@ function showAuthModal(show) {
       try {
         const email = $("authEmail")?.value?.trim();
         const password = $("authPass")?.value || "";
+        setAuthMsg("Logging in…");
         setStatus("Logging in…");
         const out = await apiFetch("/api/auth/login", {
           method: "POST",
@@ -246,6 +248,7 @@ function showAuthModal(show) {
         await refreshMeAndBalance(true);
         setStatus("Logged in.");
       } catch (e) {
+        setAuthMsg(`Login failed: ${e.message || e}`);
         setStatus(`Login failed: ${e.message || e}`);
       }
     });
@@ -254,6 +257,7 @@ function showAuthModal(show) {
       try {
         const email = $("authEmail")?.value?.trim();
         const password = $("authPass")?.value || "";
+        setAuthMsg("Creating account…");
         setStatus("Creating account…");
         const out = await apiFetch("/api/auth/signup", {
           method: "POST",
@@ -267,6 +271,7 @@ function showAuthModal(show) {
         await refreshMeAndBalance(true);
         setStatus("Account created.");
       } catch (e) {
+        setAuthMsg(`Signup failed: ${e.message || e}`);
         setStatus(`Signup failed: ${e.message || e}`);
       }
     });
@@ -375,7 +380,7 @@ function showAuthModal(show) {
 
   // ---- Tabs
   function attachTabs() {
-    const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
+    const tabBtns = Array.from(document.querySelectorAll(".tabBtn")).filter((b) => b.dataset && b.dataset.tab);
     const panels = Array.from(document.querySelectorAll(".tabPanel"));
     const goHome = document.querySelector("[data-go='home']");
 
@@ -796,4 +801,4 @@ document.getElementById("btnPay")?.addEventListener("click", async () => {
   checkBackend();
 
   $("btnRun")?.addEventListener("click", runUploadDub);
-});
+})();
