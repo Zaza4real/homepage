@@ -1211,3 +1211,9 @@ button.btnLink{ display:inline-flex; align-items:center; }
   .headerRight{ margin-left:auto; }
   .headerAuthBtn{ padding: 9px 12px; }
 }
+
+
+/* Modal layering fix (ensure buttons are clickable) */
+.modal{ pointer-events:auto; }
+.modalBackdrop{ z-index: 1; pointer-events:auto; }
+.modalCard{ z-index: 2; pointer-events:auto; }
