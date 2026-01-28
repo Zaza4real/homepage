@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LYPO — Video Translation</title>
+  <title>LYP<span class="spinO" aria-hidden="true">O</span> — Video Translation</title>
   <meta name="description" content="Translate videos to every language while keeping voice and syncing lips." />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -18,7 +18,7 @@
 
   <header class="header">
     <a class="logoWrap" href="#" aria-label="LYPO Home" data-go="home">
-      <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
+      <span class="logo">LYP<span class="spinO" aria-hidden="true">O</span><span class="logoTagline">Sounds like magic…</span></span>
     </a>
 
     <nav class="tabs" role="tablist" aria-label="LYPO tabs">
@@ -51,7 +51,7 @@
         </p>
 <div class="demoCard">
           <div class="demoTop">
-            <div class="demoTitle">LYPO Video Translator</div>
+            <div class="demoTitle">LYP<span class="spinO" aria-hidden="true">O</span> Video Translator</div>
             <div class="chips">
               <span class="chip">UI ✓</span>
               <span class="chip" id="chipBackend">Backend: not connected</span>
@@ -121,7 +121,7 @@
 
               <div class="hint" style="margin-bottom:10px;font-size:12px;opacity:.8;">If the popup buttons don’t respond, use the full page: <a href="auth.html" style="color:rgba(255,255,255,.9);text-decoration:underline;">Account page</a></div>
         <div class="actions">
-                <button class="btnPrimary btnSmall" id="btnRun" type="button">
+                <button class="btnPrimary" id="btnRun" type="button">
                   <span class="btnLabel">Upload & translate</span>
                   <span class="btnSpinner" aria-hidden="true"></span>
                   <span class="btnGlow"></span>
@@ -132,8 +132,8 @@
                   <span class="btnGlow"></span>
                 </button>
 
-                <button class="btnGhost btnSmall" id="btnPay" type="button">
-                  <span class="btnLabel">Buy Credits</span>
+                <button class="btnGhost" id="btnPay" type="button">
+                  <span class="btnLabel">Pay</span>
                   <span class="btnSpinner" aria-hidden="true" data-spinner="pay"></span>
                   <span class="btnGlow"></span>
                 </button>
@@ -143,7 +143,7 @@
                   <span class="btnGlow"></span>
                 </button>
               
-              <div class="buyCard" id="buyCard" aria-label="Buy credits">
+              <div class="buyCard" id="buyCard" hidden aria-label="Buy credits">
                 <div class="buyCardTop">
                   <div class="buyTitle">Buy Credits</div>
                   <div class="buySub muted">Choose an amount and we’ll open Stripe checkout in a new tab.</div>
@@ -188,11 +188,11 @@
                   <span id="statusText">Ready.</span>
                 </div>
                 <div class="hint">
-                  Tip: 30 seconds of video costs <strong>300 credits</strong>.
+                  Tip: 30 seconds of video costs <strong>$2.89</strong>.
                   <span class="hintSep">•</span>
                   <span id="costEstimate" class="costEstimate"></span>
                   <span class="hintSep">•</span>
-                  <span id="lyposBalance" class="costEstimate">Balance: — Credits</span>
+                  <span id="lyposBalance" class="costEstimate">Balance: — LYPOS</span>
                 </div>
                 <div class="progressWrap" id="progressWrap" hidden>
                   <div class="progressBar" aria-hidden="true"></div>
@@ -256,14 +256,14 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
     <!-- ABOUT -->
     <section class="tabPanel" id="tab-about" role="tabpanel">
       <div class="panel">
-        <h2>About LYPO</h2>
-        <p>LYPO translates videos into new languages while preserving voice identity and syncing lips.</p>
+        <h2>About LYP<span class="spinO" aria-hidden="true">O</span></h2>
+        <p>LYP<span class="spinO" aria-hidden="true">O</span> translates videos into new languages while preserving voice identity and syncing lips.</p>
         <p class="muted">Add contact/social links here when ready.</p>
       </div>
     </section>
 
     <footer class="footer">
-      <span>© <span id="year"></span> LYPO</span>
+      <span>© <span id="year"></span> LYP<span class="spinO" aria-hidden="true">O</span></span>
       <span class="muted">Ready to publish • Hosted on Render</span>
     </footer>
   </main>
@@ -300,12 +300,10 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
             <span class="btnLabel">Logout</span><span class="btnGlow"></span>
           </button>
         </div>
-        <div class="modalNote">Credits are <strong>Credits</strong>. <strong>$1 = 100 Credits</strong>.</div>
+        <div class="modalNote">Credits are <strong>LYPOS</strong>. <strong>$1 = 100 LYPOS</strong>.</div>
       </div>
     </div>
   </div>
-
-
 
 </body>
 </html>
