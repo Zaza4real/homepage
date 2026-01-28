@@ -111,8 +111,23 @@ document.getElementById("btnAdminAdd")?.addEventListener("click", async () => {
       body: JSON.stringify({ email, amount, reason })
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed");
+    // Some hosting setups return an HTML error page ("<!DOCTYPE ...") for missing routes.
+    const ct = res.headers.get("content-type") || "";
+    const data = ct.includes("application/json")
+      ? await res.json().catch(() => null)
+      : await res.text().catch(() => null);
+
+    if (!res.ok) {
+      const textErr = typeof data === "string" ? data : "";
+      // If HTML comes back, give a clearer hint than "Unexpected token <".
+      if (textErr.trim().startsWith("<!DOCTYPE") || textErr.trim().startsWith("<html")) {
+        throw new Error(
+          `Backend returned HTML instead of JSON (HTTP ${res.status}). ` +
+          `This usually means the /api/admin/add-credits route isn't deployed or is being rewritten to an HTML page.`
+        );
+      }
+      throw new Error((data && data.error) || `Request failed (HTTP ${res.status})`);
+    }
 
     msg.textContent = `✅ ${data.user.email} now has ${data.user.balance} credits`;
   } catch (e) {
