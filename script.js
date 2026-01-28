@@ -31,6 +31,9 @@
 
   // Pricing hint (USD)
   const CREDITS_PER_SECOND = 10;
+  // DOM helper (MUST be first)
+const $ = (id) => document.getElementById(id);
+
 
 
   // ---- Auth (email + password) + Credits
