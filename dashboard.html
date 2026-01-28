@@ -178,7 +178,7 @@
         .then(({ok, status, j}) => {
           if(!ok){ set("dashAdmin","Admin: CHECK FAIL"); setDiag("Admin status endpoint failed (status "+status+"). Backend may not be deployed with admin routes."); return; }
           if(j && j.isAdmin){ set("dashAdmin","Admin: YES"); setDiag(""); }
-          else { set("dashAdmin","Admin: NO"); setDiag("Not admin. Set ADMIN_EMAIL on the BACKEND service to your login email and redeploy."); }
+          else { set("dashAdmin","Admin: NO"); setDiag("Not admin. Set ADMIN_EMAILS (or ADMIN_EMAIL) on the BACKEND service to your login email and redeploy."); }
         });
     })
     .catch(e => { set("dashAdmin","Admin: ERROR"); setDiag("Network error: " + (e && e.message ? e.message : e)); });
