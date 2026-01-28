@@ -12,6 +12,37 @@
 
   const $ = (id) => document.getElementById(id);
 
+  // ---- Auth + credits
+  function getToken(){ return localStorage.getItem("lypo_token") || ""; }
+  function setToken(t){ t ? localStorage.setItem("lypo_token", t) : localStorage.removeItem("lypo_token"); }
+  function authHeaders(){ const t = getToken(); return t ? { Authorization: `Bearer ${t}` } : {}; }
+  function showAuthModal(on){
+    const m = $("authModal");
+    if (!m) return;
+    m.hidden = !on;
+    m.setAttribute("aria-hidden", on ? "false" : "true");
+  }
+  async function loadCredits(){
+    const el = $("lyposBalance");
+    if (!el) return null;
+    try{
+      const r = await fetch(`${BACKEND_BASE_URL}/api/credits`, { headers: { ...authHeaders() } });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j?.error || "credits");
+      el.textContent = `Balance: ${j.balance} LYPOS`;
+      return j.balance;
+    }catch{
+      el.textContent = "Balance: — LYPOS";
+      return null;
+    }
+  }
+  async function ensureAuth(){
+    if (getToken()) return true;
+    showAuthModal(true);
+    setStatus("Please login to continue.");
+    return false;
+  }
+
   // ---- UI helpers
   function setStatus(text) {
     const st = $("statusText");
@@ -115,31 +146,30 @@
   function attachPay() {
     const btn = $("btnPay");
     if (!btn) return;
-  
     btn.addEventListener("click", async () => {
+      if (!(await ensureAuth())) return;
       try {
-        const email = prompt("Enter your email to receive credits:");
-        if (!email) return;
-  
+        const usdStr = prompt("How much would you like to add?
+$1 = 100 LYPOS", "10");
+        if (!usdStr) return;
+        const usd = Number(usdStr);
+        if (!Number.isFinite(usd) || usd <= 0) return alert("Enter a valid amount in USD.");
         setLoading(true, "Opening payment…");
-  
         const res = await fetch(`${BACKEND_BASE_URL}/api/stripe/create-checkout-session`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ packId: "pack10", email }), // example pack
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({ usd })
         });
-  
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to start checkout");
-  
-        window.location.href = data.url; // redirect to Stripe Checkout
+        window.location.href = data.url;
       } catch (e) {
         setLoading(false, "Ready");
         setStatus(`Payment error: ${e.message || e}`);
       }
     });
   }
-  
+
   // ---- Download (blob only; avoids fullscreen/player)
   function resetDownload() {
     const btn = $("btnDownload");
@@ -186,6 +216,67 @@
     a.remove();
 
     setTimeout(() => URL.revokeObjectURL(blobUrl), 2500);
+  }
+
+
+  function attachAuth() {
+    const loginBtn = $("btnLogin");
+    loginBtn?.addEventListener("click", () => showAuthModal(true));
+
+    $("authModal")?.addEventListener("click", (e) => {
+      if (e.target?.dataset?.authClose === "1") showAuthModal(false);
+    });
+
+    $("btnDoLogin")?.addEventListener("click", async () => {
+      const email = String($("authEmail")?.value || "").trim();
+      const password = String($("authPass")?.value || "");
+      if (!email || !password) return alert("Enter email and password.");
+      try{
+        const r = await fetch(`${BACKEND_BASE_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j?.error || "Login failed");
+        setToken(j.token);
+        showAuthModal(false);
+        setStatus("Logged in ✓");
+        await loadCredits();
+      }catch(e){
+        alert(e.message || e);
+      }
+    });
+
+    $("btnDoSignup")?.addEventListener("click", async () => {
+      const email = String($("authEmail")?.value || "").trim();
+      const password = String($("authPass")?.value || "");
+      if (!email || !password) return alert("Enter email and password.");
+      try{
+        const r = await fetch(`${BACKEND_BASE_URL}/api/auth/signup`, {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j?.error || "Signup failed");
+        setToken(j.token);
+        showAuthModal(false);
+        setStatus("Account created ✓");
+        await loadCredits();
+      }catch(e){
+        alert(e.message || e);
+      }
+    });
+
+    // If Stripe redirected back
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("paid") === "1") {
+      setStatus("Payment received ✓");
+      loadCredits();
+      url.searchParams.delete("paid");
+      window.history.replaceState({}, "", url.toString());
+    }
   }
 
   // ---- Tabs
@@ -268,7 +359,8 @@
 
     try {
       const raw = await fetchJson(`${BACKEND_BASE_URL}/api/languages`);
-      const items = (raw || []).map(normalize).filter(Boolean);
+      const list = Array.isArray(raw) ? raw : (raw?.languages || []);
+      const items = (list || []).map(normalize).filter(Boolean);
 
       if (items.length) {
         const seen = new Set();
@@ -394,6 +486,39 @@
 
     if (!file) return setStatus("Please choose a video first.");
     if (!outputLanguage) return setStatus("Please select a target language.");
+
+    // ---- Credits: charge before starting (server verifies balance)
+    if (!(await ensureAuth())) return;
+
+    const seconds = await new Promise((resolve) => {
+      const tmp = document.createElement("video");
+      tmp.preload = "metadata";
+      tmp.onloadedmetadata = () => resolve(Number(tmp.duration) || 0);
+      tmp.onerror = () => resolve(0);
+      tmp.src = URL.createObjectURL(file);
+    });
+
+    try{
+      const cr = await fetch(`${BACKEND_BASE_URL}/api/credits/charge`, {
+        method: "POST",
+        headers: { "Content-Type":"application/json", ...authHeaders() },
+        body: JSON.stringify({ seconds })
+      });
+      const cj = await cr.json();
+      if (!cr.ok) {
+        if (cj?.error === "INSUFFICIENT_LYPOS") {
+          setStatus(`Not enough LYPOS. Need ${cj.required}, you have ${cj.balance}. Click Pay to top up.`);
+          setPreviewHint("Top up your balance, then try again.");
+          popHint();
+          return;
+        }
+        throw new Error(cj?.error || "Charge failed");
+      }
+      await loadCredits();
+    }catch(e){
+      setStatus(`Credit error: ${e.message || e}`);
+      return;
+    }
 
     resetDownload();
     clearOutputVideo();
@@ -524,12 +649,6 @@
     });
   }
 
-  function attachPay() {
-    const btn = $("btnPay");
-    if (!btn) return;
-    btn.addEventListener("click", () => setStatus("Payment is not connected yet."));
-  }
-
   function setYear() {
     const y = $("year");
     if (y) y.textContent = String(new Date().getFullYear());
@@ -544,6 +663,7 @@
 
   // ---- INIT
   attachTabs();
+  attachAuth();
   setYear();
   attachUploadPicker();
   attachDownload();
@@ -559,6 +679,7 @@
 
   loadLanguages();
   checkBackend();
+  loadCredits();
 
   $("btnRun")?.addEventListener("click", runUploadDub);
 })();
