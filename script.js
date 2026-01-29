@@ -135,11 +135,6 @@ function showAuthModal(show) {
     const st = $("statusText");
     if (st) st.textContent = text;
   }
-  function setAuthMsg(text) {
-    const el = $("authMsg");
-    if (el) el.textContent = text || "";
-  }
-
   function setPreviewTitle(text) {
     const p = $("previewText");
     if (p) p.textContent = text;
@@ -188,19 +183,18 @@ function showAuthModal(show) {
   }
 
   function setLoading(isLoading, text) {
-    const pill = $("statusPill");
-    const progress = $("progressWrap");
-    const run = $("btnRun");
-    const pay = $("btnPay");
+  const pill = $("statusPill");
+  const progress = $("progressWrap");
+  const run = $("btnRun");
 
-    if (pill) pill.classList.toggle("isLoading", !!isLoading);
-    if (progress) progress.hidden = !isLoading;
-
-    if (run) {
-      run.disabled = !!isLoading;
-      run.classList.toggle("isLoading", !!isLoading);
-      run.style.visibility = isLoading ? "hidden" : "";
-    }
+  if (pill) pill.classList.toggle("isLoading", !!isLoading);
+  if (progress) progress.hidden = !!isLoading;
+  if (run) {
+    run.disabled = !!isLoading;
+    run.hidden = !!isLoading;
+  }
+  if (typeof text === "string") setStatus(text);
+}
     if (pay) {
       pay.disabled = !!isLoading;
       pay.classList.toggle("isLoading", !!isLoading);
@@ -664,7 +658,7 @@ function showAuthModal(show) {
       showOutputVideo(final.outputUrl);
       enableDownload(final.outputUrl);
 
-      setPreviewTitle("Output ready");
+      setPreviewTitle("Output ready"); enableDownload(final.outputUrl);
       setPreviewHint("Preview is playable. Click Download to save the MP4.");
     } catch (e) {
       setLoading(false, "Error");
@@ -887,3 +881,13 @@ function showAuthModal(show) {
 
   $("btnRun")?.addEventListener("click", runUploadDub);
 })();
+
+
+(function enforceAdminTab(){
+  const adminTab = document.querySelector('[data-tab="admin"], .adminTab');
+  if (!adminTab) return;
+  if (!window.currentUser || !window.currentUser.is_admin) {
+    adminTab.remove();
+  }
+})();
+
