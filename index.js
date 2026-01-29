@@ -11,6 +11,22 @@ import { Resend } from "resend";
 
 const app = express();
 
+function requireAdmin(req, res, next) {
+  // Allow admin via env whitelist OR token flag OR DB flag
+  const email = req.user?.email;
+  const tokenAdmin = req.user?.is_admin === true;
+  const envAdmin = isAdminEmail(email);
+  if (envAdmin || tokenAdmin) return next();
+
+  // Fallback: check DB (helps old tokens)
+  if (!email) return res.status(403).json({ error: "Admin access required" });
+  getUserByEmail(email).then((u) => {
+    if (u?.is_admin) return next();
+    return res.status(403).json({ error: "Admin access required" });
+  }).catch(() => res.status(403).json({ error: "Admin access required" }));
+}
+
+
 /* ---------------------------
    CORS
 ---------------------------- */
@@ -18,6 +34,8 @@ const allowedOrigins = new Set([
   "https://digitalgeekworld.com",
   "https://www.digitalgeekworld.com",
   "https://homepage-3d78.onrender.com",
+  "https://lypo.org",
+  "https://www.lypo.org",
   process.env.FRONTEND_URL || ""
 ].filter(Boolean));
 
@@ -30,7 +48,7 @@ app.use((req, res, next) => {
   }
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
@@ -107,14 +125,38 @@ const pool = new Pool({
   ssl: process.env.DISABLE_PG_SSL === "1" ? false : { rejectUnauthorized: false }
 });
 
+async function ensureBlogTables() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS blog_posts (
+      id SERIAL PRIMARY KEY,
+      slug TEXT UNIQUE NOT NULL,
+      title TEXT NOT NULL,
+      excerpt TEXT,
+      content_html TEXT NOT NULL,
+      cover_url TEXT,
+      video_url TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      published_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      author_email TEXT
+    );
+  `);
+}
+
+
 async function initDb() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       email TEXT PRIMARY KEY,
       password_hash TEXT NOT NULL,
       balance INTEGER NOT NULL DEFAULT 0,
+      is_admin BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+  `);
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS payments (
@@ -153,16 +195,18 @@ function normEmail(email) {
   return String(email || "").toLowerCase().trim();
 }
 function publicUserRow(r) {
-  return { email: r.email, balance: Number(r.balance || 0), createdAt: r.created_at };
+  return { email: r.email, balance: Number(r.balance || 0), isAdmin: !!r.is_admin, createdAt: r.created_at };
 }
-function signToken(email) {
-  return jwt.sign({ email }, JWT_SECRET, { expiresIn: "30d" });
+function signToken(email, is_admin) {
+  const payload = { email: String(email || "").toLowerCase() };
+  if (typeof is_admin !== "undefined") payload.is_admin = !!is_admin;
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" });
 }
 
 async function getUserByEmail(email) {
   const e = normEmail(email);
   const { rows } = await pool.query(
-    "SELECT email, password_hash, balance, created_at FROM users WHERE email=$1",
+    "SELECT email, password_hash, balance, is_admin, created_at FROM users WHERE email=$1",
     [e]
   );
   return rows[0] || null;
@@ -170,7 +214,7 @@ async function getUserByEmail(email) {
 async function createUser(email, passwordHash) {
   const e = normEmail(email);
   const { rows } = await pool.query(
-    "INSERT INTO users (email, password_hash, balance) VALUES ($1,$2,0) RETURNING email, password_hash, balance, created_at",
+    "INSERT INTO users (email, password_hash, balance, is_admin) VALUES ($1,$2,0,FALSE) RETURNING email, password_hash, balance, is_admin, created_at",
     [e, passwordHash]
   );
   return rows[0];
@@ -357,8 +401,21 @@ app.post("/api/auth/signup", async (req, res) => {
   if (existing) return res.status(409).json({ error: "Email already registered" });
 
   const passwordHash = await bcrypt.hash(String(password), 10);
-  const row = await createUser(e, passwordHash);
-  res.json({ token: signToken(e), user: publicUserRow(row) });
+  let row = await createUser(e, passwordHash);
+
+  // bootstrap first admin (if no admin emails configured and no admins in DB)
+  try {
+    const configured = (process.env.ADMIN_EMAIL || "").trim() || (process.env.ADMIN_EMAILS || "").trim();
+    if (!configured) {
+      const { rows } = await pool.query("SELECT COUNT(*)::int AS c FROM users WHERE is_admin=TRUE");
+      if ((rows?.[0]?.c || 0) === 0) {
+        await pool.query("UPDATE users SET is_admin=TRUE WHERE email=$1", [e]);
+        row = await getUserByEmail(e);
+      }
+    }
+  } catch {}
+
+  res.json({ token: signToken(e, row?.is_admin), user: publicUserRow(row) });
 });
 
 app.post("/api/auth/login", async (req, res) => {
@@ -372,7 +429,7 @@ app.post("/api/auth/login", async (req, res) => {
   const ok = await bcrypt.compare(String(password), String(u.password_hash || ""));
   if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-  res.json({ token: signToken(e), user: publicUserRow(u) });
+  res.json({ token: signToken(e, u?.is_admin), user: publicUserRow(u) });
 });
 
 app.get("/api/auth/me", auth, async (req, res) => {
@@ -791,3 +848,125 @@ initDb()
     console.error("❌ DB init failed", e);
     process.exit(1);
   });
+(async () => {
+  try { await ensureBlogTables(); } catch (e) { console.error('Blog table init failed:', e); }
+})();
+
+
+/* ---------------------------
+   BLOG (public)
+---------------------------- */
+app.get("/api/blog/posts", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, excerpt, cover_url, video_url, published_at
+       FROM blog_posts
+       WHERE status='published'
+       ORDER BY published_at DESC NULLS LAST, created_at DESC
+       LIMIT 50`
+    );
+    res.json({ posts: rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Could not load posts" });
+  }
+});
+
+app.get("/api/blog/posts/:slug", async (req, res) => {
+  try {
+    const slug = String(req.params.slug || "");
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, excerpt, content_html, cover_url, video_url, published_at
+       FROM blog_posts
+       WHERE slug=$1 AND status='published'
+       LIMIT 1`,
+      [slug]
+    );
+    const post = rows[0];
+    if (!post) return res.status(404).json({ error: "Not found" });
+    res.json({ post });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Could not load post" });
+  }
+});
+
+/* ---------------------------
+   BLOG (admin)
+---------------------------- */
+app.get("/api/admin/blog/posts", auth, requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, excerpt, status, published_at, created_at, updated_at
+       FROM blog_posts
+       ORDER BY created_at DESC
+       LIMIT 200`
+    );
+    res.json({ posts: rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Could not load admin posts" });
+  }
+});
+
+app.post("/api/admin/blog/posts", auth, requireAdmin, async (req, res) => {
+  try {
+    const { slug, title, excerpt, content_html, cover_url, video_url, status } = req.body || {};
+    if (!slug || !title || !content_html) return res.status(400).json({ error: "Missing slug, title, or content" });
+    const st = (status === "published") ? "published" : "draft";
+    const publishedAt = st === "published" ? new Date() : null;
+
+    const { rows } = await pool.query(
+      `INSERT INTO blog_posts (slug, title, excerpt, content_html, cover_url, video_url, status, published_at, author_email)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       RETURNING id, slug, title, excerpt, status, published_at`,
+      [slug, title, excerpt || null, content_html, cover_url || null, video_url || null, st, publishedAt, req.user.email || null]
+    );
+    res.json({ post: rows[0] });
+  } catch (e) {
+    console.error(e);
+    const msg = String(e?.message || "");
+    if (msg.includes("duplicate key")) return res.status(409).json({ error: "Slug already exists" });
+    res.status(500).json({ error: "Could not create post" });
+  }
+});
+
+app.put("/api/admin/blog/posts/:id", auth, requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { slug, title, excerpt, content_html, cover_url, video_url, status } = req.body || {};
+    if (!id || !slug || !title || !content_html) return res.status(400).json({ error: "Missing fields" });
+
+    const st = (status === "published") ? "published" : "draft";
+    const publishedAt = st === "published" ? (req.body.published_at ? new Date(req.body.published_at) : new Date()) : null;
+
+    const { rows } = await pool.query(
+      `UPDATE blog_posts
+       SET slug=$1, title=$2, excerpt=$3, content_html=$4, cover_url=$5, video_url=$6,
+           status=$7, published_at=$8, updated_at=NOW()
+       WHERE id=$9
+       RETURNING id, slug, title, excerpt, status, published_at`,
+      [slug, title, excerpt || null, content_html, cover_url || null, video_url || null, st, publishedAt, id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: "Not found" });
+    res.json({ post: rows[0] });
+  } catch (e) {
+    console.error(e);
+    const msg = String(e?.message || "");
+    if (msg.includes("duplicate key")) return res.status(409).json({ error: "Slug already exists" });
+    res.status(500).json({ error: "Could not update post" });
+  }
+});
+
+app.delete("/api/admin/blog/posts/:id", auth, requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "Bad id" });
+    await pool.query(`DELETE FROM blog_posts WHERE id=$1`, [id]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Could not delete post" });
+  }
+});
+
