@@ -916,3 +916,32 @@ function enforceAdminUI() {
 
 // run after auth + DOM ready
 setTimeout(enforceAdminUI, 0);
+
+
+// === Strict admin UI enforcement ===
+function enforceAdminUIStrict() {
+  const isAdmin = window.currentUser && window.currentUser.is_admin === true;
+
+  // Admin tab
+  document.querySelectorAll('[data-tab="admin"]').forEach(el => {
+    if (!isAdmin) el.remove();
+  });
+
+  // Admin panels (explicit)
+  document.querySelectorAll('#adminPanel, #adminCreditsPanel, .adminAddCredits, .adminPanel').forEach(el => {
+    if (!isAdmin) el.remove();
+  });
+
+  // Admin badge
+  const header = document.querySelector('.headerRight');
+  if (isAdmin && header && !document.getElementById('adminBadge')) {
+    const chip = document.createElement('span');
+    chip.id = 'adminBadge';
+    chip.textContent = 'Admin';
+    chip.style.cssText = 'margin-left:8px;padding:4px 8px;border-radius:999px;background:#6cf;color:#000;font-size:11px;font-weight:600;';
+    header.prepend(chip);
+  }
+}
+
+// run after auth settles
+setTimeout(enforceAdminUIStrict, 0);
