@@ -1,19 +1,21 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Support • LYPO</title>
+  <meta charset="UTF-8" />
+  <title>LYPO — Support</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="bg">
-    <div class="orb o1"></div><div class="orb o2"></div><div class="grid"></div><div class="noise"></div>
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
   </div>
 
-  <div class="shell">
-<header class="header">
-    <a class="logoWrap" href="#" aria-label="LYPO Home" data-go="home">
+  <header class="header">
+    <a class="logoWrap" href="index.html" aria-label="LYPO Home">
       <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
     </a>
 
@@ -21,25 +23,57 @@
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="home" type="button">Demo</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="features.html" type="button">Features</button>
       <button class="tabBtn isActive" role="tab" aria-selected="true" data-href="support.html" type="button">Support</button>
-      <button class="tabBtn" role="tab" aria-selected="false" data-href="blog.html" type="button">Blog</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="feedback.html" type="button">Feedback</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="about.html" type="button">About</button>
     </nav>
 
     <div class="headerRight">
-      <button class="btnPrimary headerAuthBtn" id="headerAuth" data-auth-page="1" type="button">
+      <button class="btnPrimary headerAuthBtn" id="headerAuth" type="button">
         <span class="btnLabel" id="headerAuthLabel">Login</span>
         <span class="btnGlow"></span>
       </button>
     </div>
   </header>
 
-    <main class="main" id="supportRoot">
-      <!-- support.js will fill content -->
-    </main>
-  </div>
+  <main class="container">
+    <section class="panel">
+      <div class="panelTop">
+        <div>
+          <h2 style="margin:0;">Support</h2>
+          <p class="muted" style="margin:6px 0 0;">Send us a message and we’ll get back to you.</p>
+        </div>
+      </div>
 
-  <script src="script.js" defer></script>
+      <div class="card" style="margin-top:14px;">
+        <div class="grid2">
+          <label class="field">
+            <span class="fieldLabel">Email</span>
+            <input id="supportEmail" class="input" type="email" placeholder="you@email.com" autocomplete="email" />
+          </label>
+
+          <label class="field">
+            <span class="fieldLabel">Subject</span>
+            <input id="supportSubject" class="input" type="text" placeholder="Billing, upload issues, etc." />
+          </label>
+        </div>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="fieldLabel">Message</span>
+          <input id="supportMessage" class="input" type="text" placeholder="Write your message…" />
+        </label>
+
+        <div class="actions" style="margin-top:14px;">
+          <button class="btnPrimary" id="btnSupportSend" type="button">
+            <span class="btnLabel" id="btnSupportLabel">Send message</span>
+            <span class="btnGlow"></span>
+          </button>
+          <div class="hint" id="supportHint" style="margin-left:10px;"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <script src="header.js" defer></script>
-  <script src="support.js" defer></script>
+  <script src="support.js"></script>
 </body>
 </html>
