@@ -194,6 +194,7 @@ function showAuthModal(show) {
     if (run) {
       run.disabled = !!isLoading;
       run.classList.toggle("isLoading", !!isLoading);
+      run.style.visibility = isLoading ? "hidden" : "";
     }
     if (pay) {
       pay.disabled = !!isLoading;
@@ -409,6 +410,14 @@ function showAuthModal(show) {
     const tabBtns = Array.from(document.querySelectorAll(".tabBtn")).filter((b) => b.dataset && b.dataset.tab);
     const panels = Array.from(document.querySelectorAll(".tabPanel"));
     const goHome = document.querySelector("[data-go='home']");
+
+    // Buttons that navigate to separate pages (e.g., Support / About / Features)
+    const linkBtns = Array.from(document.querySelectorAll('.tabBtn[data-href]'));
+    linkBtns.forEach((b) => b.addEventListener('click', () => {
+      const href = b.dataset.href;
+      if (href) location.href = href;
+    }));
+
 
     function activate(tab) {
       tabBtns.forEach((b) => {
