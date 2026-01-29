@@ -1495,3 +1495,29 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .postBody{ margin-top:14px; line-height:1.6; }
 .postBody h2{ margin:18px 0 8px; }
 .postBody p{ margin:10px 0; }
+
+
+/* Blog layout fix: prevent single-line flex overflow and improve readability */
+.blogItem{ align-items:flex-start; }
+.blogMeta{ flex:1; min-width:0; }
+.blogTitle, .blogSub, .blogDate{ min-width:0; overflow-wrap:anywhere; }
+.blogTitle{
+  font-size:14px;
+  line-height:1.2;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+}
+.blogSub{
+  line-height:1.45;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  overflow:hidden;
+}
+.blogCover img{ width:112px; height:74px; }
+@media (max-width: 520px){
+  .blogItem{ flex-direction:column; }
+  .blogCover img{ width:100%; height:180px; }
+}
