@@ -194,11 +194,11 @@ function showAuthModal(show) {
     const pay = $("btnPay");
 
     if (pill) pill.classList.toggle("isLoading", !!isLoading);
-    if (progress) progress.hidden = !isLoading;
+    if (progress) progress.hidden = true;
 
     if (run) {
       run.disabled = !!isLoading;
-      run.classList.toggle("isLoading", !!isLoading);
+      
       run.style.visibility = isLoading ? "hidden" : "";
     }
     if (pay) {
@@ -558,7 +558,7 @@ function showAuthModal(show) {
       setPreviewTitle("No output yet");
       setPreviewHint("Generated video will appear here");
 
-      const costEl = $("costEstimate");
+      const costEl = $("uploadEstimate");
       const pay = $("btnPay");
 
       if (!file) {

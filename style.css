@@ -1467,3 +1467,12 @@ button.btnLink{ display:inline-flex; align-items:center; }
   opacity:.55;
   pointer-events:none;
 }
+
+.uploadEstimate{
+  display:flex;
+  align-items:center;
+  font-size:13px;
+  color: rgba(255,255,255,.85);
+  font-weight:700;
+}
+#progressWrap{ display:none !important; }
