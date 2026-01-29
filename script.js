@@ -232,7 +232,7 @@ function showAuthModal(show) {
     }
   }
 
-  function attachAuth() {
+  async function attachAuth() {
     const btnLogin = $("btnLogin");
     const headerBtn = $("headerAuth");
     const closeEls = document.querySelectorAll('[data-close="1"]');
@@ -316,10 +316,31 @@ function showAuthModal(show) {
     // If Stripe redirected back
     const params = new URLSearchParams(location.search);
     if (params.get("paid") === "1") {
-      setStatus("Payment received. Updating balance…");
-      refreshMeAndBalance(true);
+      // IMPORTANT:
+      // - The Stripe webhook may be delayed/misconfigured.
+      // - Even when it fires, the receipt URL can lag.
+      // So we confirm the session server-side on return (idempotent).
+      const sessionId = params.get("session_id") || "";
+      setStatus("Payment received. Updating your credits & receipt…");
+      try {
+        if (sessionId) {
+          await apiFetch(`/api/stripe/confirm?session_id=${encodeURIComponent(sessionId)}`, { method: "GET" }, true);
+        }
+      } catch (e) {
+        // Non-fatal: balance can still be updated via webhook.
+        console.log("Stripe confirm error:", e?.message || e);
+      }
+
+      await refreshMeAndBalance(true);
+
+      // Let a dashboard page (if present) refresh its payments list without changing its UI.
+      try { window.refreshPayments?.(); } catch {}
+      try { window.refreshReceipts?.(); } catch {}
+
       // clean URL (no reload)
       params.delete("paid");
+      // Keep session_id for a bit? Remove it too to avoid leaking it in screenshots.
+      params.delete("session_id");
       const clean = `${location.pathname}${params.toString() ? "?" + params.toString() : ""}${location.hash}`;
       history.replaceState({}, "", clean);
     }
