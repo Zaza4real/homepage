@@ -9,6 +9,21 @@
   const logoLink = document.querySelector(".logoWrap");
   const tabs = document.querySelectorAll(".tabBtn");
 
+  // UNIVERSAL TAB NAV
+  // data-href always navigates directly (works on every page including index)
+  if (tabs && tabs.length) {
+    tabs.forEach((btn) => {
+      const href = btn.getAttribute("data-href");
+      if (href) {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          location.href = href;
+        });
+      }
+    });
+  }
+
+
   // Make logo always go to homepage
   if (logoLink) {
     logoLink.setAttribute("href", "index.html");
@@ -22,12 +37,13 @@
 
   if (authBtn) {
     const applyAuthState = () => {
-      const labelEl = authBtn.querySelector(".btnLabel");
       if (isAuthed()) {
-        if (labelEl) labelEl.textContent = "Logout";
-        authBtn.classList.remove("isActive");
+        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
+        authBtn.setAttribute("href", "#");
+        authBtn.classList.add("isActive", false);
       } else {
-        if (labelEl) labelEl.textContent = "Login";
+        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
+        authBtn.setAttribute("href", "auth.html");
         authBtn.classList.toggle("isActive", isAuth);
       }
     };
@@ -38,10 +54,8 @@
       if (isAuthed()) {
         e.preventDefault();
         localStorage.removeItem(AUTH_TOKEN_KEY);
+        // go home after logout
         location.href = "index.html";
-      } else {
-        // go to auth page
-        location.href = "auth.html";
       }
     });
   }
