@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LYPO — Support</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
+  </div>
+
+  <header class="header">
+    <a class="logoWrap" href="index.html">
+      <div class="logo">LYPO</div>
+    </a>
+    <div class="tabs">
+      <button class="tabBtn" onclick="location.href='index.html'">Home</button>
+      <button class="tabBtn isActive">Support</button>
+    </div>
+    <div class="headerRight">
+      <a href="auth.html" class="btnPrimary headerAuthBtn"><span class="btnLabel">Login</span></a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>Support</h2>
+      <p class="muted">Need help? Send us a message and we’ll get back to you.</p>
+
+      <form class="form" id="supportForm">
+        <div class="field">
+          <span>Email</span>
+          <input type="email" required placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <span>Message</span>
+          <input type="text" required placeholder="How can we help?" />
+        </div>
+        <div class="actions">
+          <button class="btnPrimary" type="submit">
+            <span class="btnLabel">Send message</span>
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("supportForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      alert("Support request sent. We'll be in touch shortly.");
+      e.target.reset();
+    });
+  </script>
+</body>
+</html>
