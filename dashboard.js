@@ -183,9 +183,23 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       // Payments/videos (ignore if backend doesn't have these yet)
       try {
         const payments = await apiFetch("/api/account/payments");
-        renderPayments(payments?.payments || []);
-      } catch {
-        // keep table but don't break whole dashboard
+        const list = payments?.payments || [];
+        renderPayments(list);
+
+        // Backfill missing receipt links for recent rows (safe; backend confirm is idempotent).
+        const missing = list.filter(p => !(p.invoiceUrl ?? p.invoice_url ?? p.receiptUrl ?? p.receipt_url) && (p.stripeSessionId ?? p.stripe_session_id)).slice(0, 5);
+        if (missing.length) {
+          setMsg("Fetching receipts for recent payments…");
+          for (const p of missing) {
+            const sid = p.stripeSessionId ?? p.stripe_session_id;
+            try { await apiFetch(`/api/stripe/confirm?session_id=${encodeURIComponent(sid)}`); } catch {}
+          }
+          const payments2 = await apiFetch("/api/account/payments");
+          renderPayments(payments2?.payments || []);
+          setMsg("");
+        }
+      } catch (e) {
+        setDiag(`Could not load payments: ${e.message || e}`);
       }
 
       try {
