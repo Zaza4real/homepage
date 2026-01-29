@@ -108,22 +108,13 @@ function showAuthModal(show) {
       setBalanceUI(b.balance);
       if (!silent) setStatus("Logged in.");
     } catch (e) {
-      // Only clear the token for real auth failures.
-      const status = e?.status;
-      const msg = String(e?.message || e || "");
-      const looksAuth = status === 401 || status === 403 || /unauth|token|expired|forbidden/i.test(msg);
-
-      if (looksAuth) {
-        authToken = "";
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        currentUser = null;
-        setAuthUI();
-        setBalanceUI(null);
-        if (!silent) setStatus("Session expired. Please login again.");
-      } else {
-        // Network/CORS/temporary backend errors: keep the session.
-        if (!silent) setStatus(`Connection error. Please retry. (${msg || "Failed to fetch"})`);
-      }
+      // token expired/invalid
+      authToken = "";
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      currentUser = null;
+      setAuthUI();
+      setBalanceUI(null);
+      if (!silent) setStatus("Session expired. Please login again.");
     }
   }
 

@@ -13,11 +13,8 @@
   function setDiag(txt) { setText("dashDiag", txt || ""); }
   function setMsg(txt) { setText("dashMsg", txt || ""); }
 
-  function fmtDate(val) {
-    if (!val) return "—";
-    const d = new Date(val);
-    if (!Number.isFinite(d.getTime())) return "—";
-    return d.toLocaleString();
+  function fmtDate(iso) {
+    try { return new Date(iso).toLocaleString(); } catch { return iso || ""; }
   }
 
   async function fetchJSONorText(url, opts) {
@@ -32,6 +29,7 @@
   // 1) Try /api/... as expected
   // 2) If backend is deployed without the /api prefix, retry without it
   
+  let __stripeConfirmRan = false;
   async function maybeConfirmStripeReturn() {
     try {
       const qs = new URLSearchParams(window.location.search || "");
@@ -100,34 +98,21 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       body.innerHTML = '<tr><td colspan="5" class="mutedCell">No payments yet.</td></tr>';
       return;
     }
-
     body.innerHTML = items.map((p) => {
-      const created = p.createdAt ?? p.created_at ?? p.created ?? p.timestamp ?? null;
-
-      const url =
-        p.invoiceUrl ?? p.invoice_url ??
-        p.receiptUrl ?? p.receipt_url ??
-        p.hosted_invoice_url ?? p.invoice_pdf ??
-        null;
-
+      const docUrl = p.invoice_url;
       let invoice = "—";
-      if (url) {
-        const u = String(url);
-        const isPdf = /\.pdf(\?|#|$)/i.test(u);
-        invoice = `<a href="${u}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
+      if (docUrl) {
+        const isPdf = String(docUrl).includes(".pdf");
+        // Note: download attribute may be ignored cross-origin, but it's harmless.
+        invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
       }
-
-      const amt = p.amountUsd ?? p.amount_usd ?? p.amount ?? null;
-      const amount = (amt != null && amt !== "") ? `$${Number(amt || 0).toFixed(2)}` : "—";
-
-      const credits = (p.credits != null) ? p.credits : (p.lypos != null ? p.lypos : "—");
-      const status = p.status ?? "—";
-
+      const amount = (p.amount_usd != null) ? `$${Number(p.amount_usd || 0).toFixed(2)}` : "—";
+      const credits = (p.credits != null) ? p.credits : (p.lypos != null ? p.lypos : 0);
       return `<tr>
-        <td>${fmtDate(created)}</td>
+        <td>${fmtDate(p.created_at)}</td>
         <td>${amount}</td>
         <td>${credits}</td>
-        <td>${status}</td>
+        <td>${p.status || "—"}</td>
         <td>${invoice}</td>
       </tr>`;
     }).join("");
@@ -183,23 +168,9 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       // Payments/videos (ignore if backend doesn't have these yet)
       try {
         const payments = await apiFetch("/api/account/payments");
-        const list = payments?.payments || [];
-        renderPayments(list);
-
-        // Backfill missing receipt links for recent rows (safe; backend confirm is idempotent).
-        const missing = list.filter(p => !(p.invoiceUrl ?? p.invoice_url ?? p.receiptUrl ?? p.receipt_url) && (p.stripeSessionId ?? p.stripe_session_id)).slice(0, 5);
-        if (missing.length) {
-          setMsg("Fetching receipts for recent payments…");
-          for (const p of missing) {
-            const sid = p.stripeSessionId ?? p.stripe_session_id;
-            try { await apiFetch(`/api/stripe/confirm?session_id=${encodeURIComponent(sid)}`); } catch {}
-          }
-          const payments2 = await apiFetch("/api/account/payments");
-          renderPayments(payments2?.payments || []);
-          setMsg("");
-        }
-      } catch (e) {
-        setDiag(`Could not load payments: ${e.message || e}`);
+        renderPayments(payments?.payments || []);
+      } catch {
+        // keep table but don't break whole dashboard
       }
 
       try {
