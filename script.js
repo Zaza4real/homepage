@@ -135,11 +135,6 @@ function showAuthModal(show) {
     const st = $("statusText");
     if (st) st.textContent = text;
   }
-  function setAuthMsg(text) {
-    const el = $("authMsg");
-    if (el) el.textContent = text || "";
-  }
-
   function setPreviewTitle(text) {
     const p = $("previewText");
     if (p) p.textContent = text;
@@ -199,7 +194,8 @@ function showAuthModal(show) {
     if (run) {
       run.disabled = !!isLoading;
       run.classList.toggle("isLoading", !!isLoading);
-      run.style.visibility = isLoading ? "hidden" : "";
+      // Keep the button visible while generating (disable + spinner via CSS)
+      run.style.visibility = "";
     }
     if (pay) {
       pay.disabled = !!isLoading;
