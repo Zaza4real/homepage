@@ -1323,31 +1323,72 @@ button.btnLink{ display:inline-flex; align-items:center; }
 
 
 /* ======================================================
-   BTN RUN MATCH UPLOAD (make Upload & Translate like Choose a video)
+   HEADER-STYLE BUTTONS OVERRIDE (clean dark, white text)
+   ====================================================== */
+.btnPrimary,
+.btnGhost,
+.uploadBtn,
+.chipBtn {
+  color: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  background: rgba(10,10,14,.55) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(6px);
+}
+
+.btnPrimary:hover,
+.btnGhost:hover,
+.uploadBtn:hover,
+.chipBtn:hover {
+  background: rgba(10,10,14,.70) !important;
+  border-color: rgba(255,255,255,.22) !important;
+}
+
+.btnPrimary::after,
+.btnGhost::after,
+.uploadBtn::after,
+.chipBtn::after {
+  content: "" !important;
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: radial-gradient(160px 60px at 20% 30%, rgba(255,255,255,.12), transparent 60%);
+  opacity: .65;
+  pointer-events: none;
+}
+
+.btnPrimary:hover::after,
+.btnGhost:hover::after,
+.uploadBtn:hover::after,
+.chipBtn:hover::after {
+  opacity: .9;
+}
+
+/* Keep icon button feel on upload picker without changing layout */
+.uploadBtn .uploadFx { opacity: .55; }
+
+
+/* ======================================================
+   BTN RUN LIKE UPLOAD BTN (more visible, matches 'Choose a video')
    ====================================================== */
 #btnRun{
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  padding:14px 14px !important;
-  border-radius:18px !important;
-  border:1px dashed rgba(255,255,255,.22) !important;
-  background:rgba(0,0,0,.30) !important;
-  color:rgba(255,255,255,.92) !important;
+  border: 1px dashed rgba(255,255,255,.22) !important;
+  background: rgba(0,0,0,.30) !important;
+  color: rgba(255,255,255,.92) !important;
+  border-radius: 18px !important;
+  padding: 14px 14px !important;
   box-shadow: none !important;
-  transform: none;
 }
 
 #btnRun:hover{
-  transform:translateY(-1px);
-  background:rgba(0,0,0,.38) !important;
-  border-color:rgba(255,255,255,.32) !important;
+  background: rgba(0,0,0,.38) !important;
+  border-color: rgba(255,255,255,.32) !important;
   box-shadow: 0 16px 50px rgba(0,0,0,.45) !important;
+  transform: translateY(-1px);
 }
 
 #btnRun:active{
-  transform:translateY(0px);
-  background:rgba(0,0,0,.34) !important;
+  transform: translateY(0) scale(.99);
 }
+
+#btnRun .btnGlow{ opacity: .0; } /* keep clean like uploadBtn */
