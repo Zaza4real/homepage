@@ -184,22 +184,31 @@ function showAuthModal(show) {
   }
 
   function setLoading(isLoading, text) {
-    
-  setGenMsg(!!isLoading);
-const pill = $("statusPill");
+    // NOTE: UI-only changes here (no auth/login logic touched)
+    const pill = $("statusPill");
     const progress = $("progressWrap");
     const run = $("btnRun");
     const pay = $("btnPay");
 
     if (pill) pill.classList.toggle("isLoading", !!isLoading);
-    if (progress) progress.hidden = !isLoading;
 
+    // Remove loading slider entirely (no layout shifts)
+    if (progress) progress.hidden = true;
+
+    // Hide the bottom generating button while a job is running
     if (run) {
       run.disabled = !!isLoading;
+      run.hidden = !!isLoading;
       run.classList.toggle("isLoading", !!isLoading);
-      // Keep the button visible while generating (disable + spinner via CSS)
-      run.style.visibility = "";
     }
+    // Keep pay disabled while generating (but don't change layout)
+    if (pay) {
+      pay.disabled = !!isLoading;
+      pay.classList.toggle("isLoading", !!isLoading);
+    }
+
+    if (typeof text === "string") setStatus(text);
+  }
     if (pay) {
       pay.disabled = !!isLoading;
       pay.classList.toggle("isLoading", !!isLoading);
@@ -375,6 +384,14 @@ const pill = $("statusPill");
   function enableDownload(url) {
     const btn = $("btnDownload");
     if (!btn) return;
+
+    // Move into output header (right side of "Output ready")
+    const header = document.querySelector(".previewInner");
+    if (header && btn.parentElement !== header) {
+      btn.classList.add("btnDownloadInline");
+      header.appendChild(btn);
+    }
+
     btn.hidden = false;
     btn.dataset.url = url;
     btn.classList.add("isReady");

@@ -1479,3 +1479,6 @@ button.btnLink{ display:inline-flex; align-items:center; }
   color: rgba(255,255,255,.70);
   padding-left:2px;
 }
+
+/* Download button inside output header */
+.btnDownloadInline{ margin-left:auto; }
