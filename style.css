@@ -1576,3 +1576,13 @@ button.btnLink{ display:inline-flex; align-items:center; }
   border-radius: 12px;
   margin: 1.2em 0;
 }
+
+
+/* Dashboard emphasis when logged in */
+body.isAuthed .btnGhost[data-nav="dashboard"]{
+  border-color: rgba(255,255,255,.28);
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
+  border-color: rgba(255,255,255,.42);
+}
