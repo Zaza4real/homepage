@@ -165,11 +165,15 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       // Admin status
       try {
         const st = await apiFetch("/api/admin/status");
-        if (st?.isAdmin) setText("dashAdminTop", "Admin: YES");
-        else setText("dashAdminTop", "Admin: NO");
-      
-        if (!st?.isAdmin) hideAdminUI();
-} catch (e) {
+        if (st?.isAdmin) {
+          setText("dashAdminTop", "Admin: YES");
+          // Load blog admin tools
+          if (typeof loadAdminBlog === "function") loadAdminBlog();
+        } else {
+          setText("dashAdminTop", "Admin: NO");
+          hideAdminUI();
+        }
+      } catch (e) {
         setText("dashAdminTop", "Admin: ERROR");
         hideAdminUI();
         setDiag(e.message || String(e));
