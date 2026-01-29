@@ -50,11 +50,6 @@
   if (!isIndex && tabs.length) {
     tabs.forEach((btn) => {
       btn.addEventListener("click", () => {
-        const href = btn.getAttribute("data-href");
-        if (href) {
-          location.href = href;
-          return;
-        }
         const tab = btn.getAttribute("data-tab") || "home";
         location.href = `index.html?tab=${encodeURIComponent(tab)}`;
       });
