@@ -188,15 +188,13 @@ function showAuthModal(show) {
     const run = $("btnRun");
     const pay = $("btnPay");
 
-    if (pill) {
-      pill.classList.toggle("isLoading", !!isLoading);
-      pill.hidden = !!isLoading; // hide the "Generating" pill while generating
-    }
-if (progress) progress.hidden = !isLoading;
+    if (pill) pill.classList.toggle("isLoading", !!isLoading);
+    if (progress) progress.hidden = !isLoading;
 
     if (run) {
       run.disabled = !!isLoading;
       run.classList.toggle("isLoading", !!isLoading);
+      run.style.visibility = isLoading ? "hidden" : "";
     }
     if (pay) {
       pay.disabled = !!isLoading;
