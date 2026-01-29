@@ -14,7 +14,10 @@
   function setMsg(txt) { setText("dashMsg", txt || ""); }
 
   function fmtDate(iso) {
-    try { return new Date(iso).toLocaleString(); } catch { return iso || ""; }
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    return d.toLocaleString();
   }
 
   async function fetchJSONorText(url, opts) {
@@ -97,42 +100,25 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       body.innerHTML = '<tr><td colspan="5" class="mutedCell">No payments yet.</td></tr>';
       return;
     }
-
-    const pick = (obj, ...keys) => {
-      for (const k of keys) {
-        if (obj && obj[k] != null && obj[k] !== "") return obj[k];
-      }
-      return null;
-    };
-
     body.innerHTML = items.map((p) => {
-      // Support both snake_case and camelCase payloads
-      const created = pick(p, "createdAt", "created_at", "created");
-      const amountUsd = pick(p, "amountUsd", "amount_usd", "amount");
-      const credits = pick(p, "credits", "lypos");
-      const status = pick(p, "status", "payment_status") || "—";
-
-      // Prefer invoice/receipt URL in either format
-      const docUrl = pick(p, "invoiceUrl", "invoice_url", "receiptUrl", "receipt_url");
+      const docUrl = p.invoice_url || p.invoiceUrl || p.receipt_url || p.receiptUrl;
       let invoice = "—";
       if (docUrl) {
-        const urlStr = String(docUrl);
-        const isPdf = urlStr.includes(".pdf");
-        invoice = `<a href="${urlStr}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
+        const isPdf = String(docUrl).includes(".pdf");
+        // Note: download attribute may be ignored cross-origin, but it's harmless.
+        invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
       }
-
-      const amount = (amountUsd != null && amountUsd !== "") ? `$${Number(amountUsd || 0).toFixed(2)}` : "—";
-
+      const amount = (p.amount_usd != null) ? `$${Number(p.amount_usd || 0).toFixed(2)}` : "—";
+      const credits = (p.credits != null) ? p.credits : (p.lypos != null ? p.lypos : 0);
       return `<tr>
-        <td>${fmtDate(created)}</td>
+        <td>${fmtDate(p.created_at || p.createdAt)}</td>
         <td>${amount}</td>
-        <td>${credits != null ? credits : "—"}</td>
-        <td>${status}</td>
+        <td>${credits}</td>
+        <td>${p.status || "—"}</td>
         <td>${invoice}</td>
       </tr>`;
     }).join("");
   }
-
 
   function renderVideos(items) {
     const body = $("videosBody");
@@ -145,7 +131,7 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       const out = v.output_url ? `<a href="${v.output_url}" target="_blank" rel="noreferrer">Download</a>` : "—";
       const pred = v.prediction_id ? `<code>${v.prediction_id}</code>` : "—";
       return `<tr>
-        <td>${fmtDate(v.created_at)}</td>
+        <td>${fmtDate(v.created_at || v.createdAt)}</td>
         <td>${v.status || "—"}</td>
         <td>${pred}</td>
         <td>${out}</td>
@@ -222,7 +208,7 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       const data = await apiFetch("/api/admin/add-credits", { method: "POST", jsonBody: { email, amount, reason } });
       msg.textContent = `✅ ${data.user.email} now has ${data.user.balance} credits`;
       // refresh your own balance if you topped yourself up
-      load();
+      maybeConfirmStripeReturn().finally(load);
     } catch (e) {
       msg.textContent = "❌ " + (e.message || String(e));
     }
@@ -236,9 +222,6 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
 
     $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
 
-    (async () => {
-      await maybeConfirmStripeReturn();
-      await load();
-    })();
+    maybeConfirmStripeReturn().finally(load);
   });
 })();
