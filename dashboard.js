@@ -226,21 +226,7 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-  $("btnBlogSave")?.addEventListener("click", saveBlogPost);
-
-    $("btnLogoutDash")?.addEventListener("click", () => {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      window.location.href = "auth.html";
-    });
-
-    $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
-
-    load();
-  });
-})();
-
-// --- Admin Blog (only loaded for admins) ---
+  // --- Admin Blog (only loaded for admins) ---
 async function loadAdminBlog() {
   const body = $("blogBody");
   if (!body) return;
@@ -297,3 +283,19 @@ async function saveBlogPost() {
     if (msg) msg.textContent = "❌ " + (e.message || "Error");
   }
 }
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  $("btnBlogSave")?.addEventListener("click", saveBlogPost);
+
+    $("btnLogoutDash")?.addEventListener("click", () => {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      window.location.href = "auth.html";
+    });
+
+    $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
+
+    load();
+  });
+})();
+
