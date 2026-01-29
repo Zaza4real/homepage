@@ -10,13 +10,6 @@
 
   function setText(id, txt) { const el = $(id); if (el) el.textContent = txt; }
 
-
-function hideAdminUI() {
-  document.getElementById("adminCard")?.remove();
-  document.getElementById("dashAdminTop")?.remove();
-}
-
-
   function setDiag(txt) { setText("dashDiag", txt || ""); }
   function setMsg(txt) { setText("dashMsg", txt || ""); }
 
@@ -166,11 +159,8 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
         const st = await apiFetch("/api/admin/status");
         if (st?.isAdmin) setText("dashAdminTop", "Admin: YES");
         else setText("dashAdminTop", "Admin: NO");
-      
-        if (!st?.isAdmin) hideAdminUI();
-} catch (e) {
+      } catch (e) {
         setText("dashAdminTop", "Admin: ERROR");
-        hideAdminUI();
         setDiag(e.message || String(e));
       }
 

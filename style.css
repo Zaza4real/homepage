@@ -1468,14 +1468,4 @@ button.btnLink{ display:inline-flex; align-items:center; }
   pointer-events:none;
 }
 
-/* Keep choose + estimate as left column so output stays next to it */
-.uploadLeft{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.genMsg{
-  font-size:12px;
-  color: rgba(255,255,255,.70);
-  padding-left:2px;
-}
+.btnDownloadInline{ margin-left:auto; }
