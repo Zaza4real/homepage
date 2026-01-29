@@ -132,7 +132,76 @@
           </table>
         </div>
       </section>
-    </main>
+    
+    <section class="card adminPanel" id="blogAdminCard" style="margin-top:14px;">
+      <div class="cardHeader">
+        <h3 class="cardTitle" style="font-size:16px;">Admin • Blog</h3>
+        <p class="cardSub">Create and publish SEO posts (images/videos optional).</p>
+      </div>
+
+      <div class="grid2">
+        <label class="field">
+          <span class="fieldLabel">Title</span>
+          <input id="blogTitle" class="input" type="text" placeholder="Post title" />
+        </label>
+        <label class="field">
+          <span class="fieldLabel">Slug</span>
+          <input id="blogSlug" class="input" type="text" placeholder="my-post-title" />
+        </label>
+      </div>
+
+      <label class="field" style="margin-top:12px;">
+        <span class="fieldLabel">Excerpt</span>
+        <input id="blogExcerpt" class="input" type="text" placeholder="One-line summary" />
+      </label>
+
+      <div class="grid2" style="margin-top:12px;">
+        <label class="field">
+          <span class="fieldLabel">Cover image URL (optional)</span>
+          <input id="blogCover" class="input" type="text" placeholder="https://..." />
+        </label>
+        <label class="field">
+          <span class="fieldLabel">Video URL (optional)</span>
+          <input id="blogVideo" class="input" type="text" placeholder="https://..." />
+        </label>
+      </div>
+
+      <label class="field" style="margin-top:12px;">
+        <span class="fieldLabel">Content (HTML)</span>
+        <textarea id="blogContent" class="input" style="min-height:160px; resize:vertical;" placeholder="<p>Write your post…</p>"></textarea>
+      </label>
+
+      <div class="dashRow" style="margin-top:12px; align-items:center;">
+        <label style="display:flex; gap:10px; align-items:center; font-size:12px; opacity:.9;">
+          <input id="blogPublish" type="checkbox" />
+          Publish immediately
+        </label>
+        <div style="flex:1"></div>
+        <button class="btnPrimary" id="btnBlogSave" type="button">
+          <span class="btnLabel">Save</span><span class="btnGlow"></span>
+        </button>
+      </div>
+
+      <div class="hint" id="blogMsg" style="margin-top:10px;"></div>
+
+      <div class="tableWrap" style="margin-top:12px;">
+        <table class="dashTable">
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Slug</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="blogBody">
+            <tr><td colspan="4" class="mutedCell">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+</main>
   </div>
 
   <script src="dashboard.js" defer></script>

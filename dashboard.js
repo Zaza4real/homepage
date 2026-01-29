@@ -13,6 +13,7 @@
 
 function hideAdminUI() {
   document.getElementById("adminCard")?.remove();
+  document.getElementById("blogAdminCard")?.remove();
   document.getElementById("dashAdminTop")?.remove();
 }
 
@@ -222,6 +223,8 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+  $("btnBlogSave")?.addEventListener("click", saveBlogPost);
+
     $("btnLogoutDash")?.addEventListener("click", () => {
       localStorage.removeItem(AUTH_TOKEN_KEY);
       window.location.href = "auth.html";
@@ -232,3 +235,61 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     load();
   });
 })();
+
+// --- Admin Blog (only loaded for admins) ---
+async function loadAdminBlog() {
+  const body = $("blogBody");
+  if (!body) return;
+  try {
+    const data = await apiFetch("/api/admin/blog/posts");
+    const posts = data?.posts || [];
+    if (!posts.length) {
+      body.innerHTML = '<tr><td colspan="4" class="mutedCell">No posts yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = posts.map(p => {
+      const created = fmtDate(p.created_at);
+      return `<tr>
+        <td>${created}</td>
+        <td><code>${p.slug}</code></td>
+        <td>${p.status || "draft"}</td>
+        <td>
+          <button class="btnGhost" data-edit="${p.id}" style="padding:6px 10px;">Edit</button>
+          <button class="btnGhost" data-del="${p.id}" style="padding:6px 10px;">Delete</button>
+        </td>
+      </tr>`;
+    }).join("");
+
+    body.querySelectorAll("[data-del]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.getAttribute("data-del"));
+        if (!confirm("Delete this post?")) return;
+        await apiFetch(`/api/admin/blog/posts/${id}`, { method: "DELETE" });
+        loadAdminBlog();
+      });
+    });
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="4" class="mutedCell">Could not load posts</td></tr>`;
+  }
+}
+
+async function saveBlogPost() {
+  const msg = $("blogMsg");
+  const title = ($("blogTitle")?.value || "").trim();
+  const slug = ($("blogSlug")?.value || "").trim();
+  const excerpt = ($("blogExcerpt")?.value || "").trim();
+  const cover_url = ($("blogCover")?.value || "").trim();
+  const video_url = ($("blogVideo")?.value || "").trim();
+  const content_html = ($("blogContent")?.value || "").trim();
+  const status = $("blogPublish")?.checked ? "published" : "draft";
+
+  if (!title || !slug || !content_html) { if(msg) msg.textContent = "Title, slug, and content are required."; return; }
+  if (msg) msg.textContent = "Saving…";
+  try {
+    await apiFetch("/api/admin/blog/posts", { method: "POST", jsonBody: { title, slug, excerpt, cover_url, video_url, content_html, status } });
+    if (msg) msg.textContent = "✅ Saved";
+    loadAdminBlog();
+  } catch (e) {
+    if (msg) msg.textContent = "❌ " + (e.message || "Error");
+  }
+}
