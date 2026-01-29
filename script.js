@@ -410,7 +410,7 @@ function showAuthModal(show) {
     const panels = Array.from(document.querySelectorAll(".tabPanel"));
     const goHome = document.querySelector("[data-go='home']");
 
-    // Buttons that navigate to separate pages (Support / About)
+    // Buttons that navigate to separate pages (e.g., Support / About / Features)
     const linkBtns = Array.from(document.querySelectorAll('.tabBtn[data-href]'));
     linkBtns.forEach((b) => b.addEventListener('click', () => {
       const href = b.dataset.href;
