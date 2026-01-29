@@ -108,24 +108,16 @@ function showAuthModal(show) {
       setBalanceUI(b.balance);
       if (!silent) setStatus("Logged in.");
     } catch (e) {
-      // Only clear token on auth errors. Network/CORS issues should NOT log the user out.
-      const status = Number(e?.status || 0);
-      const msg = String(e?.message || "");
-      const looksAuth = status === 401 || status === 403 || /unauth|forbidden|token|jwt|not authorized/i.test(msg);
-
-      if (looksAuth) {
-        authToken = "";
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        currentUser = null;
-        setAuthUI();
-        setBalanceUI(null);
-        if (!silent) setStatus("Session expired. Please login again.");
-      } else {
-        // Keep session; show a useful message for debugging
-        if (!silent) setStatus(`Network error while refreshing session: ${msg || "Failed to fetch"}`);
-      }
+      // token expired/invalid
+      authToken = "";
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      currentUser = null;
+      setAuthUI();
+      setBalanceUI(null);
+      if (!silent) setStatus("Session expired. Please login again.");
     }
   }
+
   function setBalanceUI(balance) {
     const el = $("lyposBalance");
     if (!el) return;
@@ -324,28 +316,12 @@ function showAuthModal(show) {
     // If Stripe redirected back
     const params = new URLSearchParams(location.search);
     if (params.get("paid") === "1") {
-      (async () => {
-        const sessionId = params.get("session_id");
-        setStatus("Payment received. Finalizing…");
-
-        // If we have a session id, confirm it (helps when webhooks are delayed and to fetch receipt_url)
-        if (sessionId) {
-          try {
-            await apiFetch(`/api/stripe/confirm?session_id=${encodeURIComponent(sessionId)}`, { method: "GET" }, true);
-          } catch (e) {
-            // Don't log out on confirm errors; surface message
-            setStatus(`Payment confirm error: ${e?.message || e}`);
-          }
-        }
-
-        await refreshMeAndBalance(true);
-
-        // clean URL (no reload)
-        params.delete("paid");
-        params.delete("session_id");
-        const clean = `${location.pathname}${params.toString() ? "?" + params.toString() : ""}${location.hash}`;
-        history.replaceState({}, "", clean);
-      })();
+      setStatus("Payment received. Updating balance…");
+      refreshMeAndBalance(true);
+      // clean URL (no reload)
+      params.delete("paid");
+      const clean = `${location.pathname}${params.toString() ? "?" + params.toString() : ""}${location.hash}`;
+      history.replaceState({}, "", clean);
     }
 
     // Initial session restore
