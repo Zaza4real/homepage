@@ -24,7 +24,7 @@
     <nav class="tabs" role="tablist" aria-label="LYPO tabs">
       <button class="tabBtn isActive" role="tab" aria-selected="true" data-tab="home" type="button">Demo</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="features" type="button">Features</button>
-      <button class="tabBtn" onclick="location.href='support.html'">Support</button>
+      <button class="tabBtn" type="button" onclick="location.href='support.html'">Support</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="docs" type="button">Docs</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="about" type="button">About</button>
     </nav>
@@ -122,20 +122,23 @@
               <div class="hint" style="margin-bottom:10px;font-size:12px;opacity:.8;">If the popup buttons don’t respond, use the full page: <a href="auth.html" style="color:rgba(255,255,255,.9);text-decoration:underline;">Account page</a></div>
         <div class="actions">
                 <button class="btnPrimary" id="btnRun" type="button">
-      <span class="ctaIcon" aria-hidden="true">✨</span>
-      <span class="btnLabel btnLabelStack">
-        <strong>Upload &amp; translate</strong>
-        <em>Start dubbing now</em>
-      </span>
-      <span class="btnSpinner" aria-hidden="true"></span>
-      <span class="btnGlow"></span>
-    </button>
+                  <span class="btnLabel">Upload & translate</span>
+                  <span class="btnSpinner" aria-hidden="true"></span>
+                  <span class="btnGlow"></span>
+                </button>
 
                 <button class="btnGhost" id="btnLogin" hidden aria-hidden="true" type="button">
                   <span class="btnLabel">Login</span>
                   <span class="btnGlow"></span>
                 </button>
-<button class="btnGhost btnLink" id="btnDownload" type="button" hidden aria-disabled="true" tabindex="-1">
+
+                <button class="btnGhost" id="btnPay" type="button">
+                  <span class="btnLabel">Buy Credits</span>
+                  <span class="btnSpinner" aria-hidden="true" data-spinner="pay"></span>
+                  <span class="btnGlow"></span>
+                </button>
+
+                <button class="btnGhost btnLink" id="btnDownload" type="button" hidden aria-disabled="true" tabindex="-1">
                   <span class="btnLabel">Download</span>
                   <span class="btnGlow"></span>
                 </button>
@@ -165,7 +168,7 @@
 
                 <div class="buyActions">
                   <button class="btnPrimary" id="btnPayGo" type="button">
-                    <span class="btnLabel">Buy Credit</span>
+                    <span class="btnLabel">Continue to Stripe</span>
                     <span class="btnSpinner" aria-hidden="true" data-spinner="paygo"></span>
                     <span class="btnGlow"></span>
                   </button>

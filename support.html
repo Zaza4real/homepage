@@ -15,47 +15,64 @@
   </div>
 
   <header class="header">
-    <a class="logoWrap" href="index.html">
-      <div class="logo">LYPO</div>
+    <a class="logoWrap" href="index.html" aria-label="LYPO Home">
+      <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
     </a>
-    <div class="tabs">
-      <button class="tabBtn" onclick="location.href='index.html'">Home</button>
-      <button class="tabBtn isActive">Support</button>
-    </div>
+
+    <nav class="tabs" role="tablist" aria-label="LYPO tabs">
+      <button class="tabBtn" type="button" onclick="location.href='index.html'">Demo</button>
+      <button class="tabBtn" type="button" onclick="location.href='index.html?tab=features'">Features</button>
+      <button class="tabBtn isActive" type="button" aria-selected="true">Support</button>
+      <button class="tabBtn" type="button" onclick="location.href='index.html?tab=docs'">Docs</button>
+      <button class="tabBtn" type="button" onclick="location.href='index.html?tab=about'">About</button>
+    </nav>
+
     <div class="headerRight">
-      <a href="auth.html" class="btnPrimary headerAuthBtn"><span class="btnLabel">Login</span></a>
+      <button class="btnPrimary headerAuthBtn" id="headerAuth" type="button">
+        <span class="btnLabel" id="headerAuthLabel">Login</span>
+        <span class="btnGlow"></span>
+      </button>
     </div>
   </header>
 
   <main class="container">
     <section class="panel">
-      <h2>Support</h2>
-      <p class="muted">Need help? Send us a message and we’ll get back to you.</p>
+      <div class="panelTop">
+        <div>
+          <h2 style="margin:0;">Support</h2>
+          <p class="muted" style="margin:6px 0 0;">Send us a message and we’ll get back to you.</p>
+        </div>
+      </div>
 
-      <form class="form" id="supportForm">
-        <div class="field">
-          <span>Email</span>
-          <input type="email" required placeholder="you@example.com" />
+      <div class="card" style="margin-top:14px;">
+        <div class="grid2">
+          <label class="field">
+            <span class="fieldLabel">Email</span>
+            <input id="supportEmail" class="input" type="email" placeholder="you@email.com" autocomplete="email" />
+          </label>
+
+          <label class="field">
+            <span class="fieldLabel">Subject</span>
+            <input id="supportSubject" class="input" type="text" placeholder="Billing, upload issues, etc." />
+          </label>
         </div>
-        <div class="field">
-          <span>Message</span>
-          <input type="text" required placeholder="How can we help?" />
-        </div>
-        <div class="actions">
-          <button class="btnPrimary" type="submit">
-            <span class="btnLabel">Send message</span>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="fieldLabel">Message</span>
+          <input id="supportMessage" class="input" type="text" placeholder="Write your message…" />
+        </label>
+
+        <div class="actions" style="margin-top:14px;">
+          <button class="btnPrimary" id="btnSupportSend" type="button">
+            <span class="btnLabel" id="btnSupportLabel">Send message</span>
+            <span class="btnGlow"></span>
           </button>
+          <div class="hint" id="supportHint" style="margin-left:10px;"></div>
         </div>
-      </form>
+      </div>
     </section>
   </main>
 
-  <script>
-    document.getElementById("supportForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      alert("Support request sent. We'll be in touch shortly.");
-      e.target.reset();
-    });
-  </script>
+  <script src="support.js"></script>
 </body>
 </html>
