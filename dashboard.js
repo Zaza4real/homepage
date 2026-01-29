@@ -97,25 +97,42 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       body.innerHTML = '<tr><td colspan="5" class="mutedCell">No payments yet.</td></tr>';
       return;
     }
+
+    const pick = (obj, ...keys) => {
+      for (const k of keys) {
+        if (obj && obj[k] != null && obj[k] !== "") return obj[k];
+      }
+      return null;
+    };
+
     body.innerHTML = items.map((p) => {
-      const docUrl = p.invoice_url;
+      // Support both snake_case and camelCase payloads
+      const created = pick(p, "createdAt", "created_at", "created");
+      const amountUsd = pick(p, "amountUsd", "amount_usd", "amount");
+      const credits = pick(p, "credits", "lypos");
+      const status = pick(p, "status", "payment_status") || "—";
+
+      // Prefer invoice/receipt URL in either format
+      const docUrl = pick(p, "invoiceUrl", "invoice_url", "receiptUrl", "receipt_url");
       let invoice = "—";
       if (docUrl) {
-        const isPdf = String(docUrl).includes(".pdf");
-        // Note: download attribute may be ignored cross-origin, but it's harmless.
-        invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
+        const urlStr = String(docUrl);
+        const isPdf = urlStr.includes(".pdf");
+        invoice = `<a href="${urlStr}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
       }
-      const amount = (p.amount_usd != null) ? `$${Number(p.amount_usd || 0).toFixed(2)}` : "—";
-      const credits = (p.credits != null) ? p.credits : (p.lypos != null ? p.lypos : 0);
+
+      const amount = (amountUsd != null && amountUsd !== "") ? `$${Number(amountUsd || 0).toFixed(2)}` : "—";
+
       return `<tr>
-        <td>${fmtDate(p.created_at)}</td>
+        <td>${fmtDate(created)}</td>
         <td>${amount}</td>
-        <td>${credits}</td>
-        <td>${p.status || "—"}</td>
+        <td>${credits != null ? credits : "—"}</td>
+        <td>${status}</td>
         <td>${invoice}</td>
       </tr>`;
     }).join("");
   }
+
 
   function renderVideos(items) {
     const body = $("videosBody");
@@ -219,6 +236,9 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
 
     $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
 
-    load();
+    (async () => {
+      await maybeConfirmStripeReturn();
+      await load();
+    })();
   });
 })();
