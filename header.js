@@ -22,13 +22,12 @@
 
   if (authBtn) {
     const applyAuthState = () => {
+      const labelEl = authBtn.querySelector(".btnLabel");
       if (isAuthed()) {
-        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
-        authBtn.setAttribute("href", "#");
-        authBtn.classList.add("isActive", false);
+        if (labelEl) labelEl.textContent = "Logout";
+        authBtn.classList.remove("isActive");
       } else {
-        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
-        authBtn.setAttribute("href", "auth.html");
+        if (labelEl) labelEl.textContent = "Login";
         authBtn.classList.toggle("isActive", isAuth);
       }
     };
@@ -39,8 +38,10 @@
       if (isAuthed()) {
         e.preventDefault();
         localStorage.removeItem(AUTH_TOKEN_KEY);
-        // go home after logout
         location.href = "index.html";
+      } else {
+        // go to auth page
+        location.href = "auth.html";
       }
     });
   }

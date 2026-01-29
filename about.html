@@ -1,32 +1,28 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LYPO — About</title>
-  <meta name="description" content="The magic behind LYPO video dubbing and what’s coming next." />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>About • LYPO</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <div class="bg">
-    <div class="orb o1"></div>
-    <div class="orb o2"></div>
-    <div class="grid"></div>
-    <div class="noise"></div>
+    <div class="orb o1"></div><div class="orb o2"></div><div class="grid"></div><div class="noise"></div>
   </div>
 
-  <header class="header">
+  <div class="shell">
+    <header class="header">
     <a class="logoWrap" href="index.html" aria-label="LYPO Home">
       <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
     </a>
 
     <nav class="tabs" role="tablist" aria-label="LYPO tabs">
       <button class="tabBtn" role="tab" aria-selected="false" data-tab="home" type="button">Demo</button>
-      <button class="tabBtn" role="tab" aria-selected="false" data-href="features.html" type="button">Features</button>
+      <button class="tabBtn isActive" role="tab" aria-selected="true" data-href="features.html" type="button">Features</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="support.html" type="button">Support</button>
-      <button class="tabBtn" role="tab" aria-selected="false" data-href="feedback.html" type="button">Feedback</button>
-      <button class="tabBtn isActive" role="tab" aria-selected="true" data-href="about.html" type="button">About</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="blog.html" type="button">Blog</button>
+      <button class="tabBtn isActive" role="tab" aria-selected="false" data-href="about.html" class="tabBtn isActive" role="tab" aria-selected="true" type="button" aria-selected="true"About</button
     </nav>
 
     <div class="headerRight">
@@ -36,59 +32,22 @@
     </div>
   </header>
 
-  <main class="container">
-    <section class="panel">
-      <h2>Sounds like magic — because it kind of is.</h2>
-      <p class="muted" style="max-width: 820px;">
-        LYPO turns your video into a new language while keeping what makes it yours:
-        your voice, your timing, and the natural flow of the original.
-      </p>
-
-      <div class="grid2" style="margin-top: 16px;">
-        <div class="card" style="padding: 16px;">
-          <div class="cardHeader" style="margin-bottom: 8px;">
-            <h3 class="cardTitle" style="font-size: 16px;">Voice-preserving dubbing</h3>
-            <p class="cardSub">Your voice stays recognizable — only the language changes.</p>
-          </div>
-          <p class="muted" style="margin:0;">
-            We focus on making translations feel native, not robotic — so the result sounds like you, not a machine.
-          </p>
+    <main class="main">
+      <section class="card">
+        <div class="cardHeader">
+          <h1 class="cardTitle" style="font-size:20px;">About</h1>
+          <p class="cardSub">Short, clear info about LYPO.</p>
         </div>
 
-        <div class="card" style="padding: 16px;">
-          <div class="cardHeader" style="margin-bottom: 8px;">
-            <h3 class="cardTitle" style="font-size: 16px;">Lip-sync & timing</h3>
-            <p class="cardSub">Natural pacing that matches the video’s rhythm.</p>
-          </div>
-          <p class="muted" style="margin:0;">
-            Great dubbing is more than words — it’s cadence, pauses, and emotion that matches the scene.
-          </p>
+        <div class="postBody">
+          <p>LYPO helps you translate and dub videos fast, with natural-sounding results.</p>
+          <p>Use the Demo tab to try it, then manage your credits and downloads in the Dashboard.</p>
         </div>
-      </div>
+      </section>
+    </main>
+  </div>
 
-      <div class="card" style="padding: 16px; margin-top: 14px;">
-        <div class="cardHeader" style="margin-bottom: 8px;">
-          <h3 class="cardTitle" style="font-size: 16px;">What’s next</h3>
-          <p class="cardSub">We’re just getting started.</p>
-        </div>
-        <ul class="muted" style="margin:0; padding-left: 18px; line-height: 1.6;">
-          <li>More tools for video translation workflows — faster, simpler, and more powerful.</li>
-          <li>Better control for creators: tone, pacing, and language variants.</li>
-          <li>Expanded formats and integrations so you can publish everywhere with less effort.</li>
-        </ul>
-      </div>
-
-      <div class="actions" style="margin-top: 16px;">
-        <button class="btnPrimary" type="button" onclick="location.href='index.html'">
-          <span class="btnLabel">Try the demo</span><span class="btnGlow"></span>
-        </button>
-        <button class="btnGhost" type="button" onclick="location.href='support.html'">
-          <span class="btnLabel">Contact support</span><span class="btnGlow"></span>
-        </button>
-      </div>
-    </section>
-  </main>
-
+  <script src="script.js" defer></script>
   <script src="header.js" defer></script>
 </body>
 </html>
