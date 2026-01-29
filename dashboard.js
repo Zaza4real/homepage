@@ -254,8 +254,12 @@ async function loadAdminBlog() {
       btn.addEventListener("click", async () => {
         const id = Number(btn.getAttribute("data-del"));
         if (!confirm("Delete this post?")) return;
-        await apiFetch(`/api/admin/blog/posts/${id}`, { method: "DELETE" });
-        loadAdminBlog();
+        try {
+          await apiFetch(`/api/admin/blog/posts/${id}`, { method: "DELETE" });
+          loadAdminBlog();
+        } catch (e) {
+          alert("Could not delete: " + (e.message || e));
+        }
       });
     });
   } catch (e) {

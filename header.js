@@ -9,20 +9,25 @@
   const logoLink = document.querySelector(".logoWrap");
   const tabs = document.querySelectorAll(".tabBtn");
 
-  // UNIVERSAL TAB NAV
-  // data-href always navigates directly (works on every page including index)
+  // UNIVERSAL TAB NAV (single handler, prevents double-binding bugs)
   if (tabs && tabs.length) {
     tabs.forEach((btn) => {
-      const href = btn.getAttribute("data-href");
-      if (href) {
-        btn.addEventListener("click", (e) => {
-          e.preventDefault();
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const href = btn.getAttribute("data-href");
+        if (href) {
           location.href = href;
-        });
-      }
+          return;
+        }
+        const tab = btn.getAttribute("data-tab") || "home";
+        if (tab === "home") {
+          location.href = "index.html";
+        } else {
+          location.href = `index.html?tab=${encodeURIComponent(tab)}`;
+        }
+      });
     });
   }
-
 
   // Make logo always go to homepage
   if (logoLink) {
@@ -57,22 +62,6 @@
         // go home after logout
         location.href = "index.html";
       }
-    });
-  }
-
-  // On non-index pages, clicking tabs should bring you to the homepage and open that section
-  const isIndex = path.endsWith("index.html") || path === "/" || path === "";
-  if (!isIndex && tabs.length) {
-    tabs.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const href = btn.getAttribute("data-href");
-        if (href) {
-          location.href = href;
-          return;
-        }
-        const tab = btn.getAttribute("data-tab") || "home";
-        location.href = `index.html?tab=${encodeURIComponent(tab)}`;
-      });
     });
   }
 })();
