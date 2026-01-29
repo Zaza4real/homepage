@@ -135,6 +135,11 @@ function showAuthModal(show) {
     const st = $("statusText");
     if (st) st.textContent = text;
   }
+  function setAuthMsg(text) {
+    const el = $("authMsg");
+    if (el) el.textContent = text || "";
+  }
+
   function setPreviewTitle(text) {
     const p = $("previewText");
     if (p) p.textContent = text;
