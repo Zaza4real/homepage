@@ -1323,33 +1323,34 @@ button.btnLink{ display:inline-flex; align-items:center; }
 
 
 /* ======================================================
-   DARK LIQUID BUTTON FINAL (white text, darker body)
+   LIQUID BUTTON POLISH (subtle, modern, not white)
    ====================================================== */
 .btnPrimary,
 .btnGhost,
 .uploadBtn,
 .chipBtn {
-  color: #ffffff !important;
-  border: 1px solid rgba(255,255,255,0.18);
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.22);
   background:
     linear-gradient(
       135deg,
-      rgba(20,20,24,0.92),
-      rgba(36,36,44,0.85)
+      rgba(255,255,255,0.18),
+      rgba(255,255,255,0.05)
     );
   box-shadow:
-    0 10px 30px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255,255,255,0.12);
+    0 10px 32px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+  backdrop-filter: blur(6px);
 }
 
 .btnPrimary:hover,
 .btnGhost:hover,
 .uploadBtn:hover,
 .chipBtn:hover {
-  border-color: rgba(255,255,255,0.28);
+  border-color: rgba(255,255,255,0.45);
   box-shadow:
-    0 14px 40px rgba(0,0,0,0.65),
-    inset 0 1px 0 rgba(255,255,255,0.18);
+    0 12px 36px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.55);
 }
 
 .btnPrimary::after,
@@ -1363,10 +1364,10 @@ button.btnLink{ display:inline-flex; align-items:center; }
   background:
     radial-gradient(
       120% 120% at 30% 10%,
-      rgba(255,255,255,0.18),
-      transparent 65%
+      rgba(255,255,255,0.35),
+      transparent 60%
     );
-  opacity: 0.55;
+  opacity: 0.6;
   pointer-events: none;
 }
 
@@ -1374,16 +1375,20 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .btnGhost:hover::after,
 .uploadBtn:hover::after,
 .chipBtn:hover::after {
-  opacity: 0.75;
+  opacity: 0.9;
 }
 
-/* Upload & Translate stays primary */
+/* Upload & Translate emphasis */
 #btnRun {
+  border-color: rgba(255,255,255,0.35);
   background:
     linear-gradient(
       135deg,
-      rgba(24,24,30,0.95),
-      rgba(46,46,56,0.9)
+      rgba(255,255,255,0.28),
+      rgba(255,255,255,0.10)
     );
-  border-color: rgba(255,255,255,0.28);
+}
+
+#btnRun:hover {
+  border-color: rgba(255,255,255,0.55);
 }
