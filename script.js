@@ -108,9 +108,12 @@ function showAuthModal(show) {
       setBalanceUI(b.balance);
       if (!silent) setStatus("Logged in.");
     } catch (e) {
-      // Only log out on real auth failures. Network/CORS hiccups should not destroy the session.
-      const st = e && (e.status || e.statusCode);
-      if (st === 401 || st === 403) {
+      // Only clear the token for real auth failures.
+      const status = e?.status;
+      const msg = String(e?.message || e || "");
+      const looksAuth = status === 401 || status === 403 || /unauth|token|expired|forbidden/i.test(msg);
+
+      if (looksAuth) {
         authToken = "";
         localStorage.removeItem(AUTH_TOKEN_KEY);
         currentUser = null;
@@ -118,7 +121,8 @@ function showAuthModal(show) {
         setBalanceUI(null);
         if (!silent) setStatus("Session expired. Please login again.");
       } else {
-        if (!silent) setStatus(e?.message ? `Network error: ${e.message}` : "Network error.");
+        // Network/CORS/temporary backend errors: keep the session.
+        if (!silent) setStatus(`Connection error. Please retry. (${msg || "Failed to fetch"})`);
       }
     }
   }
