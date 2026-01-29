@@ -14,7 +14,10 @@
   function setMsg(txt) { setText("dashMsg", txt || ""); }
 
   function fmtDate(iso) {
-    try { return new Date(iso).toLocaleString(); } catch { return iso || ""; }
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleString();
   }
 
   async function fetchJSONorText(url, opts) {
@@ -90,34 +93,51 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     return out.body;
   }
 
-  function renderPayments(items) {
-    const body = $("paymentsBody");
-    if (!body) return;
-    if (!items?.length) {
-      body.innerHTML = '<tr><td colspan="5" class="mutedCell">No payments yet.</td></tr>';
-      return;
-    }
-    body.innerHTML = items.map((p) => {
-      const docUrl = p.invoice_url;
-      let invoice = "—";
-      if (docUrl) {
-        const isPdf = String(docUrl).includes(".pdf");
-        // Note: download attribute may be ignored cross-origin, but it's harmless.
-        invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
-      }
-      const amount = (p.amount_usd != null) ? `$${Number(p.amount_usd || 0).toFixed(2)}` : "—";
-      const credits = (p.credits != null) ? p.credits : (p.lypos != null ? p.lypos : 0);
-      return `<tr>
-        <td>${fmtDate(p.created_at)}</td>
-        <td>${amount}</td>
-        <td>${credits}</td>
-        <td>${p.status || "—"}</td>
-        <td>${invoice}</td>
-      </tr>`;
-    }).join("");
+  
+function renderPayments(items) {
+  const body = $("paymentsBody");
+  if (!body) return;
+  if (!items?.length) {
+    body.innerHTML = '<tr><td colspan="5" class="mutedCell">No payments yet.</td></tr>';
+    return;
   }
 
-  function renderVideos(items) {
+  const pick = (o, ...keys) => {
+    for (const k of keys) {
+      if (o && o[k] != null && o[k] !== "") return o[k];
+    }
+    return null;
+  };
+
+  const isProbablyUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
+
+  body.innerHTML = items.map((p) => {
+    const created = pick(p, "createdAt", "created_at");
+    const amountRaw = pick(p, "amountUsd", "amount_usd");
+    const credits = pick(p, "credits", "lypos", "lypo", "LYPOS") ?? 0;
+    const status = pick(p, "status") || "—";
+
+    // Stripe links can be invoice PDFs, hosted invoice pages, or charge receipt URLs.
+    const docUrl = pick(p, "invoiceUrl", "invoice_url", "receiptUrl", "receipt_url", "invoice_pdf", "hosted_invoice_url");
+    let invoice = "—";
+    if (isProbablyUrl(docUrl)) {
+      const isPdf = String(docUrl).toLowerCase().includes(".pdf");
+      invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer">${isPdf ? "Download" : "Open"}</a>`;
+    }
+
+    const amount = (amountRaw != null) ? `$${Number(amountRaw || 0).toFixed(2)}` : "—";
+
+    return `<tr>
+      <td>${fmtDate(created)}</td>
+      <td>${amount}</td>
+      <td>${credits}</td>
+      <td>${status}</td>
+      <td>${invoice}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderVideos(items) {
     const body = $("videosBody");
     if (!body) return;
     if (!items?.length) {
@@ -211,13 +231,16 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
     $("btnLogoutDash")?.addEventListener("click", () => {
       localStorage.removeItem(AUTH_TOKEN_KEY);
       window.location.href = "auth.html";
     });
 
     $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
+
+    // If Stripe just redirected back, confirm first so receipts/credits can be recorded.
+    try { await maybeConfirmStripeReturn(); } catch {}
 
     load();
   });
