@@ -1,14 +1,3 @@
-
-// --- UI-only safety tweaks (non-destructive)
-function hideBottomGeneratingUI() {
-  document.getElementById("progressWrap")?.setAttribute("hidden", "true");
-  document.getElementById("btnRun")?.classList.add("hiddenDuringGen");
-}
-function showBottomGeneratingUI() {
-  document.getElementById("progressWrap")?.removeAttribute("hidden");
-  document.getElementById("btnRun")?.classList.remove("hiddenDuringGen");
-}
-
 // GLOBAL DOM helper — must be defined before any usage
 const $ = (id) => document.getElementById(id);
 
@@ -633,7 +622,7 @@ function showAuthModal(show) {
     resetDownload();
     clearOutputVideo();
     showSkeleton(true);
-    setPreviewTitle("Generating…"); hideBottomGeneratingUI();
+    setPreviewTitle("Generating…");
     startGeneratingMessages();
 
     try {
@@ -671,7 +660,7 @@ function showAuthModal(show) {
       showOutputVideo(final.outputUrl);
       enableDownload(final.outputUrl);
 
-      setPreviewTitle("Output ready"); showBottomGeneratingUI(); enableDownload(final.outputUrl);
+      setPreviewTitle("Output ready");
       setPreviewHint("Preview is playable. Click Download to save the MP4.");
     } catch (e) {
       setLoading(false, "Error");
@@ -894,54 +883,3 @@ function showAuthModal(show) {
 
   $("btnRun")?.addEventListener("click", runUploadDub);
 })();
-
-
-// Admin tab visibility (safe)
-setTimeout(() => {
-  const adminTab = document.querySelector('[data-tab="admin"], .adminTab');
-  if (!adminTab) return;
-  if (!window.currentUser || window.currentUser.is_admin !== true) {
-    adminTab.remove();
-  }
-}, 0);
-
-
-// Enforce admin-only UI (tabs + panels)
-function enforceAdminUI() {
-  const isAdmin = window.currentUser && window.currentUser.is_admin === true;
-  document.querySelectorAll('[data-admin-only], .adminOnly, .adminPanel').forEach(el => {
-    if (!isAdmin) el.remove();
-  });
-}
-
-// run after auth + DOM ready
-setTimeout(enforceAdminUI, 0);
-
-
-// === Strict admin UI enforcement ===
-function enforceAdminUIStrict() {
-  const isAdmin = window.currentUser && window.currentUser.is_admin === true;
-
-  // Admin tab
-  document.querySelectorAll('[data-tab="admin"]').forEach(el => {
-    if (!isAdmin) el.remove();
-  });
-
-  // Admin panels (explicit)
-  document.querySelectorAll('#adminPanel, #adminCreditsPanel, .adminAddCredits, .adminPanel').forEach(el => {
-    if (!isAdmin) el.remove();
-  });
-
-  // Admin badge
-  const header = document.querySelector('.headerRight');
-  if (isAdmin && header && !document.getElementById('adminBadge')) {
-    const chip = document.createElement('span');
-    chip.id = 'adminBadge';
-    chip.textContent = 'Admin';
-    chip.style.cssText = 'margin-left:8px;padding:4px 8px;border-radius:999px;background:#6cf;color:#000;font-size:11px;font-weight:600;';
-    header.prepend(chip);
-  }
-}
-
-// run after auth settles
-setTimeout(enforceAdminUIStrict, 0);
