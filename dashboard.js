@@ -1,3 +1,5 @@
+let editingBlogId = null;
+
 // Account dashboard + admin
 (() => {
   const AUTH_TOKEN_KEY = "lypo_token_v1";
