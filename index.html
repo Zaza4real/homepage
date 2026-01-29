@@ -53,7 +53,6 @@
           <div class="demoTop">
             <div class="demoTitle">LYPO Video Translator</div>
             <div class="chips">
-              <span class="chip">Tip: 30 seconds of video costs 300 credits.</span>
               <span class="chip" id="lyposBalance">Balance: — Credits</span>
               <span class="chip" id="chipBackend" style="display:none;">Backend: not connected</span></div>
           </div>
@@ -97,10 +96,15 @@
                       <span class="uploadText">
                         <strong>Choose a video</strong>
                         <em id="videoName">or drop it here</em>
+                        <em id="costEstimate" class="costEstimate"></em>
                       </span>
                       <span class="uploadFx"></span>
                     </button>
-                    <div class="uploadEstimate" id="uploadEstimate"></div>
+
+                    <!-- Loading slider (moved under Choose a video) -->
+                    <div class="progressWrap" id="progressWrap" hidden>
+                      <div class="progressBar" aria-hidden="true"></div>
+                    </div>
 
                     <div class="previewBox" id="previewBox" aria-label="Output window">
                       <div class="previewInner">
@@ -179,12 +183,7 @@
                   <span class="ping" id="statusDot" aria-hidden="true"></span>
                   <span id="statusText">Ready.</span>
                 </div>
-                <div class="hint">
-                  <span id="costEstimate" class="costEstimate"></span>
-</div>
-                <div class="progressWrap" id="progressWrap" hidden>
-                  <div class="progressBar" aria-hidden="true"></div>
-                </div>
+                <div class="hint"></div>
               </div>
             </div>
           </div>

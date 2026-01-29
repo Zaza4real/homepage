@@ -135,11 +135,6 @@ function showAuthModal(show) {
     const st = $("statusText");
     if (st) st.textContent = text;
   }
-  function setAuthMsg(text) {
-    const el = $("authMsg");
-    if (el) el.textContent = text || "";
-  }
-
   function setPreviewTitle(text) {
     const p = $("previewText");
     if (p) p.textContent = text;
@@ -188,18 +183,21 @@ function showAuthModal(show) {
   }
 
   function setLoading(isLoading, text) {
-    const pill = $("statusPill");
+    
+  setGenMsg(!!isLoading);
+const pill = $("statusPill");
     const progress = $("progressWrap");
     const run = $("btnRun");
     const pay = $("btnPay");
 
     if (pill) pill.classList.toggle("isLoading", !!isLoading);
-    if (progress) progress.hidden = true;
+    if (progress) progress.hidden = !isLoading;
 
     if (run) {
       run.disabled = !!isLoading;
-      
-      run.style.visibility = isLoading ? "hidden" : "";
+      run.classList.toggle("isLoading", !!isLoading);
+      // Keep the button visible while generating (disable + spinner via CSS)
+      run.style.visibility = "";
     }
     if (pay) {
       pay.disabled = !!isLoading;
@@ -558,7 +556,7 @@ function showAuthModal(show) {
       setPreviewTitle("No output yet");
       setPreviewHint("Generated video will appear here");
 
-      const costEl = $("uploadEstimate");
+      const costEl = $("costEstimate");
       const pay = $("btnPay");
 
       if (!file) {
@@ -887,3 +885,10 @@ function showAuthModal(show) {
 
   $("btnRun")?.addEventListener("click", runUploadDub);
 })();
+
+
+function setGenMsg(isGenerating){
+  const el = document.getElementById("genMsg");
+  if (!el) return;
+  el.hidden = !isGenerating;
+}
