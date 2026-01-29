@@ -183,9 +183,7 @@ function showAuthModal(show) {
   }
 
   function setLoading(isLoading, text) {
-    
-  setGenMsg(!!isLoading);
-const pill = $("statusPill");
+    const pill = $("statusPill");
     const progress = $("progressWrap");
     const run = $("btnRun");
     const pay = $("btnPay");
@@ -196,8 +194,7 @@ const pill = $("statusPill");
     if (run) {
       run.disabled = !!isLoading;
       run.classList.toggle("isLoading", !!isLoading);
-      // Keep the button visible while generating (disable + spinner via CSS)
-      run.style.visibility = "";
+      run.style.visibility = isLoading ? "hidden" : "";
     }
     if (pay) {
       pay.disabled = !!isLoading;
@@ -236,6 +233,13 @@ const pill = $("statusPill");
   }
 
   function attachAuth() {
+
+    // Prevent modal clicks from closing the dialog
+    const modalCard = document.querySelector(".modalCard");
+    modalCard?.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
     const btnLogin = $("btnLogin");
     const headerBtn = $("headerAuth");
     const closeEls = document.querySelectorAll('[data-close="1"]');
@@ -885,10 +889,3 @@ const pill = $("statusPill");
 
   $("btnRun")?.addEventListener("click", runUploadDub);
 })();
-
-
-function setGenMsg(isGenerating){
-  const el = document.getElementById("genMsg");
-  if (!el) return;
-  el.hidden = !isGenerating;
-}
