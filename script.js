@@ -1,3 +1,14 @@
+
+// --- UI-only safety tweaks (non-destructive)
+function hideBottomGeneratingUI() {
+  document.getElementById("progressWrap")?.setAttribute("hidden", "true");
+  document.getElementById("btnRun")?.classList.add("hiddenDuringGen");
+}
+function showBottomGeneratingUI() {
+  document.getElementById("progressWrap")?.removeAttribute("hidden");
+  document.getElementById("btnRun")?.classList.remove("hiddenDuringGen");
+}
+
 // GLOBAL DOM helper — must be defined before any usage
 const $ = (id) => document.getElementById(id);
 
@@ -183,18 +194,20 @@ function showAuthModal(show) {
   }
 
   function setLoading(isLoading, text) {
-  const pill = $("statusPill");
-  const progress = $("progressWrap");
-  const run = $("btnRun");
+    const pill = $("statusPill");
+    const progress = $("progressWrap");
+    const run = $("btnRun");
+    const pay = $("btnPay");
 
-  if (pill) pill.classList.toggle("isLoading", !!isLoading);
-  if (progress) progress.hidden = !!isLoading;
-  if (run) {
-    run.disabled = !!isLoading;
-    run.hidden = !!isLoading;
-  }
-  if (typeof text === "string") setStatus(text);
-}
+    if (pill) pill.classList.toggle("isLoading", !!isLoading);
+    if (progress) progress.hidden = !isLoading;
+
+    if (run) {
+      run.disabled = !!isLoading;
+      run.classList.toggle("isLoading", !!isLoading);
+      // Keep the button visible while generating (disable + spinner via CSS)
+      run.style.visibility = "";
+    }
     if (pay) {
       pay.disabled = !!isLoading;
       pay.classList.toggle("isLoading", !!isLoading);
@@ -620,7 +633,7 @@ function showAuthModal(show) {
     resetDownload();
     clearOutputVideo();
     showSkeleton(true);
-    setPreviewTitle("Generating…");
+    setPreviewTitle("Generating…"); hideBottomGeneratingUI();
     startGeneratingMessages();
 
     try {
@@ -658,7 +671,7 @@ function showAuthModal(show) {
       showOutputVideo(final.outputUrl);
       enableDownload(final.outputUrl);
 
-      setPreviewTitle("Output ready"); enableDownload(final.outputUrl);
+      setPreviewTitle("Output ready"); showBottomGeneratingUI(); enableDownload(final.outputUrl);
       setPreviewHint("Preview is playable. Click Download to save the MP4.");
     } catch (e) {
       setLoading(false, "Error");
@@ -883,11 +896,11 @@ function showAuthModal(show) {
 })();
 
 
-(function enforceAdminTab(){
+// Admin tab visibility (safe)
+setTimeout(() => {
   const adminTab = document.querySelector('[data-tab="admin"], .adminTab');
   if (!adminTab) return;
-  if (!window.currentUser || !window.currentUser.is_admin) {
+  if (!window.currentUser || window.currentUser.is_admin !== true) {
     adminTab.remove();
   }
-})();
-
+}, 0);
