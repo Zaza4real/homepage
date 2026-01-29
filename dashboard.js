@@ -262,6 +262,37 @@ async function loadAdminBlog() {
         }
       });
     });
+
+    body.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.getAttribute("data-edit"));
+        const msg = $("blogMsg");
+        if (msg) msg.textContent = "Loading post…";
+        try {
+          const data = await apiFetch(`/api/admin/blog/posts/${id}`);
+          const p = data.post;
+          if (!p) throw new Error("Post not found");
+
+          editingBlogId = id;
+          if ($("blogTitle")) $("blogTitle").value = p.title || "";
+          if ($("blogSlug")) $("blogSlug").value = p.slug || "";
+          if ($("blogExcerpt")) $("blogExcerpt").value = p.excerpt || "";
+          if ($("blogCover")) $("blogCover").value = p.cover_url || "";
+          if ($("blogVideo")) $("blogVideo").value = p.video_url || "";
+          if ($("blogContent")) $("blogContent").value = p.content_html || "";
+          if ($("blogPublish")) $("blogPublish").checked = (p.status === "published");
+
+          const btnSave = $("btnBlogSave");
+          if (btnSave) btnSave.querySelector(".btnLabel") ? (btnSave.querySelector(".btnLabel").textContent = "Update Post") : (btnSave.textContent = "Update Post");
+          if (msg) msg.textContent = `Editing: ${p.slug}`;
+          // Scroll to editor
+          document.querySelector("#blogEditor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (e) {
+          if (msg) msg.textContent = "❌ " + (e.message || "Error");
+        }
+      });
+    });
+
   } catch (e) {
     body.innerHTML = `<tr><td colspan="4" class="mutedCell">Could not load posts</td></tr>`;
   }
@@ -280,8 +311,15 @@ async function saveBlogPost() {
   if (!title || !slug || !content_html) { if(msg) msg.textContent = "Title, slug, and content are required."; return; }
   if (msg) msg.textContent = "Saving…";
   try {
-    await apiFetch("/api/admin/blog/posts", { method: "POST", jsonBody: { title, slug, excerpt, cover_url, video_url, content_html, status } });
+    if (editingBlogId) {
+      await apiFetch(`/api/admin/blog/posts/${editingBlogId}`, { method: "PUT", jsonBody: { title, slug, excerpt, cover_url, video_url, content_html, status } });
+    } else {
+      await apiFetch("/api/admin/blog/posts", { method: "POST", jsonBody: { title, slug, excerpt, cover_url, video_url, content_html, status } });
+    }
     if (msg) msg.textContent = "✅ Saved";
+    editingBlogId = null;
+    const btnSave = $("btnBlogSave");
+    if (btnSave) btnSave.querySelector(".btnLabel") ? (btnSave.querySelector(".btnLabel").textContent = "Save Post") : (btnSave.textContent = "Save Post");
     loadAdminBlog();
   } catch (e) {
     if (msg) msg.textContent = "❌ " + (e.message || "Error");
