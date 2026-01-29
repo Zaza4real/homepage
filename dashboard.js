@@ -13,9 +13,9 @@
   function setDiag(txt) { setText("dashDiag", txt || ""); }
   function setMsg(txt) { setText("dashMsg", txt || ""); }
 
-  function fmtDate(val) {
-    if (!val) return "—";
-    const d = new Date(val);
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "—";
     return d.toLocaleString();
   }
@@ -93,45 +93,155 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     return out.body;
   }
 
-  function renderPayments(items) {
-    const body = $("paymentsBody");
+  
+function renderPayments(items) {
+  const body = $("paymentsBody");
+  if (!body) return;
+  if (!items?.length) {
+    body.innerHTML = '<tr><td colspan="5" class="mutedCell">No payments yet.</td></tr>';
+    return;
+  }
+
+  const pick = (o, ...keys) => {
+    for (const k of keys) {
+      if (o && o[k] != null && o[k] !== "") return o[k];
+    }
+    return null;
+  };
+
+  const isProbablyUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
+
+  body.innerHTML = items.map((p) => {
+    const created = pick(p, "createdAt", "created_at");
+    const amountRaw = pick(p, "amountUsd", "amount_usd");
+    const credits = pick(p, "credits", "lypos", "lypo", "LYPOS") ?? 0;
+    const status = pick(p, "status") || "—";
+
+    // Stripe links can be invoice PDFs, hosted invoice pages, or charge receipt URLs.
+    const docUrl = pick(p, "invoiceUrl", "invoice_url", "receiptUrl", "receipt_url", "invoice_pdf", "hosted_invoice_url");
+    let invoice = "—";
+    if (isProbablyUrl(docUrl)) {
+      const isPdf = String(docUrl).toLowerCase().includes(".pdf");
+      invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer">${isPdf ? "Download" : "Open"}</a>`;
+    }
+
+    const amount = (amountRaw != null) ? `$${Number(amountRaw || 0).toFixed(2)}` : "—";
+
+    return `<tr>
+      <td>${fmtDate(created)}</td>
+      <td>${amount}</td>
+      <td>${credits}</td>
+      <td>${status}</td>
+      <td>${invoice}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderVideos(items) {
+    const body = $("videosBody");
     if (!body) return;
     if (!items?.length) {
-      body.innerHTML = '<tr><td colspan="5" class="mutedCell">No payments yet.</td></tr>';
+      body.innerHTML = '<tr><td colspan="4" class="mutedCell">No videos yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = items.map((v) => {
+      const out = v.output_url ? `<a href="${v.output_url}" target="_blank" rel="noreferrer">Download</a>` : "—";
+      const pred = v.prediction_id ? `<code>${v.prediction_id}</code>` : "—";
+      return `<tr>
+        <td>${fmtDate(v.created_at)}</td>
+        <td>${v.status || "—"}</td>
+        <td>${pred}</td>
+        <td>${out}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  async function load() {
+    if (!token) {
+      setText("dashAdminTop", "Admin: NO TOKEN");
+      setDiag("You are not logged in. Go to Login and then return to Dashboard.");
       return;
     }
 
-    const pick = (o, ...keys) => {
-      for (const k of keys) {
-        if (o && o[k] != null && o[k] !== "") return o[k];
-      }
-      return null;
-    };
+    try {
+      const me = await apiFetch("/api/auth/me");
+      const email = me?.user?.email || "—";
+      setText("dashEmailTop", `Email: ${email}`);
+      setText("dashEmailAccount", `Email: ${email}`);
 
-    const isProbablyUrl = (s) => typeof s === "string" && /^https?:\/\//i.test(s);
+      const credits = await apiFetch("/api/credits");
+      const bal = credits?.balance ?? "—";
+      setText("dashBalanceTop", `Balance: ${bal} credits`);
+      setText("dashBalanceAccount", `Balance: ${bal} credits`);
 
-    body.innerHTML = items.map((p) => {
-      const created = pick(p, "createdAt", "created_at");
-      const amountRaw = pick(p, "amountUsd", "amount_usd");
-      const credits = pick(p, "credits", "lypos", "lypo", "LYPOS") ?? 0;
-      const status = pick(p, "status") || "—";
-
-      // Stripe links can be invoice PDFs, hosted invoice pages, or charge receipt URLs.
-      const docUrl = pick(p, "invoiceUrl", "invoice_url", "receiptUrl", "receipt_url", "invoice_pdf", "hosted_invoice_url");
-      let invoice = "—";
-      if (isProbablyUrl(docUrl)) {
-        const isPdf = String(docUrl).toLowerCase().includes(".pdf");
-        invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer">${isPdf ? "Download" : "Open"}</a>`;
+      // Admin status
+      try {
+        const st = await apiFetch("/api/admin/status");
+        if (st?.isAdmin) setText("dashAdminTop", "Admin: YES");
+        else setText("dashAdminTop", "Admin: NO");
+      } catch (e) {
+        setText("dashAdminTop", "Admin: ERROR");
+        setDiag(e.message || String(e));
       }
 
-      const amount = (amountRaw != null) ? `$${Number(amountRaw || 0).toFixed(2)}` : "—";
+      // Payments/videos (ignore if backend doesn't have these yet)
+      try {
+        const payments = await apiFetch("/api/account/payments");
+        renderPayments(payments?.payments || []);
+      } catch {
+        // keep table but don't break whole dashboard
+      }
 
-      return `<tr>
-        <td>${fmtDate(created)}</td>
-        <td>${amount}</td>
-        <td>${credits}</td>
-        <td>${status}</td>
-        <td>${invoice}</td>
-      </tr>`;
-    }).join("");
-  })();
+      try {
+        const vids = await apiFetch("/api/account/videos");
+        renderVideos(vids?.videos || []);
+      } catch {
+        // keep table but don't break whole dashboard
+      }
+
+      setMsg("");
+    } catch (e) {
+      setMsg(e.message || String(e));
+      if (!token) window.location.href = "auth.html";
+    }
+  }
+
+  async function adminAddCredits() {
+    const email = ($("adminEmail")?.value || "").trim();
+    const amount = Number($("adminAmount")?.value || 0);
+    const reason = ($("adminReason")?.value || "").trim();
+    const msg = $("adminMsg");
+
+    if (!msg) return;
+
+    if (!email || !Number.isFinite(amount) || amount === 0) {
+      msg.textContent = "Enter user email and a non-zero credit amount.";
+      return;
+    }
+
+    msg.textContent = "Working…";
+
+    try {
+      const data = await apiFetch("/api/admin/add-credits", { method: "POST", jsonBody: { email, amount, reason } });
+      msg.textContent = `✅ ${data.user.email} now has ${data.user.balance} credits`;
+      // refresh your own balance if you topped yourself up
+      load();
+    } catch (e) {
+      msg.textContent = "❌ " + (e.message || String(e));
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    $("btnLogoutDash")?.addEventListener("click", () => {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      window.location.href = "auth.html";
+    });
+
+    $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
+
+    // If Stripe just redirected back, confirm first so receipts/credits can be recorded.
+    try { await maybeConfirmStripeReturn(); } catch {}
+
+    load();
+  });
+})();

@@ -108,13 +108,18 @@ function showAuthModal(show) {
       setBalanceUI(b.balance);
       if (!silent) setStatus("Logged in.");
     } catch (e) {
-      // token expired/invalid
-      authToken = "";
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      currentUser = null;
-      setAuthUI();
-      setBalanceUI(null);
-      if (!silent) setStatus("Session expired. Please login again.");
+      // Only log out on real auth failures. Network/CORS hiccups should not destroy the session.
+      const st = e && (e.status || e.statusCode);
+      if (st === 401 || st === 403) {
+        authToken = "";
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        currentUser = null;
+        setAuthUI();
+        setBalanceUI(null);
+        if (!silent) setStatus("Session expired. Please login again.");
+      } else {
+        if (!silent) setStatus(e?.message ? `Network error: ${e.message}` : "Network error.");
+      }
     }
   }
 
