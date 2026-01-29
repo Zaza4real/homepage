@@ -16,7 +16,7 @@
   function fmtDate(iso) {
     if (!iso) return "—";
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return String(iso);
+    if (!Number.isFinite(d.getTime())) return "—";
     return d.toLocaleString();
   }
 
@@ -100,21 +100,38 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       body.innerHTML = '<tr><td colspan="5" class="mutedCell">No payments yet.</td></tr>';
       return;
     }
+
+    const pick = (obj, keys) => {
+      for (const k of keys) {
+        if (obj && obj[k] != null && obj[k] !== "") return obj[k];
+      }
+      return null;
+    };
+
     body.innerHTML = items.map((p) => {
-      const docUrl = p.invoice_url || p.invoiceUrl || p.receipt_url || p.receiptUrl;
+      const created = pick(p, ["createdAt", "created_at", "created", "created_date"]);
+      const amountRaw = pick(p, ["amountUsd", "amount_usd", "amount", "usd"]);
+      const credits = pick(p, ["credits", "lypos", "lypo", "credit_amount"]) ?? 0;
+      const status = pick(p, ["status", "payment_status"]) || "—";
+
+      // In Stripe test-mode with Checkout `mode: payment`, invoice PDFs often do NOT exist.
+      // Use whichever URL exists: hosted invoice, invoice PDF, or charge receipt_url.
+      const docUrl = pick(p, ["invoiceUrl", "invoice_url", "receiptUrl", "receipt_url", "hosted_invoice_url", "invoice_pdf"]);
+
       let invoice = "—";
       if (docUrl) {
         const isPdf = String(docUrl).includes(".pdf");
-        // Note: download attribute may be ignored cross-origin, but it's harmless.
-        invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>${isPdf ? "Download" : "Open"}</a>`;
+        invoice = `<a href="${docUrl}" target="_blank" rel="noreferrer"${isPdf ? " download" : ""}>Download</a>`;
       }
-      const amount = (p.amount_usd != null) ? `$${Number(p.amount_usd || 0).toFixed(2)}` : "—";
-      const credits = (p.credits != null) ? p.credits : (p.lypos != null ? p.lypos : 0);
+
+      const amount = (amountRaw != null && amountRaw !== "") ? `$${Number(amountRaw || 0).toFixed(2)}` : "—";
+      const dateCell = created ? fmtDate(created) : "—";
+
       return `<tr>
-        <td>${fmtDate(p.created_at || p.createdAt)}</td>
+        <td>${dateCell}</td>
         <td>${amount}</td>
         <td>${credits}</td>
-        <td>${p.status || "—"}</td>
+        <td>${status}</td>
         <td>${invoice}</td>
       </tr>`;
     }).join("");
@@ -131,7 +148,7 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       const out = v.output_url ? `<a href="${v.output_url}" target="_blank" rel="noreferrer">Download</a>` : "—";
       const pred = v.prediction_id ? `<code>${v.prediction_id}</code>` : "—";
       return `<tr>
-        <td>${fmtDate(v.created_at || v.createdAt)}</td>
+        <td>${fmtDate(v.created_at)}</td>
         <td>${v.status || "—"}</td>
         <td>${pred}</td>
         <td>${out}</td>
@@ -208,7 +225,7 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       const data = await apiFetch("/api/admin/add-credits", { method: "POST", jsonBody: { email, amount, reason } });
       msg.textContent = `✅ ${data.user.email} now has ${data.user.balance} credits`;
       // refresh your own balance if you topped yourself up
-      maybeConfirmStripeReturn().finally(load);
+      (async () => { await maybeConfirmStripeReturn(); await load(); })();
     } catch (e) {
       msg.textContent = "❌ " + (e.message || String(e));
     }
@@ -222,6 +239,6 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
 
     $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
 
-    maybeConfirmStripeReturn().finally(load);
+    (async () => { await maybeConfirmStripeReturn(); await load(); })();
   });
 })();
