@@ -29,6 +29,7 @@
   // 1) Try /api/... as expected
   // 2) If backend is deployed without the /api prefix, retry without it
   
+  let __stripeConfirmRan = false;
   async function maybeConfirmStripeReturn() {
     try {
       const qs = new URLSearchParams(window.location.search || "");
@@ -143,6 +144,9 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       return;
     }
 
+    // If we just returned from Stripe Checkout, confirm the session to store the receipt URL.
+    try { await maybeConfirmStripeReturn(); } catch (e) { /* non-fatal */ }
+
     try {
       const me = await apiFetch("/api/auth/me");
       const email = me?.user?.email || "—";
@@ -164,19 +168,23 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
         setDiag(e.message || String(e));
       }
 
-      // Payments/videos (ignore if backend doesn't have these yet)
+      // Payments
       try {
         const payments = await apiFetch("/api/account/payments");
         renderPayments(payments?.payments || []);
-      } catch {
-        // keep table but don't break whole dashboard
+      } catch (e) {
+        $("paymentsBody")?.setAttribute("data-error", "1");
+        const body = $("paymentsBody");
+        if (body) body.innerHTML = `<tr><td colspan="5" class="mutedCell">Failed to load payments: ${escapeHtml(e.message || String(e))}</td></tr>`;
       }
 
+      // Videos
       try {
         const vids = await apiFetch("/api/account/videos");
         renderVideos(vids?.videos || []);
-      } catch {
-        // keep table but don't break whole dashboard
+      } catch (e) {
+        const body = $("videosBody");
+        if (body) body.innerHTML = `<tr><td colspan="4" class="mutedCell">Failed to load videos: ${escapeHtml(e.message || String(e))}</td></tr>`;
       }
 
       setMsg("");

@@ -680,15 +680,6 @@ a{ color:inherit; text-decoration:none; }
   gap: 12px;
   align-items: stretch;
 }
-.uploadLeft{
-  display:flex;
-  flex-direction:column;
-  gap: 10px;
-}
-.uploadLeft .progressWrap{
-  max-width: none;
-}
-
 
 .uploadBtn{
   padding: 14px 14px; /* slightly smaller than before */
@@ -760,9 +751,6 @@ a{ color:inherit; text-decoration:none; }
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(0,0,0,.28);
   display:block;
-  max-height: 240px;
-  object-fit: contain;
-  aspect-ratio: 16 / 9;
 }
 button.btnLink{ display:inline-flex; align-items:center; }
 
@@ -771,7 +759,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .previewSkeleton{
   width: calc(100% - 24px);
   margin: 6px 12px 12px;
-  height: 140px;
+  height: 158px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.12);
   background:
