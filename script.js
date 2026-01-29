@@ -904,3 +904,15 @@ setTimeout(() => {
     adminTab.remove();
   }
 }, 0);
+
+
+// Enforce admin-only UI (tabs + panels)
+function enforceAdminUI() {
+  const isAdmin = window.currentUser && window.currentUser.is_admin === true;
+  document.querySelectorAll('[data-admin-only], .adminOnly, .adminPanel').forEach(el => {
+    if (!isAdmin) el.remove();
+  });
+}
+
+// run after auth + DOM ready
+setTimeout(enforceAdminUI, 0);
