@@ -1,205 +1,58 @@
-;// Shared header behavior for all pages
-(() => {
-  const AUTH_TOKEN_KEY = "lypo_token_v1";
-  const token = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
-  const isAuthed = () => !!token();
-
-  const authBtn = document.querySelector(".headerAuthBtn");
-  const dashBtn = document.querySelector('[data-nav="dashboard"]');
-  const logoLink = document.querySelector(".logoWrap");
+document.addEventListener("DOMContentLoaded", () => {
   const tabs = document.querySelectorAll(".tabBtn");
+  const tabsContainer = document.querySelector(".tabs");
+  const underline = document.querySelector(".tabUnderline");
 
-  // Make logo always go to homepage
-  if (logoLink) {
-    logoLink.setAttribute("href", "index.html");
+  function normalize(path) {
+    if (!path) return "/";
+    return path
+      .replace(location.origin, "")
+      .replace(/index\.html$/, "/")
+      .replace(/\.html$/, "")
+      || "/";
   }
 
-  // Highlight current page in header
-  const path = (location.pathname || "").toLowerCase();
-  const filename = path.split("/").pop() || "index.html";
-  const isIndex = filename === "" || filename === "index.html" || filename === "/";
-  const isDashboard = filename.includes("dashboard");
-  const isAuth = filename.includes("auth");
+  function moveUnderline(btn) {
+    if (!btn || !underline) return;
+    const parent = btn.parentElement.getBoundingClientRect();
+    const rect = btn.getBoundingClientRect();
+    underline.style.width = rect.width + "px";
+    underline.style.transform = `translateX(${rect.left - parent.left}px)`;
+  }
 
-  if (dashBtn) dashBtn.classList.toggle("isActive", isDashboard);
+  function setActiveFromPath(pathname) {
+    const current = normalize(pathname);
+    let active = null;
 
-  // Tabs active state + underline
-  const tabsNav = document.querySelector(".tabs");
-  let underlineEl = null;
-
-  // Mobile collapse (injected toggle button; no HTML changes needed)
-  const headerEl = document.querySelector(".header");
-  let menuBtn = document.querySelector(".menuToggle");
-
-  const ensureMenuBtn = () => {
-    if (!headerEl || !tabsNav) return null;
-    if (menuBtn) return menuBtn;
-
-    menuBtn = document.createElement("button");
-    menuBtn.className = "menuToggle";
-    menuBtn.type = "button";
-    menuBtn.setAttribute("aria-label", "Open menu");
-    menuBtn.setAttribute("aria-expanded", "false");
-    menuBtn.innerHTML = '<span class="menuIcon" aria-hidden="true">☰</span>';
-
-    // Insert just before the tabs
-    headerEl.insertBefore(menuBtn, tabsNav);
-
-    menuBtn.addEventListener("click", () => {
-      const open = !tabsNav.classList.contains("open");
-      setMenuOpen(open);
-    });
-
-    // Close when a tab is clicked (mobile)
-    tabs.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (window.matchMedia("(max-width: 768px)").matches) {
-          setMenuOpen(false);
-        }
-      });
-    });
-
-    // Close if clicking outside
-    document.addEventListener("click", (e) => {
-      if (!tabsNav.classList.contains("open")) return;
-      const t = e.target;
-      if (t instanceof Element) {
-        const inside = tabsNav.contains(t) || menuBtn.contains(t);
-        if (!inside) setMenuOpen(false);
-      }
-    });
-
-    window.addEventListener("resize", () => {
-      if (window.matchMedia("(min-width: 769px)").matches) {
-        setMenuOpen(false);
-      }
-    });
-
-    return menuBtn;
-  };
-
-  const setMenuOpen = (open) => {
-    if (!tabsNav) return;
-    tabsNav.classList.toggle("open", open);
-    const b = ensureMenuBtn();
-    if (!b) return;
-    b.classList.toggle("isOpen", open);
-    b.setAttribute("aria-expanded", open ? "true" : "false");
-    b.setAttribute("aria-label", open ? "Close menu" : "Open menu");
-    const icon = b.querySelector(".menuIcon");
-    if (icon) icon.textContent = open ? "✕" : "☰";
-  };
-
-
-  const ensureUnderline = () => {
-    if (!tabsNav) return null;
-    if (underlineEl) return underlineEl;
-    underlineEl = document.createElement("div");
-    underlineEl.className = "tabUnderline";
-    tabsNav.appendChild(underlineEl);
-    return underlineEl;
-  };
-
-  const getDesiredActiveKey = () => {
-    // index.html can set tab via ?tab=
-    const params = new URLSearchParams(location.search || "");
-    const tabParam = (params.get("tab") || "").toLowerCase();
-    if (isIndex) {
-      return tabParam || "home";
-    }
-    // non-index pages: match by filename (support.html, features.html, etc.)
-    return filename;
-  };
-
-  const setActiveTab = () => {
-    const key = getDesiredActiveKey();
-    let activeBtn = null;
-
-    tabs.forEach((btn) => {
-      const href = (btn.getAttribute("data-href") || "").toLowerCase();
-      const tab = (btn.getAttribute("data-tab") || "").toLowerCase();
-
+    tabs.forEach(btn => {
+      const target = normalize(btn.dataset.href || btn.getAttribute("href"));
       const isActive =
-        (isIndex && tab && tab === key) ||
-        (!isIndex && href && href === key);
+        current === target ||
+        (target !== "/" && current.startsWith(target));
 
       btn.classList.toggle("isActive", isActive);
       btn.setAttribute("aria-selected", isActive ? "true" : "false");
-
-      if (isActive) activeBtn = btn;
+      if (isActive) active = btn;
     });
 
-    // If nothing matched (edge case), default to Demo/home
-    if (!activeBtn && tabs.length) {
-      activeBtn = tabs[0];
-      activeBtn.classList.add("isActive");
-      activeBtn.setAttribute("aria-selected", "true");
-    }
-
-    // Move underline
-    if (tabsNav && activeBtn) {
-      const ul = ensureUnderline();
-      if (!ul) return;
-
-      const navRect = tabsNav.getBoundingClientRect();
-      const btnRect = activeBtn.getBoundingClientRect();
-
-      const left = Math.max(0, btnRect.left - navRect.left);
-      const width = Math.max(12, btnRect.width);
-
-      ul.style.transform = `translateX(${left}px)`;
-      ul.style.width = `${width}px`;
-      ul.style.opacity = "1";
-    }
-  };
-
-  if (authBtn) {
-    const applyAuthState = () => {
-      if (isAuthed()) {
-        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
-        authBtn.setAttribute("href", "#");
-        authBtn.classList.add("isActive", false);
-      } else {
-        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
-        authBtn.setAttribute("href", "auth.html");
-        authBtn.classList.toggle("isActive", isAuth);
-      }
-    };
-
-    applyAuthState();
-
-    authBtn.addEventListener("click", (e) => {
-      if (isAuthed()) {
-        e.preventDefault();
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        // go home after logout
-        location.href = "index.html";
-      }
-    });
+    moveUnderline(active);
   }
 
-  // Tab navigation
-  if (tabs.length) {
-    tabs.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const href = btn.getAttribute("data-href");
-        if (href) {
-          location.href = href;
-          return;
-        }
-        const tab = btn.getAttribute("data-tab") || "home";
-        // If we're already on index, keep it on index and update the tab query param
-        location.href = `index.html?tab=${encodeURIComponent(tab)}`;
+  // IMPORTANT FIX:
+  // set active state immediately on click (prevents double-click issue)
+  tabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabs.forEach(b => {
+        b.classList.remove("isActive");
+        b.setAttribute("aria-selected", "false");
       });
-    });
-  }
 
-  // Initialize active state + underline
-  const sync = () => requestAnimationFrame(setActiveTab);
-  sync();
-  window.addEventListener("resize", () => {
-    // avoid layout thrash
-    clearTimeout(window.__lypoTabResizeT);
-    window.__lypoTabResizeT = setTimeout(sync, 60);
+      btn.classList.add("isActive");
+      btn.setAttribute("aria-selected", "true");
+      moveUnderline(btn);
+    });
   });
-})();
+
+  // initial load
+  setActiveFromPath(window.location.pathname);
+});
