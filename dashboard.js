@@ -6,7 +6,9 @@ let editingBlogId = null;
   const token = localStorage.getItem(AUTH_TOKEN_KEY) || "";
 
   // Prefer explicit backend URL. If you change backend host, update this one place.
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+  const BACKEND_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+    ? "http://localhost:10000"
+    : "https://api.lypo.org";
 
   const $ = (id) => document.getElementById(id);
 
