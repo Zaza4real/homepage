@@ -332,12 +332,12 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       });
 
       // Wire pagination + search
-      document.getElementById("btnUsersPrev")?.onclick = () => adminLoadUsersList({ q, offset: Math.max(offset - limit, 0) });
-      document.getElementById("btnUsersNext")?.onclick = () => adminLoadUsersList({ q, offset: offset + limit });
+      { const __el = document.getElementById("btnUsersPrev"); if (__el) __el.onclick = () => adminLoadUsersList({ q, offset: Math.max(offset - limit, 0) }); }
+      { const __el = document.getElementById("btnUsersNext"); if (__el) __el.onclick = () => adminLoadUsersList({ q, offset: offset + limit }); }
 
       const searchInput = document.getElementById("adminUsersSearch");
       if (searchInput && !searchInput.value) searchInput.value = q || "";
-      document.getElementById("btnAdminUsersSearch")?.onclick = () => adminLoadUsersList({ q: (searchInput?.value || "").trim(), offset: 0 });
+      { const __el = document.getElementById("btnAdminUsersSearch"); if (__el) __el.onclick = () => adminLoadUsersList({ q: (searchInput?.value || "").trim(), offset: 0 }); }
       searchInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") adminLoadUsersList({ q: (searchInput.value || "").trim(), offset: 0 }); });
 
     } catch (e) {
