@@ -9,26 +9,6 @@
   const logoLink = document.querySelector(".logoWrap");
   const tabs = document.querySelectorAll(".tabBtn");
 
-  // UNIVERSAL TAB NAV (single handler, prevents double-binding bugs)
-  if (tabs && tabs.length) {
-    tabs.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const href = btn.getAttribute("data-href");
-        if (href) {
-          location.href = href;
-          return;
-        }
-        const tab = btn.getAttribute("data-tab") || "home";
-        if (tab === "home") {
-          location.href = "index.html";
-        } else {
-          location.href = `index.html?tab=${encodeURIComponent(tab)}`;
-        }
-      });
-    });
-  }
-
   // Make logo always go to homepage
   if (logoLink) {
     logoLink.setAttribute("href", "index.html");
@@ -44,11 +24,11 @@
     const applyAuthState = () => {
       if (isAuthed()) {
         authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
-        authBtn.setAttribute("aria-label", "Logout");
+        authBtn.setAttribute("href", "#");
         authBtn.classList.add("isActive", false);
       } else {
         authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
-        authBtn.setAttribute("aria-label", "Login");
+        authBtn.setAttribute("href", "auth.html");
         authBtn.classList.toggle("isActive", isAuth);
       }
     };
@@ -59,28 +39,25 @@
       if (isAuthed()) {
         e.preventDefault();
         localStorage.removeItem(AUTH_TOKEN_KEY);
+        // go home after logout
         location.href = "index.html";
-        return;
       }
-      // Not authed: go to login page
-      location.href = "auth.html";
     });
-}
-})()
+  }
 
-
-// Active header tab (white pill) based on current page
-(function applyActiveHeaderTab(){
-  const page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-  const btns = Array.from(document.querySelectorAll(".tabs .tabBtn"));
-  if (!btns.length) return;
-
-  btns.forEach((b) => {
-    const href = (b.getAttribute("data-href") || "").toLowerCase();
-    const tab = (b.getAttribute("data-tab") || "").toLowerCase();
-    const isHome = (page === "index.html" || page === "");
-    const shouldBeActive = (href && href === page) || (isHome && tab === "home");
-    b.classList.toggle("isActive", !!shouldBeActive);
-    b.setAttribute("aria-selected", shouldBeActive ? "true" : "false");
-  });
+  // On non-index pages, clicking tabs should bring you to the homepage and open that section
+  const isIndex = path.endsWith("index.html") || path === "/" || path === "";
+  if (!isIndex && tabs.length) {
+    tabs.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const href = btn.getAttribute("data-href");
+        if (href) {
+          location.href = href;
+          return;
+        }
+        const tab = btn.getAttribute("data-tab") || "home";
+        location.href = `index.html?tab=${encodeURIComponent(tab)}`;
+      });
+    });
+  }
 })();

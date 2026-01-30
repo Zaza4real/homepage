@@ -1,6 +1,5 @@
 // GLOBAL DOM helper — must be defined before any usage
 const $ = (id) => document.getElementById(id);
-function setAuthMsg(text){ const el = $("authMsg"); if(el) el.textContent = text || ""; }
 
 async function getSelectedVideoDurationSeconds() {
     const input = $("videoFile");
@@ -184,9 +183,7 @@ function showAuthModal(show) {
   }
 
   function setLoading(isLoading, text) {
-    
-  setGenMsg(!!isLoading);
-const pill = $("statusPill");
+    const pill = $("statusPill");
     const progress = $("progressWrap");
     const run = $("btnRun");
     const pay = $("btnPay");
@@ -197,8 +194,7 @@ const pill = $("statusPill");
     if (run) {
       run.disabled = !!isLoading;
       run.classList.toggle("isLoading", !!isLoading);
-      // Keep the button visible while generating (disable + spinner via CSS)
-      run.style.visibility = "";
+      run.style.visibility = isLoading ? "hidden" : "";
     }
     if (pay) {
       pay.disabled = !!isLoading;
@@ -886,10 +882,3 @@ const pill = $("statusPill");
 
   $("btnRun")?.addEventListener("click", runUploadDub);
 })();
-
-
-function setGenMsg(isGenerating){
-  const el = document.getElementById("genMsg");
-  if (!el) return;
-  el.hidden = !isGenerating;
-}
