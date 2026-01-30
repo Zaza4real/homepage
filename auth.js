@@ -252,12 +252,19 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await apiFetch("/api/auth/reset-password", {
         method: "POST",
-        body: JSON.stringify({ email, token, newPassword: p1 })
+        body: JSON.stringify({ email, token, password: p1 })
       });
       setMsg("Password updated. You can now sign in.");
       // clean hash and hide reset panel
       history.replaceState(null, "", location.pathname);
       const wrap = $("resetWrap"); if (wrap) wrap.style.display = "none";
+      // restore login/signup UI
+      const loginPassInput = $("authPassPage");
+      const loginPassLabel = loginPassInput ? loginPassInput.closest("label") : null;
+      if (loginPassLabel) loginPassLabel.style.display = "";
+      const toggle = $("authToggle");
+      if (toggle) toggle.style.display = "";
+
     } catch (e) {
       setMsg(e.message || "Could not reset password.");
     }
