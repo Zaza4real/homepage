@@ -53,7 +53,6 @@
           <div class="demoTop">
             <div class="demoTitle">LYPO Video Translator</div>
             <div class="chips">
-              <span class="chip">Tip: Average estimated time for a 10-second clip is ~2 minutes.</span>
               <span class="chip" id="lyposBalance">Balance: — Credits</span>
               <span class="chip" id="chipBackend" style="display:none;">Backend: not connected</span></div>
           </div>
@@ -251,11 +250,14 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
     </section>
 
     <footer class="footer">
+      <span>© <span id="year"></span> LYPO</span>
+      <span class="muted">Ready to publish • Hosted on Render</span>
     </footer>
   </main>
 
   <!-- IMPORTANT: include script.js ONCE -->
-  <script src="script.js" defer></script>
+  <script src="header.js" defer>
+    <script src="script.js" defer></script>
 
   <!-- Auth modal (hidden; does not affect layout) -->
   <div class="modal" id="authModal" hidden aria-hidden="true">
