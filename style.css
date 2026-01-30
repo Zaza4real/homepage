@@ -1773,3 +1773,61 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 .blogPostPage {
   padding-bottom: 60px;
 }
+
+/* Mobile header menu (collapsible tabs) */
+.menuToggle{
+  display:none;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.92);
+  border-radius:999px;
+  padding:9px 12px;
+  cursor:pointer;
+  font-weight:900;
+  letter-spacing:.01em;
+  transition: transform .12s ease, background .18s ease, border-color .18s ease;
+}
+.menuToggle:hover{
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.22);
+  transform: translateY(-1px);
+}
+.menuToggle:active{ transform: translateY(0); }
+.menuToggle.isOpen{
+  background:rgba(255,255,255,.14);
+  border-color:rgba(255,255,255,.28);
+}
+
+@media (max-width: 768px){
+  .header{
+    gap:10px;
+  }
+  .menuToggle{ display:inline-flex; align-items:center; justify-content:center; }
+  .tabs{
+    width:100%;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+    padding-bottom:0;
+
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    transform: translateY(-8px);
+    pointer-events:none;
+
+    transition:
+      max-height .32s ease,
+      opacity .22s ease,
+      transform .22s ease;
+  }
+  .tabs.open{
+    max-height:520px;
+    opacity:1;
+    transform: translateY(0);
+    pointer-events:auto;
+  }
+
+  /* Underline isn't useful in stacked layout */
+  .tabUnderline{ display:none; }
+}

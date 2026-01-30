@@ -27,6 +27,70 @@
   const tabsNav = document.querySelector(".tabs");
   let underlineEl = null;
 
+  // Mobile collapse (injected toggle button; no HTML changes needed)
+  const headerEl = document.querySelector(".header");
+  let menuBtn = document.querySelector(".menuToggle");
+
+  const ensureMenuBtn = () => {
+    if (!headerEl || !tabsNav) return null;
+    if (menuBtn) return menuBtn;
+
+    menuBtn = document.createElement("button");
+    menuBtn.className = "menuToggle";
+    menuBtn.type = "button";
+    menuBtn.setAttribute("aria-label", "Open menu");
+    menuBtn.setAttribute("aria-expanded", "false");
+    menuBtn.innerHTML = '<span class="menuIcon" aria-hidden="true">☰</span>';
+
+    // Insert just before the tabs
+    headerEl.insertBefore(menuBtn, tabsNav);
+
+    menuBtn.addEventListener("click", () => {
+      const open = !tabsNav.classList.contains("open");
+      setMenuOpen(open);
+    });
+
+    // Close when a tab is clicked (mobile)
+    tabs.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (window.matchMedia("(max-width: 768px)").matches) {
+          setMenuOpen(false);
+        }
+      });
+    });
+
+    // Close if clicking outside
+    document.addEventListener("click", (e) => {
+      if (!tabsNav.classList.contains("open")) return;
+      const t = e.target;
+      if (t instanceof Element) {
+        const inside = tabsNav.contains(t) || menuBtn.contains(t);
+        if (!inside) setMenuOpen(false);
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.matchMedia("(min-width: 769px)").matches) {
+        setMenuOpen(false);
+      }
+    });
+
+    return menuBtn;
+  };
+
+  const setMenuOpen = (open) => {
+    if (!tabsNav) return;
+    tabsNav.classList.toggle("open", open);
+    const b = ensureMenuBtn();
+    if (!b) return;
+    b.classList.toggle("isOpen", open);
+    b.setAttribute("aria-expanded", open ? "true" : "false");
+    b.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    const icon = b.querySelector(".menuIcon");
+    if (icon) icon.textContent = open ? "✕" : "☰";
+  };
+
+
   const ensureUnderline = () => {
     if (!tabsNav) return null;
     if (underlineEl) return underlineEl;
