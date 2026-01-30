@@ -18,9 +18,9 @@
     </a>
 
     <nav class="tabs" role="tablist" aria-label="LYPO tabs">
-      <button class="tabBtn" role="tab" aria-selected="false" data-tab="home" type="button">Demo</button>
+      <button class="tabBtn isActive" role="tab" aria-selected="true" data-tab="home" type="button">Demo</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="features.html" type="button">Features</button>
-      <button class="tabBtn isActive" role="tab" aria-selected="true" data-href="support.html" type="button">Support</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="support.html" type="button">Support</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="blog.html" type="button">Blog</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="about.html" type="button">About</button>
     </nav>
@@ -33,13 +33,53 @@
     </div>
   </header>
 
-    <main class="main" id="supportRoot">
-      <!-- support.js will fill content -->
-    </main>
-  </div>
+    <main class="container">
+    <section class="panel">
+      <h2>Support</h2>
+      <p class="muted" style="max-width: 860px;">Send us a message and we’ll get back to you as soon as possible.</p>
 
-  <script src="script.js" defer></script>
-  <script src="header.js" defer></script>
+      <div class="grid2" >
+        <div class="card" style="padding: 14px;">
+          <div class="field">
+            <label class="muted" for="supportEmail">Email (optional)</label>
+            <input class="input" id="supportEmail" type="email" placeholder="you@email.com" autocomplete="email" />
+          </div>
+
+          <div class="field" >
+            <label class="muted" for="supportSubject">Subject (optional)</label>
+            <input class="input" id="supportSubject" type="text" placeholder="What do you need help with?" />
+          </div>
+
+          <div class="field" >
+            <label class="muted" for="supportMessage">Message</label>
+            <textarea class="input" id="supportMessage" rows="6" placeholder="Write your message…"></textarea>
+          </div>
+
+          <div class="actions" >
+            <button class="btnPrimary" id="btnSupportSend" type="button">
+              <span class="btnLabel" id="btnSupportLabel">Send message</span>
+              <span class="btnGlow"></span>
+            </button>
+            <div class="muted" id="supportHint" style="opacity:0; transition: opacity .2s ease; align-self:center;"></div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 14px;">
+          <div class="cardHeader" style="margin-bottom: 8px;">
+            <h3 class="cardTitle" style="font-size: 16px;">Quick help</h3>
+            <p class="cardSub">Common questions & fixes.</p>
+          </div>
+          <ul class="muted" style="margin:0; padding-left: 18px; line-height: 1.7;">
+            <li>If a payment didn’t apply credits, check Dashboard → Orders.</li>
+            <li>If upload fails, try a shorter clip and stable Wi‑Fi.</li>
+            <li>For refunds or billing questions, include your account email.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+  </div>
+<script src="header.js" defer></script>
   <script src="support.js" defer></script>
 </body>
 </html>

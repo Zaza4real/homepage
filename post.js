@@ -27,7 +27,7 @@
       if (p.video_url) parts.push(`<div class="postVideo"><video controls preload="metadata" src="${esc(p.video_url)}"></video></div>`);
       mediaEl.innerHTML = parts.join("");
 
-      bodyEl.innerHTML = p.content_html || "";
+      bodyEl.innerHTML = p.content_html || (p.excerpt ? `<p>${esc(p.excerpt)}</p>` : "");
     } catch (e) {
       titleEl.textContent = "Could not load post";
     }
