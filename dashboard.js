@@ -176,6 +176,7 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
           setText("dashAdminTop", "Admin: YES");
           // Load blog admin tools
           if (typeof loadAdminBlog === "function") loadAdminBlog();
+          if (typeof initAdminLookup === "function") initAdminLookup(true);
         } else {
           setText("dashAdminTop", "Admin: NO");
           hideAdminUI();
@@ -321,8 +322,12 @@ function renderLookup(result) {
 
 
 
-function initAdminLookup() {
+function initAdminLookup(isAdmin) {
   const card = document.getElementById("adminLookupCard");
+  if (!isAdmin) {
+    if (card) card.style.display = "none";
+    return;
+  }
   if (card) card.style.display = "block";
 
   const btn = document.getElementById("btnLookup");

@@ -1717,3 +1717,14 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 .header .isActive .btnLabel{
   color: #000 !important;
 }
+
+
+/* Hard reset support spacing */
+.supportContainer{
+  padding-top: var(--header-offset) !important;
+  margin-top: 0 !important;
+}
+
+
+/* Admin panels hidden by default; shown only for admins */
+.adminPanel{ display:none; }
