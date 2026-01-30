@@ -184,6 +184,8 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
         if (st?.isAdmin) {
           setText("dashAdminTop", "Admin: YES");
           // Load blog admin tools
+          const blogCard = document.getElementById("blogAdminCard");
+          if (blogCard) blogCard.style.display = "block";
           if (typeof loadAdminBlog === "function") loadAdminBlog();
           if (typeof initAdminLookup === "function") initAdminLookup(true);
         } else {
