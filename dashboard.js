@@ -1,3 +1,5 @@
+let editingBlogId = null;
+
 // Account dashboard + admin
 (() => {
   const AUTH_TOKEN_KEY = "lypo_token_v1";
@@ -10,10 +12,29 @@
 
   function setText(id, txt) { const el = $(id); if (el) el.textContent = txt; }
 
+
+function hideAdminUI() {
+  document.getElementById("adminCard")?.remove();
+  document.getElementById("blogAdminCard")?.remove();
+  document.getElementById("adminLookupCard")?.remove();
+  document.getElementById("dashAdminTop")?.remove();
+}
+
+
+
   function setDiag(txt) { setText("dashDiag", txt || ""); }
   function setMsg(txt) { setText("dashMsg", txt || ""); }
 
-  function fmtDate(iso) {
+  
+function esc(s){
+  return String(s ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+function fmtDate(iso) {
     try { return new Date(iso).toLocaleString(); } catch { return iso || ""; }
   }
 
@@ -29,7 +50,6 @@
   // 1) Try /api/... as expected
   // 2) If backend is deployed without the /api prefix, retry without it
   
-  let __stripeConfirmRan = false;
   async function maybeConfirmStripeReturn() {
     try {
       const qs = new URLSearchParams(window.location.search || "");
@@ -144,8 +164,8 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       return;
     }
 
-    // If we just returned from Stripe Checkout, confirm the session to store the receipt URL.
-    try { await maybeConfirmStripeReturn(); } catch (e) { /* non-fatal */ }
+    // Confirm Stripe redirect (record payment + add credits)
+    await maybeConfirmStripeReturn();
 
     try {
       const me = await apiFetch("/api/auth/me");
@@ -161,30 +181,36 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       // Admin status
       try {
         const st = await apiFetch("/api/admin/status");
-        if (st?.isAdmin) setText("dashAdminTop", "Admin: YES");
-        else setText("dashAdminTop", "Admin: NO");
+        if (st?.isAdmin) {
+          setText("dashAdminTop", "Admin: YES");
+          // Load blog admin tools
+          const blogCard = document.getElementById("blogAdminCard");
+          if (blogCard) blogCard.style.display = "block";
+          if (typeof loadAdminBlog === "function") loadAdminBlog();
+          if (typeof initAdminLookup === "function") initAdminLookup(true);
+        } else {
+          setText("dashAdminTop", "Admin: NO");
+          hideAdminUI();
+        }
       } catch (e) {
         setText("dashAdminTop", "Admin: ERROR");
+        hideAdminUI();
         setDiag(e.message || String(e));
       }
 
-      // Payments
+      // Payments/videos (ignore if backend doesn't have these yet)
       try {
         const payments = await apiFetch("/api/account/payments");
         renderPayments(payments?.payments || []);
-      } catch (e) {
-        $("paymentsBody")?.setAttribute("data-error", "1");
-        const body = $("paymentsBody");
-        if (body) body.innerHTML = `<tr><td colspan="5" class="mutedCell">Failed to load payments: ${escapeHtml(e.message || String(e))}</td></tr>`;
+      } catch {
+        // keep table but don't break whole dashboard
       }
 
-      // Videos
       try {
         const vids = await apiFetch("/api/account/videos");
         renderVideos(vids?.videos || []);
-      } catch (e) {
-        const body = $("videosBody");
-        if (body) body.innerHTML = `<tr><td colspan="4" class="mutedCell">Failed to load videos: ${escapeHtml(e.message || String(e))}</td></tr>`;
+      } catch {
+        // keep table but don't break whole dashboard
       }
 
       setMsg("");
@@ -219,7 +245,236 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  // --- Admin Blog (only loaded for admins) ---
+
+
+async function adminLookupUser(email) {
+  const q = new URLSearchParams({ email: (email || "").trim() }).toString();
+  return apiFetch(`/api/admin/user-lookup?${q}`, { method: "GET" });
+}
+
+function fmtDate(ts) {
+  try {
+    return new Date(ts).toLocaleString();
+  } catch {
+    return String(ts || "");
+  }
+}
+
+function renderLookup(result) {
+  const wrap = document.getElementById("lookupResult");
+  const msg = document.getElementById("lookupMsg");
+  const account = document.getElementById("lookupAccount");
+  const totals = document.getElementById("lookupTotals");
+  const payBody = document.getElementById("lookupPaymentsBody");
+  const vidBody = document.getElementById("lookupVideosBody");
+
+  if (!wrap || !account || !totals || !payBody || !vidBody) return;
+
+  wrap.style.display = "block";
+  msg.textContent = "";
+
+  const u = result.user;
+  const payments = result.payments || [];
+  const videos = result.videos || [];
+
+  const totalUsd = payments.reduce((a,p)=> a + Number(p.amount_usd || 0), 0);
+  const totalCredits = payments.reduce((a,p)=> a + Number(p.lypos || 0), 0);
+  const totalVideoCost = videos.reduce((a,v)=> a + Number(v.cost_credits || 0), 0);
+
+  account.innerHTML = `
+    <div><b>Email:</b> ${esc(u.email)}</div>
+    <div><b>Created:</b> ${esc(fmtDate(u.created_at))}</div>
+    <div><b>Balance:</b> ${esc(String(u.balance))}</div>
+    <div><b>Admin:</b> ${u.is_admin ? "Yes" : "No"}</div>
+  `;
+
+  totals.innerHTML = `
+    <div><b>Purchases:</b> ${payments.length}</div>
+    <div><b>Total spent:</b> $${totalUsd.toFixed(2)}</div>
+    <div><b>Total credits bought:</b> ${totalCredits}</div>
+    <div><b>Videos generated:</b> ${videos.length}</div>
+    <div><b>Total credits used:</b> ${totalVideoCost}</div>
+  `;
+
+  // Purchases
+  if (!payments.length) {
+    payBody.innerHTML = '<tr><td colspan="5" class="mutedCell">No purchases found</td></tr>';
+  } else {
+    payBody.innerHTML = payments.map(p => {
+      const receipt = p.invoice_url ? `<a class="link" href="${p.invoice_url}" target="_blank" rel="noopener">Open</a>` : '<span class="mutedCell">—</span>';
+      return `<tr>
+        <td>${esc(fmtDate(p.created_at))}</td>
+        <td>$${esc(String(p.amount_usd || 0))}</td>
+        <td>${esc(String(p.lypos || 0))}</td>
+        <td>${esc(String(p.status || ""))}</td>
+        <td>${receipt}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  // Videos
+  if (!videos.length) {
+    vidBody.innerHTML = '<tr><td colspan="5" class="mutedCell">No videos found</td></tr>';
+  } else {
+    vidBody.innerHTML = videos.map(v => {
+      const inL = v.input_url ? `<a class="link" href="${v.input_url}" target="_blank" rel="noopener">Input</a>` : '<span class="mutedCell">—</span>';
+      const outL = v.output_url ? `<a class="link" href="${v.output_url}" target="_blank" rel="noopener">Output</a>` : '<span class="mutedCell">—</span>';
+      return `<tr>
+        <td>${esc(fmtDate(v.created_at))}</td>
+        <td>${esc(String(v.status || ""))}</td>
+        <td>${esc(String(v.cost_credits || 0))}</td>
+        <td>${inL}</td>
+        <td>${outL}</td>
+      </tr>`;
+    }).join("");
+  }
+}
+
+
+
+function initAdminLookup(isAdmin) {
+  const card = document.getElementById("adminLookupCard");
+  if (!isAdmin) {
+    if (card) card.style.display = "none";
+    return;
+  }
+  if (card) card.style.display = "block";
+
+  const btn = document.getElementById("btnLookup");
+  const input = document.getElementById("lookupEmail");
+  const msg = document.getElementById("lookupMsg");
+
+  if (!btn || btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+
+  const run = async () => {
+    const email = (input?.value || "").trim();
+    if (!email) {
+      if (msg) msg.textContent = "Enter an email.";
+      return;
+    }
+    try {
+      if (msg) msg.textContent = "Searching…";
+      const result = await adminLookupUser(email);
+      renderLookup(result);
+      if (msg) msg.textContent = "Done.";
+    } catch (e) {
+      if (msg) msg.textContent = e?.message || "Lookup failed";
+    }
+  };
+
+  btn.addEventListener("click", run);
+  if (input) {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") run();
+    });
+  }
+}
+
+async function loadAdminBlog() {
+  const body = $("blogBody");
+  if (!body) return;
+  try {
+    const data = await apiFetch("/api/admin/blog/posts");
+    const posts = data?.posts || [];
+    if (!posts.length) {
+      body.innerHTML = '<tr><td colspan="4" class="mutedCell">No posts yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = posts.map(p => {
+      const created = fmtDate(p.created_at);
+      return `<tr>
+        <td>${created}</td>
+        <td><code>${p.slug}</code></td>
+        <td>${p.status || "draft"}</td>
+        <td>
+          <button class="btnGhost" data-edit="${p.id}" style="padding:6px 10px;">Edit</button>
+          <button class="btnGhost" data-del="${p.id}" style="padding:6px 10px;">Delete</button>
+        </td>
+      </tr>`;
+    }).join("");
+
+    body.querySelectorAll("[data-del]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.getAttribute("data-del"));
+        if (!confirm("Delete this post?")) return;
+        try {
+          await apiFetch(`/api/admin/blog/posts/${id}`, { method: "DELETE" });
+          loadAdminBlog();
+        } catch (e) {
+          alert("Could not delete: " + (e.message || e));
+        }
+      });
+    });
+
+    body.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.getAttribute("data-edit"));
+        const msg = $("blogMsg");
+        if (msg) msg.textContent = "Loading post…";
+        try {
+          const data = await apiFetch(`/api/admin/blog/posts/${id}`);
+          const p = data.post;
+          if (!p) throw new Error("Post not found");
+
+          editingBlogId = id;
+          if ($("blogTitle")) $("blogTitle").value = p.title || "";
+          if ($("blogSlug")) $("blogSlug").value = p.slug || "";
+          if ($("blogExcerpt")) $("blogExcerpt").value = p.excerpt || "";
+          if ($("blogCover")) $("blogCover").value = p.cover_url || "";
+          if ($("blogVideo")) $("blogVideo").value = p.video_url || "";
+          if ($("blogContent")) $("blogContent").value = p.content_html || "";
+          if ($("blogPublish")) $("blogPublish").checked = (p.status === "published");
+
+          const btnSave = $("btnBlogSave");
+          if (btnSave) btnSave.querySelector(".btnLabel") ? (btnSave.querySelector(".btnLabel").textContent = "Update Post") : (btnSave.textContent = "Update Post");
+          if (msg) msg.textContent = `Editing: ${p.slug}`;
+          // Scroll to editor
+          document.querySelector("#blogEditor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (e) {
+          if (msg) msg.textContent = "❌ " + (e.message || "Error");
+        }
+      });
+    });
+
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="4" class="mutedCell">Could not load posts</td></tr>`;
+  }
+}
+
+async function saveBlogPost() {
+  const msg = $("blogMsg");
+  const title = ($("blogTitle")?.value || "").trim();
+  const slug = ($("blogSlug")?.value || "").trim();
+  const excerpt = ($("blogExcerpt")?.value || "").trim();
+  const cover_url = ($("blogCover")?.value || "").trim();
+  const video_url = ($("blogVideo")?.value || "").trim();
+  const content_html = ($("blogContent")?.value || "").trim();
+  const status = $("blogPublish")?.checked ? "published" : "draft";
+
+  if (!title || !slug || !content_html) { if(msg) msg.textContent = "Title, slug, and content are required."; return; }
+  if (msg) msg.textContent = "Saving…";
+  try {
+    if (editingBlogId) {
+      await apiFetch(`/api/admin/blog/posts/${editingBlogId}`, { method: "PUT", jsonBody: { title, slug, excerpt, cover_url, video_url, content_html, status } });
+    } else {
+      await apiFetch("/api/admin/blog/posts", { method: "POST", jsonBody: { title, slug, excerpt, cover_url, video_url, content_html, status } });
+    }
+    if (msg) msg.textContent = "✅ Saved";
+    editingBlogId = null;
+    const btnSave = $("btnBlogSave");
+    if (btnSave) btnSave.querySelector(".btnLabel") ? (btnSave.querySelector(".btnLabel").textContent = "Save Post") : (btnSave.textContent = "Save Post");
+    loadAdminBlog();
+  } catch (e) {
+    if (msg) msg.textContent = "❌ " + (e.message || "Error");
+  }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  $("btnBlogSave")?.addEventListener("click", saveBlogPost);
+
     $("btnLogoutDash")?.addEventListener("click", () => {
       localStorage.removeItem(AUTH_TOKEN_KEY);
       window.location.href = "auth.html";
@@ -230,3 +485,4 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     load();
   });
 })();
+
