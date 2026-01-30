@@ -1,3 +1,36 @@
+
+async function recordPaymentFromSessionIfMissing(sessionId, email) {
+  try {
+    const existing = await pool.query(
+      "SELECT 1 FROM payments WHERE stripe_session_id=$1 LIMIT 1",
+      [sessionId]
+    );
+    if (existing.rows.length) return;
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["payment_intent", "line_items"]
+    });
+
+    if (session.payment_status !== "paid") return;
+
+    const amountUsd = (session.amount_total || 0) / 100;
+    const credits = Math.round(amountUsd * 100); // same logic you already use
+    const invoiceUrl = await resolveInvoiceUrlFromSession(session);
+
+    await pool.query(
+      `INSERT INTO payments (email, stripe_session_id, amount_usd, lypos, status, invoice_url)
+       VALUES ($1,$2,$3,$4,'paid',$5)`,
+      [email, sessionId, amountUsd, credits, invoiceUrl]
+    );
+
+    await pool.query(
+      "UPDATE users SET balance = balance + $1 WHERE email=$2",
+      [credits, email]
+    );
+  } catch (e) {
+    console.error("recordPaymentFromSessionIfMissing failed:", e.message);
+  }
+}
 import express from "express";
 import Replicate from "replicate";
 import Busboy from "busboy";
@@ -218,6 +251,35 @@ async function createUser(email, passwordHash) {
     [e, passwordHash]
   );
   return rows[0];
+}
+
+
+async function resolveInvoiceUrlFromSession(session) {
+  let invoiceUrl = null;
+  try {
+    // For one-time payments, Stripe may not create an invoice.
+    if (session?.invoice) {
+      const inv = await stripe.invoices.retrieve(String(session.invoice));
+      invoiceUrl = inv.invoice_pdf || inv.hosted_invoice_url || null;
+    } else if (session?.payment_intent) {
+      const piId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id;
+      const pi = await stripe.paymentIntents.retrieve(String(piId), { expand: ["charges"] });
+      const charge = pi?.charges?.data?.[0];
+      invoiceUrl = charge?.receipt_url || null;
+    }
+  } catch {
+    invoiceUrl = null;
+  }
+  return invoiceUrl;
+}
+
+async function resolveInvoiceUrlBySessionId(sessionId) {
+  try {
+    const session = await stripe.checkout.sessions.retrieve(String(sessionId), { expand: ["payment_intent"] });
+    return await resolveInvoiceUrlFromSession(session);
+  } catch {
+    return null;
+  }
 }
 
 async function recordPayment({ email, stripeSessionId, amountUsd, lypos, status, invoiceUrl }) {
@@ -500,12 +562,27 @@ app.post("/api/credits/charge", auth, async (req, res) => {
 // ---- Account dashboard
 app.get("/api/account/payments", auth, async (req, res) => {
   const email = normEmail(req.user.email);
+
+  // Recover missed Stripe payments
+  try {
+    const sessions = await stripe.checkout.sessions.list({
+      limit: 5,
+      customer_email: email
+    });
+    for (const s of sessions.data) {
+      if (s.payment_status === "paid") {
+        await recordPaymentFromSessionIfMissing(s.id, email);
+      }
+    }
+  } catch (e) {}
+
   const { rows } = await pool.query(
     "SELECT stripe_session_id, amount_usd, lypos, status, invoice_url, created_at FROM payments WHERE email=$1 ORDER BY created_at DESC LIMIT 100",
     [email]
   );
   res.json({ payments: rows });
 });
+
 
 app.get("/api/account/videos", auth, async (req, res) => {
   const email = normEmail(req.user.email);
@@ -519,6 +596,7 @@ app.get("/api/account/videos", auth, async (req, res) => {
 
 // ---- Stripe checkout: buy LYPOS
 app.post("/api/stripe/create-checkout-session", auth, async (req, res) => {
+  const frontendBase = (process.env.FRONTEND_URL || "").trim() || (req.headers.origin || "").trim() || (FRONTEND_URL || "").trim();
   const usd = Number(req.body?.usd || 0);
   if (!Number.isFinite(usd) || usd <= 0) return res.status(400).json({ error: "Invalid usd" });
 
@@ -539,9 +617,8 @@ app.post("/api/stripe/create-checkout-session", auth, async (req, res) => {
       }
     ],
     metadata: { email, lypos: String(lypos) },
-    success_url: `${FRONTEND_URL}/dashboard.html?paid=1&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${FRONTEND_URL}/dashboard.html?paid=0`
-  });
+    success_url: `${frontendBase}/dashboard.html?paid=1&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${frontendBase}/dashboard.html?paid=0`});
 
   res.json({ url: session.url });
 });
@@ -908,6 +985,27 @@ app.get("/api/admin/blog/posts", auth, requireAdmin, async (req, res) => {
     res.status(500).json({ error: "Could not load admin posts" });
   }
 });
+
+
+app.get("/api/admin/blog/posts/:id", auth, requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "Bad id" });
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, excerpt, content_html, cover_url, video_url, status, published_at, created_at, updated_at
+       FROM blog_posts
+       WHERE id=$1
+       LIMIT 1`,
+      [id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: "Not found" });
+    res.json({ post: rows[0] });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Could not load post" });
+  }
+});
+
 
 app.post("/api/admin/blog/posts", auth, requireAdmin, async (req, res) => {
   try {

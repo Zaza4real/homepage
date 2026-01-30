@@ -1,4 +1,5 @@
 :root{
+  --header-offset: 132px;
   --bg: #070A12;
   --text: rgba(255,255,255,.92);
   --muted: rgba(255,255,255,.66);
@@ -1698,3 +1699,11 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
   font-size: 12px;
   opacity: .72;
 }
+
+
+/* Uniform page spacing below fixed header */
+.container{
+  padding-top: 132px;
+}
+
+.container{ padding-top: var(--header-offset); }
