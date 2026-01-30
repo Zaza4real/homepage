@@ -271,6 +271,19 @@ async function maybeHandlePasswordReset() {
 }
 
 
+
+function redirectToResetPageIfNeeded(){
+  const hash = String(location.hash || "");
+  if (!hash.includes("reset=")) return false;
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const token = params.get("reset") || "";
+  const email = params.get("email") || "";
+  if (!token || !email) return false;
+  // Move reset flow to dedicated page (avoids UI overlap)
+  location.replace(`reset.html?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`);
+  return true;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     $("btnSignupPage")?.addEventListener("click", () => {
     const wrap = $("confirmPassWrap");
@@ -365,4 +378,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 })();
 
-document.addEventListener("DOMContentLoaded", async () => { const inReset = await maybeHandlePasswordReset(); if (inReset) return; });
+document.addEventListener("DOMContentLoaded", async () => {
+  if (redirectToResetPageIfNeeded()) return; const inReset = await maybeHandlePasswordReset(); if (inReset) return; });
