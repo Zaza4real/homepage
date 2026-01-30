@@ -1,4 +1,84 @@
 
+function enterResetMode({ email, token }) {
+  // Show reset UI
+  const wrap = $("resetWrap"); if (wrap) wrap.style.display = "";
+  setResetMsg("");
+
+  // Hide auth toggle + confirm wrap + login password label so there are ONLY 2 reset fields
+  const toggle = $("authToggle"); if (toggle) toggle.style.display = "none";
+
+  const confirmWrap = $("confirmPassWrap"); if (confirmWrap) confirmWrap.style.display = "none";
+
+  const loginPass = $("authPassPage");
+  const loginPassLabel = loginPass ? loginPass.closest("label") : null;
+  if (loginPassLabel) loginPassLabel.style.display = "none";
+
+  // Also hide login/signup action buttons if present (so user doesn’t click wrong thing)
+  const btnLogin = $("btnLoginPage"); if (btnLogin) btnLogin.style.display = "none";
+  const btnSignup = $("btnSignupPage"); if (btnSignup) btnSignup.style.display = "none";
+
+  // Keep email field visible (optional), but we’ll set it and disable it to avoid confusion
+  const emailInput = $("authEmailPage");
+  if (emailInput) {
+    emailInput.value = email || "";
+    emailInput.disabled = true;
+  }
+
+  const p1 = $("resetPass1"); const p2 = $("resetPass2");
+  p1 && (p1.value = "");
+  p2 && (p2.value = "");
+
+  const btn = $("btnResetPass");
+  if (btn) {
+    btn.onclick = async () => {
+      const pass1 = p1?.value || "";
+      const pass2 = p2?.value || "";
+      if (!pass1 || !pass2) return setResetMsg("Please enter your new password twice.");
+      if (pass1 !== pass2) return setResetMsg("Passwords do not match.");
+      if (pass1.length < 6) return setResetMsg("Password too short (min 6 characters).");
+
+      try {
+        btn.disabled = true;
+        setResetMsg("Updating password…");
+        await apiFetch("/api/auth/reset-password", {
+          method: "POST",
+          body: JSON.stringify({ email, token, password: pass1 }),
+        });
+        setResetMsg("✅ Password updated. You can now log in.");
+        // Restore normal auth UI after success
+        history.replaceState(null, "", "auth.html");
+        const wrap2 = $("resetWrap"); if (wrap2) wrap2.style.display = "none";
+        if (toggle) toggle.style.display = "";
+        if (loginPassLabel) loginPassLabel.style.display = "";
+        if (btnLogin) btnLogin.style.display = "";
+        if (btnSignup) btnSignup.style.display = "";
+        if (emailInput) emailInput.disabled = false;
+        $("authPassPage")?.focus();
+      } catch (e) {
+        setResetMsg(e?.message || "Could not reset password. Please request a new link.");
+      } finally {
+        btn.disabled = false;
+      }
+    };
+  }
+}
+
+async function maybeHandlePasswordReset() {
+  const hash = String(location.hash || "");
+  if (!hash.includes("reset=")) return false;
+
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const token = params.get("reset") || "";
+  const email = params.get("email") || "";
+
+  // Enter reset mode and STOP normal page init
+  enterResetMode({ email, token });
+  // remove token from url bar (but keep page in reset mode)
+  history.replaceState(null, "", "auth.html");
+  return true;
+}
+
+
 function initAuthToggle(){
   const tabLogin = $("tabLogin");
   const tabSignup = $("tabSignup");
@@ -284,3 +364,5 @@ document.addEventListener("DOMContentLoaded", () => {
     if (hp.email && $("authEmailPage")) $("authEmailPage").value = hp.email;
   }
 })();
+
+document.addEventListener("DOMContentLoaded", async () => { const inReset = await maybeHandlePasswordReset(); if (inReset) return; });
