@@ -65,3 +65,18 @@
     });
   }
 })();
+
+
+// Highlight active header button based on current page
+(function setActiveNav(){
+  const path = location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll('.header .btnGhost, .header .btnPrimary').forEach(btn=>{
+    const href = btn.getAttribute("href");
+    if (!href) return;
+    if (href === path){
+      btn.classList.add("isActive");
+    } else {
+      btn.classList.remove("isActive");
+    }
+  });
+})();

@@ -1707,3 +1707,13 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 }
 
 .container{ padding-top: var(--header-offset); }
+
+
+/* Active header button (current page) */
+.header .isActive{
+  background: #fff !important;
+  color: #000 !important;
+}
+.header .isActive .btnLabel{
+  color: #000 !important;
+}
