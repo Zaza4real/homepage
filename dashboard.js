@@ -25,7 +25,16 @@ function hideAdminUI() {
   function setDiag(txt) { setText("dashDiag", txt || ""); }
   function setMsg(txt) { setText("dashMsg", txt || ""); }
 
-  function fmtDate(iso) {
+  
+function esc(s){
+  return String(s ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+function fmtDate(iso) {
     try { return new Date(iso).toLocaleString(); } catch { return iso || ""; }
   }
 

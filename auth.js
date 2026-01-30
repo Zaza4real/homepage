@@ -1,3 +1,28 @@
+
+function initAuthToggle(){
+  const tabLogin = $("tabLogin");
+  const tabSignup = $("tabSignup");
+  const confirm = $("confirmPassWrap");
+
+  if (!tabLogin || !tabSignup) return;
+
+  const setMode = (mode) => {
+    if (mode === "login") {
+      tabLogin.classList.add("isActive");
+      tabSignup.classList.remove("isActive");
+      if (confirm) confirm.style.display = "none";
+    } else {
+      tabSignup.classList.add("isActive");
+      tabLogin.classList.remove("isActive");
+      if (confirm) confirm.style.display = "none";
+    }
+    $("authMsgPage").textContent = "";
+  };
+
+  tabLogin.addEventListener("click", () => setMode("login"));
+  tabSignup.addEventListener("click", () => setMode("signup"));
+  setMode("login");
+}
 // Auth page script
 (() => {
   const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
