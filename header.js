@@ -1,82 +1,141 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const buttons = document.querySelectorAll(".nav-btn");
-  const underline = document.querySelector(".tabUnderline");
-  const menuBtn = document.querySelector(".menu-toggle");
-  const nav = document.querySelector(".tabs");
+;// Shared header behavior for all pages
+(() => {
+  const AUTH_TOKEN_KEY = "lypo_token_v1";
+  const token = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
+  const isAuthed = () => !!token();
 
-  function normalizePath(p) {
-    // "/support.html" -> "/support", "/" stays "/"
-    const clean = (p || "/").split("?")[0].split("#")[0];
-    if (clean === "/" || clean === "") return "/";
-    return clean.replace(/\.html$/i, "");
+  const authBtn = document.querySelector(".headerAuthBtn");
+  const dashBtn = document.querySelector('[data-nav="dashboard"]');
+  const logoLink = document.querySelector(".logoWrap");
+  const tabs = document.querySelectorAll(".tabBtn");
+
+  // Make logo always go to homepage
+  if (logoLink) {
+    logoLink.setAttribute("href", "index.html");
   }
 
-  function moveUnderline(btn) {
-    if (!btn || !underline) return;
-    const parentRect = btn.parentElement.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-    underline.style.width = `${btnRect.width}px`;
-    underline.style.transform = `translateX(${btnRect.left - parentRect.left}px)`;
-  }
+  // Highlight current page in header
+  const path = (location.pathname || "").toLowerCase();
+  const filename = path.split("/").pop() || "index.html";
+  const isIndex = filename === "" || filename === "index.html" || filename === "/";
+  const isDashboard = filename.includes("dashboard");
+  const isAuth = filename.includes("auth");
 
-  function setActive() {
-    const current = normalizePath(window.location.pathname);
+  if (dashBtn) dashBtn.classList.toggle("isActive", isDashboard);
 
+  // Tabs active state + underline
+  const tabsNav = document.querySelector(".tabs");
+  let underlineEl = null;
+
+  const ensureUnderline = () => {
+    if (!tabsNav) return null;
+    if (underlineEl) return underlineEl;
+    underlineEl = document.createElement("div");
+    underlineEl.className = "tabUnderline";
+    tabsNav.appendChild(underlineEl);
+    return underlineEl;
+  };
+
+  const getDesiredActiveKey = () => {
+    // index.html can set tab via ?tab=
+    const params = new URLSearchParams(location.search || "");
+    const tabParam = (params.get("tab") || "").toLowerCase();
+    if (isIndex) {
+      return tabParam || "home";
+    }
+    // non-index pages: match by filename (support.html, features.html, etc.)
+    return filename;
+  };
+
+  const setActiveTab = () => {
+    const key = getDesiredActiveKey();
     let activeBtn = null;
-    buttons.forEach((btn) => {
-      const btnPath = normalizePath(btn.dataset.path || btn.getAttribute("href") || "/");
+
+    tabs.forEach((btn) => {
+      const href = (btn.getAttribute("data-href") || "").toLowerCase();
+      const tab = (btn.getAttribute("data-tab") || "").toLowerCase();
+
       const isActive =
-        btnPath === current ||
-        (btnPath !== "/" && current.startsWith(btnPath + "/")); // subpages stay active
+        (isIndex && tab && tab === key) ||
+        (!isIndex && href && href === key);
 
       btn.classList.toggle("isActive", isActive);
       btn.setAttribute("aria-selected", isActive ? "true" : "false");
+
       if (isActive) activeBtn = btn;
     });
 
-    moveUnderline(activeBtn);
-  }
+    // If nothing matched (edge case), default to Demo/home
+    if (!activeBtn && tabs.length) {
+      activeBtn = tabs[0];
+      activeBtn.classList.add("isActive");
+      activeBtn.setAttribute("aria-selected", "true");
+    }
 
-  function setMenuOpen(open) {
-    if (!nav || !menuBtn) return;
-    nav.classList.toggle("open", open);
-    menuBtn.classList.toggle("isOpen", open);
-    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
-  }
+    // Move underline
+    if (tabsNav && activeBtn) {
+      const ul = ensureUnderline();
+      if (!ul) return;
 
-  // Mobile menu toggle
-  if (menuBtn && nav) {
-    menuBtn.setAttribute("aria-expanded", "false");
+      const navRect = tabsNav.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
 
-    menuBtn.addEventListener("click", () => {
-      setMenuOpen(!nav.classList.contains("open"));
+      const left = Math.max(0, btnRect.left - navRect.left);
+      const width = Math.max(12, btnRect.width);
+
+      ul.style.transform = `translateX(${left}px)`;
+      ul.style.width = `${width}px`;
+      ul.style.opacity = "1";
+    }
+  };
+
+  if (authBtn) {
+    const applyAuthState = () => {
+      if (isAuthed()) {
+        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
+        authBtn.setAttribute("href", "#");
+        authBtn.classList.add("isActive", false);
+      } else {
+        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
+        authBtn.setAttribute("href", "auth.html");
+        authBtn.classList.toggle("isActive", isAuth);
+      }
+    };
+
+    applyAuthState();
+
+    authBtn.addEventListener("click", (e) => {
+      if (isAuthed()) {
+        e.preventDefault();
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        // go home after logout
+        location.href = "index.html";
+      }
     });
+  }
 
-    // Close after clicking a nav link (mobile-friendly)
-    buttons.forEach((btn) => {
+  // Tab navigation
+  if (tabs.length) {
+    tabs.forEach((btn) => {
       btn.addEventListener("click", () => {
-        setMenuOpen(false);
+        const href = btn.getAttribute("data-href");
+        if (href) {
+          location.href = href;
+          return;
+        }
+        const tab = btn.getAttribute("data-tab") || "home";
+        // If we're already on index, keep it on index and update the tab query param
+        location.href = `index.html?tab=${encodeURIComponent(tab)}`;
       });
     });
-
-    // Close if clicking outside the menu
-    document.addEventListener("click", (e) => {
-      if (!nav.classList.contains("open")) return;
-      const target = e.target;
-      if (target instanceof Element) {
-        const clickedInside = nav.contains(target) || menuBtn.contains(target);
-        if (!clickedInside) setMenuOpen(false);
-      }
-    });
-
-    // If user rotates / resizes back to desktop, ensure menu is reset
-    window.addEventListener("resize", () => {
-      if (window.matchMedia("(min-width: 769px)").matches) {
-        setMenuOpen(false);
-      }
-      setActive(); // keep underline accurate
-    });
   }
 
-  setActive();
-});
+  // Initialize active state + underline
+  const sync = () => requestAnimationFrame(setActiveTab);
+  sync();
+  window.addEventListener("resize", () => {
+    // avoid layout thrash
+    clearTimeout(window.__lypoTabResizeT);
+    window.__lypoTabResizeT = setTimeout(sync, 60);
+  });
+})();
