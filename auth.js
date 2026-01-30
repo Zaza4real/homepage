@@ -75,7 +75,38 @@ setMsg("Logging in…");
     window.location.href = "index.html";
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  
+
+async function maybeHandleEmailVerify() {
+  const hash = String(location.hash || "");
+  if (!hash.includes("verify=")) return false;
+
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const token = params.get("verify") || "";
+  const email = params.get("email") || "";
+
+  // Clean URL (keep page but remove token from address bar)
+  history.replaceState(null, "", "auth.html");
+
+  try {
+    setMsg("Verifying email…");
+    await apiFetch("/api/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ email, token }),
+    });
+    setMsg("✅ Email verified! You can now log in.");
+    // Focus login
+    showConfirmPass(false);
+    $("authEmailPage") && ($("authEmailPage").value = email);
+    $("authPassPage")?.focus();
+    return true;
+  } catch (e) {
+    setMsg(e?.message || "Could not verify email.");
+    return true;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
     $("btnSignupPage")?.addEventListener("click", () => doSignup().catch(e => setMsg(`Signup failed: ${e.message}`)));
     $("btnLoginPage")?.addEventListener("click", () => doLogin().catch(e => setMsg(`Login failed: ${e.message}`)));
 

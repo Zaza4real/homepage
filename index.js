@@ -42,6 +42,12 @@ import bcrypt from "bcryptjs";
 import pg from "pg";
 import { Resend } from "resend";
 
+
+// asyncHandler helper (prevents unhandled promise rejections in routes)
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+
 const app = express();
 
 function requireAdmin(req, res, next) {
@@ -71,6 +77,8 @@ const allowedOrigins = new Set([
   "https://www.lypo.org",
   process.env.FRONTEND_URL || ""
 ].filter(Boolean));
+const resend = new Resend(process.env.RESEND_API_KEY || "");
+
 
 const CORS_ALLOW_ALL = process.env.CORS_ALLOW_ALL === "1";
 
@@ -110,6 +118,40 @@ if (process.env.RESEND_API_KEY) {
 }
 const EMAIL_FROM = process.env.EMAIL_FROM || "LYPO <no-reply@lypo.org>";
 const SUPPORT_TO = process.env.SUPPORT_TO || process.env.SUPPORT_EMAIL || process.env.ADMIN_EMAIL || "";
+
+
+
+async function sendEmailVerification({ email, token }) {
+  const apiKey = (process.env.RESEND_API_KEY || "").trim();
+  const from = (process.env.RESEND_FROM || "support@lypo.org").trim();
+  if (!apiKey) {
+    console.log("🔑 Email verify link (Resend not configured):", `${FRONTEND_URL}/auth.html#verify=${token}&email=${encodeURIComponent(email)}`);
+    return;
+  }
+
+  const verifyUrl = `${FRONTEND_URL}/auth.html#verify=${token}&email=${encodeURIComponent(email)}`;
+
+  await resend.emails.send({
+    from,
+    to: email,
+    subject: "Welcome to LYPO — confirm your email",
+    html: `
+      <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.5; color: #111;">
+        <h2 style="margin:0 0 8px 0;">Welcome to LYPO 👋</h2>
+        <p style="margin:0 0 14px 0;">Please confirm your email to activate your account.</p>
+        <p style="margin:0 0 18px 0;">
+          <a href="${verifyUrl}" style="display:inline-block; padding:10px 14px; background:#111; color:#fff; text-decoration:none; border-radius:10px;">
+            Confirm email
+          </a>
+        </p>
+        <p style="margin:0; font-size:12px; color:#444;">If the button doesn't work, open this link:</p>
+        <p style="margin:6px 0 0 0; font-size:12px; color:#444;">${verifyUrl}</p>
+      </div>
+    `,
+  });
+
+  console.log("📩 Verification email sent to:", email);
+}
 
 async function sendSupportEmail({ fromEmail, subject, message, authedEmail }) {
   const to = SUPPORT_TO;
@@ -192,7 +234,15 @@ async function initDb() {
     ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;
   `);
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS payments (
+    
+CREATE TABLE IF NOT EXISTS email_verifications (
+  token TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  used_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS payments (
       id BIGSERIAL PRIMARY KEY,
       email TEXT NOT NULL,
       stripe_session_id TEXT UNIQUE,
@@ -284,15 +334,43 @@ async function resolveInvoiceUrlBySessionId(sessionId) {
 
 async function recordPayment({ email, stripeSessionId, amountUsd, lypos, status, invoiceUrl }) {
   const e = normEmail(email);
-  await pool.query(
-    `INSERT INTO payments (email, stripe_session_id, amount_usd, lypos, status, invoice_url)
-     VALUES ($1,$2,$3,$4,$5,$6)
-     ON CONFLICT (stripe_session_id) DO UPDATE SET
-       status=EXCLUDED.status,
-       invoice_url=COALESCE(EXCLUDED.invoice_url, payments.invoice_url)`,
-    [e, stripeSessionId || null, Number(amountUsd||0), Math.trunc(lypos||0), status || "completed", invoiceUrl || null]
-  );
+  const sid = stripeSessionId || null;
+  if (!sid) throw new Error("Missing stripeSessionId");
+
+  // Idempotent write without requiring a UNIQUE constraint (Render DB schema may differ).
+  // Strategy: try UPDATE first; if nothing updated, INSERT if not exists.
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const upd = await client.query(
+      `UPDATE payments
+         SET status=$1,
+             invoice_url=COALESCE($2, invoice_url),
+             amount_usd=COALESCE(NULLIF($3,0), amount_usd),
+             lypos=COALESCE(NULLIF($4,0), lypos)
+       WHERE stripe_session_id=$5 AND email=$6`,
+      [status || "completed", invoiceUrl || null, Number(amountUsd || 0), Math.trunc(lypos || 0), sid, e]
+    );
+
+    if (upd.rowCount === 0) {
+      await client.query(
+        `INSERT INTO payments (email, stripe_session_id, amount_usd, lypos, status, invoice_url)
+         SELECT $1,$2,$3,$4,$5,$6
+         WHERE NOT EXISTS (SELECT 1 FROM payments WHERE stripe_session_id=$2 AND email=$1)`,
+        [e, sid, Number(amountUsd || 0), Math.trunc(lypos || 0), status || "completed", invoiceUrl || null]
+      );
+    }
+
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
+
 
 async function upsertVideo({ email, predictionId, status, inputUrl, outputUrl }) {
   const e = normEmail(email);
@@ -480,6 +558,23 @@ app.post("/api/auth/signup", async (req, res) => {
   res.json({ token: signToken(e, row?.is_admin), user: publicUserRow(row) });
 });
 
+
+
+app.post("/api/auth/verify-email", asyncHandler(async (req, res) => {
+  const email = normEmail(String(req.body.email || ""));
+  const token = String(req.body.token || "").trim();
+  if (!email || !token) return res.status(400).json({ error: "Missing email or token" });
+
+  const row = (await pool.query("SELECT token, email, used_at FROM email_verifications WHERE token=$1 AND email=$2", [token, email])).rows[0];
+  if (!row) return res.status(400).json({ error: "Invalid token" });
+  if (row.used_at) return res.status(400).json({ error: "Token already used" });
+
+  await pool.query("UPDATE email_verifications SET used_at=NOW() WHERE token=$1", [token]);
+  await pool.query("UPDATE users SET is_verified=TRUE WHERE email=$1", [email]);
+
+  res.json({ ok: true });
+}));
+
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: "Missing email/password" });
@@ -521,6 +616,53 @@ app.get("/api/admin/status", auth, async (req, res) => {
   return res.json({ isAdmin: isAdminEmail(req.user?.email), email: req.user?.email || null });
 });
 
+
+app.get("/api/admin/users", auth, requireAdmin, asyncHandler(async (req, res) => {
+  const q = String(req.query.q || "").trim().toLowerCase();
+  const limit = Math.min(200, Math.max(1, parseInt(String(req.query.limit || "50"), 10) || 50));
+  const offset = Math.max(0, parseInt(String(req.query.offset || "0"), 10) || 0);
+
+  const params = [];
+  let where = "";
+  if (q) {
+    params.push(`%${q}%`);
+    where = `WHERE lower(email) LIKE $${params.length}`;
+  }
+  params.push(limit);
+  params.push(offset);
+
+  const { rows } = await pool.query(
+    `SELECT email, balance, is_admin, created_at FROM users ${where} ORDER BY created_at DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
+    params
+  );
+  res.json({ users: rows });
+}));
+
+app.get("/api/admin/user-lookup", auth, requireAdmin, asyncHandler(async (req, res) => {
+  const email = normEmail(String(req.query.email || ""));
+  if (!email) return res.status(400).json({ error: "Email required" });
+
+  const u = await getUserByEmail(email);
+  if (!u) return res.status(404).json({ error: "User not found" });
+
+  const payments = (await pool.query(
+    "SELECT stripe_session_id, amount_usd, lypos, status, invoice_url, created_at FROM payments WHERE email=$1 ORDER BY created_at DESC LIMIT 100",
+    [email]
+  )).rows;
+
+  const videos = (await pool.query(
+    "SELECT prediction_id, status, input_url, output_url, cost_credits, refunded, created_at, updated_at FROM videos WHERE email=$1 ORDER BY created_at DESC LIMIT 100",
+    [email]
+  )).rows;
+
+  res.json({
+    user: { email: u.email, balance: u.balance, is_admin: u.is_admin, created_at: u.created_at },
+    payments,
+    videos
+  });
+}));
+
+
 app.post("/api/admin/add-credits", auth, async (req, res) => {
   if (!isAdminEmail(req.user?.email)) return res.status(403).json({ error: "NOT_AUTHORIZED" });
 
@@ -560,28 +702,56 @@ app.post("/api/credits/charge", auth, async (req, res) => {
 
 
 // ---- Account dashboard
-app.get("/api/account/payments", auth, async (req, res) => {
+app.get("/api/account/payments", auth, asyncHandler(async (req, res) => {
   const email = normEmail(req.user.email);
-
-  // Recover missed Stripe payments
-  try {
-    const sessions = await stripe.checkout.sessions.list({
-      limit: 5,
-      customer_email: email
-    });
-    for (const s of sessions.data) {
-      if (s.payment_status === "paid") {
-        await recordPaymentFromSessionIfMissing(s.id, email);
-      }
-    }
-  } catch (e) {}
-
   const { rows } = await pool.query(
     "SELECT stripe_session_id, amount_usd, lypos, status, invoice_url, created_at FROM payments WHERE email=$1 ORDER BY created_at DESC LIMIT 100",
     [email]
   );
   res.json({ payments: rows });
+}));
+
+app.get("/api/account/videos", auth, asyncHandler(async (req, res) => {
+  const email = normEmail(req.user.email);
+  const { rows } = await pool.query(
+    "SELECT prediction_id, status, input_url, output_url, created_at FROM videos WHERE email=$1 ORDER BY created_at DESC LIMIT 100",
+    [email]
+  );
+  res.json({ videos: rows });
+}));
+
+
+// ---- Stripe checkout: buy LYPOS
+app.post("/api/stripe/create-checkout-session", auth, async (req, res) => {
+  const frontendBase = (process.env.FRONTEND_URL || "").trim() || (req.headers.origin || "").trim() || FRONTEND_URL;
+  const usd = Number(req.body?.usd || 0);
+  if (!Number.isFinite(usd) || usd <= 0) return res.status(400).json({ error: "Invalid usd" });
+
+  const email = req.user.email;
+  const lypos = Math.round(usd * LYPOS_PER_USD);
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: email,
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          unit_amount: Math.round(usd * 100),
+          product_data: { name: `${lypos} Credits` }
+        },
+        quantity: 1
+      }
+    ],
+    metadata: { email, lypos: String(lypos) },
+    success_url: `${frontendBase}/dashboard.html?paid=1&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${frontendBase}/dashboard.html?paid=0`
+  });
+
+  res.json({ url: session.url });
 });
+
+
 
 
 app.get("/api/account/videos", auth, async (req, res) => {
@@ -625,12 +795,12 @@ app.post("/api/stripe/create-checkout-session", auth, async (req, res) => {
 
 // Confirm Checkout Session on return (fallback if webhook is not configured)
 // Idempotent: will not double-credit if already recorded.
-app.get("/api/stripe/confirm", auth, async (req, res) => {
+app.get("/api/stripe/confirm", auth, asyncHandler(async (req, res) => {
   const sessionId = String(req.query?.session_id || "").trim();
   if (!sessionId) return res.status(400).json({ error: "Missing session_id" });
 
   // Retrieve the session from Stripe
-  const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["payment_intent", "payment_intent.charges"] });
+  const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["payment_intent", "payment_intent.latest_charge"] });
 
   // Must belong to the logged-in user
   const email = req.user.email;
@@ -659,7 +829,10 @@ app.get("/api/stripe/confirm", auth, async (req, res) => {
       invoiceUrl = inv.invoice_pdf || inv.hosted_invoice_url || null;
     } else {
       const pi = session.payment_intent;
-      const charge = pi?.charges?.data?.[0];
+      let charge = pi?.latest_charge;
+      if (charge && typeof charge === "string") {
+        charge = await stripe.charges.retrieve(charge);
+      }
       invoiceUrl = charge?.receipt_url || null;
     }
   } catch {
@@ -686,8 +859,8 @@ app.get("/api/stripe/confirm", auth, async (req, res) => {
   }
 
   const bal = await getBalance(email);
-  res.json({ ok: true, balance: bal, invoice_url: invoiceUrl });
-});
+  res.json({ ok: true, balance: bal, invoice_url: invoiceUrl, invoiceUrl });
+}));
 
 /* ---------------------------
    ENV
@@ -711,6 +884,11 @@ function requireEnv(name, value) {
   }
   return value;
 }
+
+
+/* ---------------------------
+   ENV
+---------------------------- */
 
 /* ---------------------------
    Replicate client
