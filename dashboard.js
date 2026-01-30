@@ -153,6 +153,9 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       return;
     }
 
+    // Confirm Stripe redirect (record payment + add credits)
+    await maybeConfirmStripeReturn();
+
     try {
       const me = await apiFetch("/api/auth/me");
       const email = me?.user?.email || "—";
