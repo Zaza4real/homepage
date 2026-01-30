@@ -107,7 +107,16 @@ async function maybeHandleEmailVerify() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    $("btnSignupPage")?.addEventListener("click", () => doSignup().catch(e => setMsg(`Signup failed: ${e.message}`)));
+    $("btnSignupPage")?.addEventListener("click", () => {
+    const wrap = $("confirmPassWrap");
+    if (wrap && wrap.style.display === "none") {
+      wrap.style.display = "";
+      $("authPass2Page")?.focus();
+      setMsg("Confirm your password to finish sign up.");
+      return;
+    }
+    doSignup();
+  });
     $("btnLoginPage")?.addEventListener("click", () => doLogin().catch(e => setMsg(`Login failed: ${e.message}`)));
 
     // Enter submits login
