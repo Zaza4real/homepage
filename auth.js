@@ -131,6 +131,66 @@ async function maybeHandleEmailVerify() {
   }
 }
 
+
+
+function setResetMsg(msg){
+  const el = document.getElementById("resetMsg");
+  if (el) el.textContent = msg || "";
+}
+
+async function maybeHandlePasswordReset() {
+  const hash = String(location.hash || "");
+  if (!hash.includes("reset=")) return false;
+
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const token = params.get("reset") || "";
+  const email = params.get("email") || "";
+
+  // Show reset UI
+  const resetCard = document.getElementById("resetCard");
+  if (resetCard) resetCard.style.display = "block";
+
+  // Hide normal auth UI (login/signup)
+  const authCard = document.querySelector(".authCard");
+  if (authCard) authCard.style.display = "none";
+
+  // Clean URL so token isn't kept in address bar history
+  history.replaceState(null, "", "auth.html");
+
+  const btn = document.getElementById("btnDoReset");
+  if (!btn) return true;
+
+  btn.onclick = async () => {
+    const p1 = document.getElementById("resetPass1")?.value || "";
+    const p2 = document.getElementById("resetPass2")?.value || "";
+    if (!p1 || !p2) { setResetMsg("Please enter your new password twice."); return; }
+    if (p1 !== p2) { setResetMsg("Passwords do not match."); return; }
+    if (p1.length < 6) { setResetMsg("Password too short (min 6 characters)."); return; }
+
+    try {
+      btn.disabled = true;
+      setResetMsg("Updating password…");
+      await apiFetch("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ email, token, password: p1 }),
+      });
+      setResetMsg("✅ Password updated. You can now log in.");
+      // After success, show normal auth UI again
+      if (authCard) authCard.style.display = "";
+      if (resetCard) resetCard.style.display = "none";
+      document.getElementById("authEmailPage") && (document.getElementById("authEmailPage").value = email);
+      document.getElementById("authPassPage")?.focus();
+    } catch (e) {
+      setResetMsg(e?.message || "Could not reset password. Please request a new link.");
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  return true;
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
     $("btnSignupPage")?.addEventListener("click", () => {
     const wrap = $("confirmPassWrap");
