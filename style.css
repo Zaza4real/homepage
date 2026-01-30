@@ -1831,3 +1831,52 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
   /* Underline isn't useful in stacked layout */
   .tabUnderline{ display:none; }
 }
+
+
+/* --- Footer (Terms / Privacy) --- */
+.site-footer{
+  border-top: 1px solid rgba(255,255,255,0.10);
+  padding: 24px 0;
+  margin-top: 80px;
+  font-size: 14px;
+}
+.footer-inner{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 16px;
+}
+.footer-links{
+  display:flex;
+  gap: 16px;
+  align-items:center;
+}
+.footer-links a{
+  color:#aaa;
+  text-decoration:none;
+  transition: color .2s ease;
+}
+.footer-links a:hover{
+  color:#fff;
+}
+@media (max-width: 768px){
+  .footer-inner{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* --- Legal pages --- */
+.legal{
+  max-width: 820px;
+  margin: 80px auto;
+  padding: 0 20px;
+}
+.legal h1{ margin-bottom: 10px; }
+.legal-updated{ color:#aaa; margin-bottom: 28px; }
+.legal h2{ margin-top: 28px; margin-bottom: 8px; }
+.legal p{ line-height: 1.6; }
+
