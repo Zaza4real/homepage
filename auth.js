@@ -64,10 +64,8 @@
 
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
-    const password2 = $("authPass2Page")?.value || "";
     if (!email || !password) { setMsg("Please enter email + password."); return; }
-    if (password !== password2) { setMsg("Passwords do not match."); return; }
-    setMsg("Logging in…");
+setMsg("Logging in…");
     const out = await apiFetch("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password })
