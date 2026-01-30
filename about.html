@@ -17,23 +17,25 @@
   </div>
 
   <header class="header">
-    <a class="logoWrap" href="#" aria-label="LYPO Home" data-go="home">
+    <a class="logoWrap" href="index.html" aria-label="LYPO Home">
       <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
     </a>
 
     <nav class="tabs" role="tablist" aria-label="LYPO tabs">
-      <button class="tabBtn isActive" role="tab" aria-selected="true" data-tab="home" type="button">Demo</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="home" type="button">Demo</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="features.html" type="button">Features</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="support.html" type="button">Support</button>
       <button class="tabBtn" role="tab" aria-selected="false" data-href="blog.html" type="button">Blog</button>
-      <button class="tabBtn" role="tab" aria-selected="false" data-href="about.html" type="button">About</button>
+      <button class="tabBtn isActive" role="tab" aria-selected="true" data-href="about.html" type="button">About</button>
     </nav>
 
     <div class="headerRight">
-      <button class="btnPrimary headerAuthBtn" id="headerAuth" data-auth-page="1" type="button">
-        <span class="btnLabel" id="headerAuthLabel">Login</span>
-        <span class="btnGlow"></span>
-      </button>
+      <a class="btnPrimary headerAuthBtn" href="auth.html" style="text-decoration:none;">
+        <span class="btnLabel">Login</span><span class="btnGlow"></span>
+      </a>
+      <a class="btnGhost" data-nav="dashboard" href="dashboard.html" style="text-decoration:none;">
+        <span class="btnLabel">Dashboard</span><span class="btnGlow"></span>
+      </a>
     </div>
   </header>
 

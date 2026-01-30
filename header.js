@@ -44,11 +44,11 @@
     const applyAuthState = () => {
       if (isAuthed()) {
         authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
-        authBtn.setAttribute("aria-label", "Logout");
+        authBtn.setAttribute("href", "#");
         authBtn.classList.add("isActive", false);
       } else {
         authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
-        authBtn.setAttribute("aria-label", "Login");
+        authBtn.setAttribute("href", "auth.html");
         authBtn.classList.toggle("isActive", isAuth);
       }
     };
@@ -59,28 +59,9 @@
       if (isAuthed()) {
         e.preventDefault();
         localStorage.removeItem(AUTH_TOKEN_KEY);
+        // go home after logout
         location.href = "index.html";
-        return;
       }
-      // Not authed: go to login page
-      location.href = "auth.html";
     });
-}
-})()
-
-
-// Active header tab (white pill) based on current page
-(function applyActiveHeaderTab(){
-  const page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-  const btns = Array.from(document.querySelectorAll(".tabs .tabBtn"));
-  if (!btns.length) return;
-
-  btns.forEach((b) => {
-    const href = (b.getAttribute("data-href") || "").toLowerCase();
-    const tab = (b.getAttribute("data-tab") || "").toLowerCase();
-    const isHome = (page === "index.html" || page === "");
-    const shouldBeActive = (href && href === page) || (isHome && tab === "home");
-    b.classList.toggle("isActive", !!shouldBeActive);
-    b.setAttribute("aria-selected", shouldBeActive ? "true" : "false");
-  });
+  }
 })();

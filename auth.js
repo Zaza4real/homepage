@@ -1,28 +1,3 @@
-
-function initAuthToggle(){
-  const tabLogin = $("tabLogin");
-  const tabSignup = $("tabSignup");
-  const confirm = $("confirmPassWrap");
-
-  if (!tabLogin || !tabSignup) return;
-
-  const setMode = (mode) => {
-    if (mode === "login") {
-      tabLogin.classList.add("isActive");
-      tabSignup.classList.remove("isActive");
-      if (confirm) confirm.style.display = "none";
-    } else {
-      tabSignup.classList.add("isActive");
-      tabLogin.classList.remove("isActive");
-      if (confirm) confirm.style.display = "none";
-    }
-    $("authMsgPage").textContent = "";
-  };
-
-  tabLogin.addEventListener("click", () => setMode("login"));
-  tabSignup.addEventListener("click", () => setMode("signup"));
-  setMode("login");
-}
 // Auth page script
 (() => {
   const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
@@ -31,11 +6,6 @@ function initAuthToggle(){
   const $ = (id) => document.getElementById(id);
 
   function setMsg(msg){ const el=$("authMsgPage"); if(el) el.textContent = msg || ""; }
-
-  function showConfirmPass(show){
-    const wrap = $("confirmPassWrap");
-    if (wrap) wrap.style.display = show ? "" : "none";
-  }
 
   async function apiFetch(path, opts = {}) {
     const headers = new Headers(opts.headers || {});
@@ -71,9 +41,7 @@ function initAuthToggle(){
 
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
-    const password2 = $("authPass2Page")?.value || "";
     if (!email || !password) { setMsg("Please enter email + password."); return; }
-    if (password !== password2) { setMsg("Passwords do not match."); return; }
     setMsg("Creating account…");
     const out = await apiFetch("/api/auth/signup", {
       method: "POST",
@@ -90,7 +58,7 @@ function initAuthToggle(){
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
     if (!email || !password) { setMsg("Please enter email + password."); return; }
-setMsg("Logging in…");
+    setMsg("Logging in…");
     const out = await apiFetch("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password })
@@ -100,48 +68,8 @@ setMsg("Logging in…");
     window.location.href = "index.html";
   }
 
-  
-
-async function maybeHandleEmailVerify() {
-  const hash = String(location.hash || "");
-  if (!hash.includes("verify=")) return false;
-
-  const params = new URLSearchParams(hash.replace(/^#/, ""));
-  const token = params.get("verify") || "";
-  const email = params.get("email") || "";
-
-  // Clean URL (keep page but remove token from address bar)
-  history.replaceState(null, "", "auth.html");
-
-  try {
-    setMsg("Verifying email…");
-    await apiFetch("/api/auth/verify-email", {
-      method: "POST",
-      body: JSON.stringify({ email, token }),
-    });
-    setMsg("✅ Email verified! You can now log in.");
-    // Focus login
-    showConfirmPass(false);
-    $("authEmailPage") && ($("authEmailPage").value = email);
-    $("authPassPage")?.focus();
-    return true;
-  } catch (e) {
-    setMsg(e?.message || "Could not verify email.");
-    return true;
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    $("btnSignupPage")?.addEventListener("click", () => {
-    const wrap = $("confirmPassWrap");
-    if (wrap && wrap.style.display === "none") {
-      wrap.style.display = "";
-      $("authPass2Page")?.focus();
-      setMsg("Confirm your password to finish sign up.");
-      return;
-    }
-    doSignup();
-  });
+  document.addEventListener("DOMContentLoaded", () => {
+    $("btnSignupPage")?.addEventListener("click", () => doSignup().catch(e => setMsg(`Signup failed: ${e.message}`)));
     $("btnLoginPage")?.addEventListener("click", () => doLogin().catch(e => setMsg(`Login failed: ${e.message}`)));
 
     // Enter submits login
