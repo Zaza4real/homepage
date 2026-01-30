@@ -7,6 +7,11 @@
 
   function setMsg(msg){ const el=$("authMsgPage"); if(el) el.textContent = msg || ""; }
 
+  function showConfirmPass(show){
+    const wrap = $("confirmPassWrap");
+    if (wrap) wrap.style.display = show ? "" : "none";
+  }
+
   async function apiFetch(path, opts = {}) {
     const headers = new Headers(opts.headers || {});
     if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
@@ -41,7 +46,9 @@
 
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
+    const password2 = $("authPass2Page")?.value || "";
     if (!email || !password) { setMsg("Please enter email + password."); return; }
+    if (password !== password2) { setMsg("Passwords do not match."); return; }
     setMsg("Creating account…");
     const out = await apiFetch("/api/auth/signup", {
       method: "POST",
@@ -57,7 +64,9 @@
 
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
+    const password2 = $("authPass2Page")?.value || "";
     if (!email || !password) { setMsg("Please enter email + password."); return; }
+    if (password !== password2) { setMsg("Passwords do not match."); return; }
     setMsg("Logging in…");
     const out = await apiFetch("/api/auth/login", {
       method: "POST",

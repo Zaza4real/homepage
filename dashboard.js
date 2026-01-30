@@ -16,8 +16,10 @@ let editingBlogId = null;
 function hideAdminUI() {
   document.getElementById("adminCard")?.remove();
   document.getElementById("blogAdminCard")?.remove();
+  document.getElementById("adminLookupCard")?.remove();
   document.getElementById("dashAdminTop")?.remove();
 }
+
 
 
   function setDiag(txt) { setText("dashDiag", txt || ""); }
@@ -232,6 +234,128 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
   }
 
   // --- Admin Blog (only loaded for admins) ---
+
+
+async function adminLookupUser(email) {
+  const q = new URLSearchParams({ email: (email || "").trim() }).toString();
+  return apiFetch(`/api/admin/user-lookup?${q}`, { method: "GET" });
+}
+
+function fmtDate(ts) {
+  try {
+    return new Date(ts).toLocaleString();
+  } catch {
+    return String(ts || "");
+  }
+}
+
+function renderLookup(result) {
+  const wrap = document.getElementById("lookupResult");
+  const msg = document.getElementById("lookupMsg");
+  const account = document.getElementById("lookupAccount");
+  const totals = document.getElementById("lookupTotals");
+  const payBody = document.getElementById("lookupPaymentsBody");
+  const vidBody = document.getElementById("lookupVideosBody");
+
+  if (!wrap || !account || !totals || !payBody || !vidBody) return;
+
+  wrap.style.display = "block";
+  msg.textContent = "";
+
+  const u = result.user;
+  const payments = result.payments || [];
+  const videos = result.videos || [];
+
+  const totalUsd = payments.reduce((a,p)=> a + Number(p.amount_usd || 0), 0);
+  const totalCredits = payments.reduce((a,p)=> a + Number(p.lypos || 0), 0);
+  const totalVideoCost = videos.reduce((a,v)=> a + Number(v.cost_credits || 0), 0);
+
+  account.innerHTML = `
+    <div><b>Email:</b> ${esc(u.email)}</div>
+    <div><b>Created:</b> ${esc(fmtDate(u.created_at))}</div>
+    <div><b>Balance:</b> ${esc(String(u.balance))}</div>
+    <div><b>Admin:</b> ${u.is_admin ? "Yes" : "No"}</div>
+  `;
+
+  totals.innerHTML = `
+    <div><b>Purchases:</b> ${payments.length}</div>
+    <div><b>Total spent:</b> $${totalUsd.toFixed(2)}</div>
+    <div><b>Total credits bought:</b> ${totalCredits}</div>
+    <div><b>Videos generated:</b> ${videos.length}</div>
+    <div><b>Total credits used:</b> ${totalVideoCost}</div>
+  `;
+
+  // Purchases
+  if (!payments.length) {
+    payBody.innerHTML = '<tr><td colspan="5" class="mutedCell">No purchases found</td></tr>';
+  } else {
+    payBody.innerHTML = payments.map(p => {
+      const receipt = p.invoice_url ? `<a class="link" href="${p.invoice_url}" target="_blank" rel="noopener">Open</a>` : '<span class="mutedCell">—</span>';
+      return `<tr>
+        <td>${esc(fmtDate(p.created_at))}</td>
+        <td>$${esc(String(p.amount_usd || 0))}</td>
+        <td>${esc(String(p.lypos || 0))}</td>
+        <td>${esc(String(p.status || ""))}</td>
+        <td>${receipt}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  // Videos
+  if (!videos.length) {
+    vidBody.innerHTML = '<tr><td colspan="5" class="mutedCell">No videos found</td></tr>';
+  } else {
+    vidBody.innerHTML = videos.map(v => {
+      const inL = v.input_url ? `<a class="link" href="${v.input_url}" target="_blank" rel="noopener">Input</a>` : '<span class="mutedCell">—</span>';
+      const outL = v.output_url ? `<a class="link" href="${v.output_url}" target="_blank" rel="noopener">Output</a>` : '<span class="mutedCell">—</span>';
+      return `<tr>
+        <td>${esc(fmtDate(v.created_at))}</td>
+        <td>${esc(String(v.status || ""))}</td>
+        <td>${esc(String(v.cost_credits || 0))}</td>
+        <td>${inL}</td>
+        <td>${outL}</td>
+      </tr>`;
+    }).join("");
+  }
+}
+
+
+
+function initAdminLookup() {
+  const card = document.getElementById("adminLookupCard");
+  if (card) card.style.display = "block";
+
+  const btn = document.getElementById("btnLookup");
+  const input = document.getElementById("lookupEmail");
+  const msg = document.getElementById("lookupMsg");
+
+  if (!btn || btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+
+  const run = async () => {
+    const email = (input?.value || "").trim();
+    if (!email) {
+      if (msg) msg.textContent = "Enter an email.";
+      return;
+    }
+    try {
+      if (msg) msg.textContent = "Searching…";
+      const result = await adminLookupUser(email);
+      renderLookup(result);
+      if (msg) msg.textContent = "Done.";
+    } catch (e) {
+      if (msg) msg.textContent = e?.message || "Lookup failed";
+    }
+  };
+
+  btn.addEventListener("click", run);
+  if (input) {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") run();
+    });
+  }
+}
+
 async function loadAdminBlog() {
   const body = $("blogBody");
   if (!body) return;
