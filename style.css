@@ -114,6 +114,11 @@ a{ color:inherit; text-decoration:none; }
   pointer-events:none;
 }
 .tabBtn{
+  appearance:none;
+  -webkit-appearance:none;
+  font-family: inherit;
+  line-height: 1;
+
   position:relative;
   border:1px solid rgba(255,255,255,.14);
   background:rgba(255,255,255,.06);
@@ -143,6 +148,11 @@ a{ color:inherit; text-decoration:none; }
   border:1px solid rgba(255,255,255,.18);
   opacity:0;
   pointer-events:none;
+}
+
+.tabBtn:focus-visible{
+  outline: 2px solid rgba(255,255,255,.30);
+  outline-offset: 2px;
 }
 .tabBtn:hover{
   transform:translateY(-1px);
@@ -1801,36 +1811,50 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 @media (max-width: 768px){
   .header{
     gap:10px;
+    position: relative;
   }
   .menuToggle{ display:inline-flex; align-items:center; justify-content:center; }
   .tabs{
-    width:100%;
-    flex-direction:column;
-    align-items:flex-start;
-    gap:10px;
-    padding-bottom:0;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    width: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(10,10,12,.72);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 22px 70px rgba(0,0,0,.55);
 
-    max-height:0;
-    overflow:hidden;
-    opacity:0;
-    transform: translateY(-8px);
-    pointer-events:none;
+    opacity: 0;
+    transform: translateY(-8px) scale(.98);
+    pointer-events: none;
+    visibility: hidden;
 
-    transition:
-      max-height .32s ease,
-      opacity .22s ease,
-      transform .22s ease;
+    transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
+    z-index: 50;
   }
   .tabs.open{
-    max-height:520px;
-    opacity:1;
-    transform: translateY(0);
-    pointer-events:auto;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    visibility: visible;
+    transition: opacity .18s ease, transform .18s ease, visibility 0s;
+  }
+
+  /* Make all tab buttons full-width and identical on mobile */
+  .tabs .tabBtn{
+    width: 100%;
   }
 
   /* Underline isn't useful in stacked layout */
   .tabUnderline{ display:none; }
 }
+
 
 
 /* --- Footer (Terms / Privacy) --- */

@@ -180,19 +180,55 @@
 
   // Tab navigation
   if (tabs.length) {
-    tabs.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const href = btn.getAttribute("data-href");
-        if (href) {
-          location.href = href;
-          return;
-        }
-        const tab = btn.getAttribute("data-tab") || "home";
-        // If we're already on index, keep it on index and update the tab query param
-        location.href = `index.html?tab=${encodeURIComponent(tab)}`;
+    
+  // Navigation behavior:
+  // - Buttons with data-href go to their page
+  // - "Demo" (data-tab="home") goes to index.html when not already there
+  // - On index.html, we do NOT force reloads; script.js handles tab panels.
+  tabs.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      // Make the pressed tab feel instant (avoid "clunky" delay)
+      tabs.forEach((b) => {
+        b.classList.remove("isActive");
+        b.setAttribute("aria-selected", "false");
       });
+      btn.classList.add("isActive");
+      btn.setAttribute("aria-selected", "true");
+
+      // Move underline immediately on desktop
+      if (tabsNav && window.matchMedia("(min-width: 769px)").matches) {
+        const ul = ensureUnderline();
+        const navRect = tabsNav.getBoundingClientRect();
+        const btnRect = btn.getBoundingClientRect();
+        const left = Math.max(0, btnRect.left - navRect.left);
+        const width = Math.max(12, btnRect.width);
+        ul.style.transform = `translateX(${left}px)`;
+        ul.style.width = `${width}px`;
+        ul.style.opacity = "1";
+      }
+
+      const href = btn.getAttribute("data-href");
+      if (href) {
+        // Normal page navigation
+        location.href = href;
+        return;
+      }
+
+      const tab = (btn.getAttribute("data-tab") || "home").toLowerCase();
+
+      // If we're not on index, Demo/Home should take us there (no query param needed)
+      if (!isIndex) {
+        location.href = "index.html";
+        return;
+      }
+
+      // On index.html: do NOT reload or change URL.
+      // The page's script.js already handles showing the correct tab panel.
+      // We simply prevent any default weirdness.
+      e.preventDefault();
     });
-  }
+  });
+}
 
   // Initialize active state + underline
   const sync = () => requestAnimationFrame(setActiveTab);
