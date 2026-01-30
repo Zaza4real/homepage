@@ -6,7 +6,9 @@ let editingBlogId = null;
   const token = localStorage.getItem(AUTH_TOKEN_KEY) || "";
 
   // Prefer explicit backend URL. If you change backend host, update this one place.
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+  const BACKEND_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+    ? "http://localhost:10000"
+    : "https://api.lypo.org";
 
   const $ = (id) => document.getElementById(id);
 
@@ -188,6 +190,7 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
           if (blogCard) blogCard.style.display = "block";
           if (typeof loadAdminBlog === "function") loadAdminBlog();
           if (typeof initAdminLookup === "function") initAdminLookup(true);
+          if (typeof initAdminUsersList === "function") initAdminUsersList(true);
         } else {
           setText("dashAdminTop", "Admin: NO");
           hideAdminUI();
@@ -372,6 +375,132 @@ function initAdminLookup(isAdmin) {
   }
 }
 
+function initAdminUsersList(isAdmin) {
+  const card = document.getElementById("adminLookupCard");
+  if (!card) return;
+  // Only for admins
+  let wrap = document.getElementById("adminUsersWrap");
+  if (!isAdmin) {
+    if (wrap) wrap.style.display = "none";
+    return;
+  }
+  if (wrap) {
+    wrap.style.display = "block";
+    return;
+  }
+
+  wrap = document.createElement("div");
+  wrap.id = "adminUsersWrap";
+  wrap.className = "card";
+  wrap.style.marginTop = "14px";
+  wrap.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div style="font-weight:700;">All users</div>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input id="adminUsersSearch" class="input" type="text" placeholder="Search email…" style="width:240px;" />
+        <button class="btnPrimary" id="btnAdminUsersSearch"><span class="btnLabel">Search</span></button>
+      </div>
+    </div>
+    <div class="hr" style="margin:14px 0;"></div>
+    <div id="adminUsersMsg" class="muted"></div>
+    <div id="adminUsersTable" style="overflow:auto; margin-top:10px;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px;">
+      <button class="btnPrimary" id="btnUsersPrev"><span class="btnLabel">Prev</span></button>
+      <div class="muted" id="adminUsersPage"></div>
+      <button class="btnPrimary" id="btnUsersNext"><span class="btnLabel">Next</span></button>
+    </div>
+  `;
+
+  // Place directly under lookup card content
+  const anchor = document.getElementById("lookupResult") || card;
+  anchor.parentElement ? anchor.parentElement.appendChild(wrap) : card.appendChild(wrap);
+
+  const state = { q: "", offset: 0, limit: 50 };
+
+  async function loadUsers() {
+    const msg = document.getElementById("adminUsersMsg");
+    const tableWrap = document.getElementById("adminUsersTable");
+    const pageEl = document.getElementById("adminUsersPage");
+    msg.textContent = "Loading…";
+    tableWrap.innerHTML = "";
+
+    try {
+      const data = await apiFetch(`/api/admin/users?limit=${state.limit}&offset=${state.offset}&q=${encodeURIComponent(state.q || "")}`);
+      const users = Array.isArray(data.users) ? data.users : [];
+      msg.textContent = users.length ? "" : "No users found.";
+
+      tableWrap.innerHTML = `
+        <table class="table" style="min-width:840px;">
+          <thead>
+            <tr><th>Email</th><th>Created</th><th>Balance</th><th>Admin</th><th style="width:260px;">Actions</th></tr>
+          </thead>
+          <tbody>
+            ${users.map(u => `
+              <tr data-email="${esc(u.email)}">
+                <td>${esc(u.email)}</td>
+                <td>${esc(fmtDate(u.created_at))}</td>
+                <td><input class="input" type="number" min="0" step="1" value="${Number(u.balance||0)}" style="width:120px;" /></td>
+                <td>${u.is_admin ? "YES" : "NO"}</td>
+                <td>
+                  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <button class="btnPrimary btnUserSave"><span class="btnLabel">Save</span></button>
+                    <button class="btnPrimary btnUserDelete"><span class="btnLabel">Delete</span></button>
+                    <span class="muted userRowMsg"></span>
+                  </div>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+
+      pageEl.textContent = `Showing ${state.offset + 1}–${state.offset + users.length} (limit ${state.limit})`;
+
+      tableWrap.querySelectorAll("tr[data-email]").forEach(tr => {
+        const email = tr.getAttribute("data-email");
+        const balInput = tr.querySelector("input");
+        const rowMsg = tr.querySelector(".userRowMsg");
+
+        tr.querySelector(".btnUserSave")?.addEventListener("click", async () => {
+          const bal = Number(balInput?.value || 0);
+          if (!Number.isFinite(bal) || bal < 0) { rowMsg.textContent = "Invalid balance."; return; }
+          rowMsg.textContent = "Saving…";
+          try {
+            await apiFetch("/api/admin/user-update", { method: "PUT", jsonBody: { email, balance: Math.floor(bal) } });
+            rowMsg.textContent = "✅ Saved";
+          } catch (e) { rowMsg.textContent = "❌ " + (e.message || String(e)); }
+        });
+
+        tr.querySelector(".btnUserDelete")?.addEventListener("click", async () => {
+          const ok = window.confirm(`Delete account for ${email}?\n\nThis will permanently delete the user and related history.`);
+          if (!ok) return;
+          rowMsg.textContent = "Deleting…";
+          try {
+            await apiFetch(`/api/admin/user-delete?email=${encodeURIComponent(email)}`, { method: "DELETE" });
+            tr.remove();
+          } catch (e) { rowMsg.textContent = "❌ " + (e.message || String(e)); }
+        });
+      });
+
+      const prevBtn = document.getElementById("btnUsersPrev");
+      if (prevBtn) prevBtn.onclick = () => { state.offset = Math.max(state.offset - state.limit, 0); loadUsers(); };
+      const nextBtn = document.getElementById("btnUsersNext");
+      if (nextBtn) nextBtn.onclick = () => { state.offset = state.offset + state.limit; loadUsers(); };
+
+    } catch (e) {
+      msg.textContent = "❌ " + (e.message || String(e));
+    }
+  }
+
+  const searchBtn = document.getElementById("btnAdminUsersSearch");
+  const searchInput = document.getElementById("adminUsersSearch");
+  if (searchBtn) searchBtn.onclick = () => { state.q = (searchInput?.value || "").trim(); state.offset = 0; loadUsers(); };
+  searchInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") { state.q = (searchInput.value || "").trim(); state.offset = 0; loadUsers(); } });
+
+  loadUsers();
+}
+
+
 async function loadAdminBlog() {
   const body = $("blogBody");
   if (!body) return;
@@ -486,159 +615,3 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 })();
 
-
-
-// ==================== LYPO_ADMIN_USERS_LIST_V1 ====================
-(function () {
-  function esc(s) {
-    return String(s ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-  function fmtDate(v) {
-    if (!v) return "";
-    try { return new Date(v).toLocaleString(); } catch { return String(v); }
-  }
-
-  async function ensureAdmin() {
-    try {
-      const me = await apiFetch("/api/auth/me");
-      return !!me?.is_admin;
-    } catch {
-      return false;
-    }
-  }
-
-  function findAnchor() {
-    return document.getElementById("adminLookupResult")
-      || document.getElementById("adminSupportResult")
-      || document.getElementById("adminLookupResults")
-      || document.querySelector("[data-admin-panel]")
-      || document.body;
-  }
-
-  async function mountUsersList() {
-    const isAdmin = await ensureAdmin();
-    if (!isAdmin) return;
-
-    let wrap = document.getElementById("adminUsersWrap");
-    if (!wrap) {
-      wrap = document.createElement("div");
-      wrap.id = "adminUsersWrap";
-      wrap.className = "card";
-      wrap.style.marginTop = "14px";
-      wrap.innerHTML = `
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-          <div style="font-weight:700;">All users</div>
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <input id="adminUsersSearch" class="input" type="text" placeholder="Search email…" style="width:240px;" />
-            <button class="btnPrimary" id="btnAdminUsersSearch"><span class="btnLabel">Search</span></button>
-          </div>
-        </div>
-        <div class="hr" style="margin:14px 0;"></div>
-        <div id="adminUsersMsg" class="muted"></div>
-        <div id="adminUsersTable" style="overflow:auto; margin-top:10px;"></div>
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px;">
-          <button class="btnPrimary" id="btnUsersPrev"><span class="btnLabel">Prev</span></button>
-          <div class="muted" id="adminUsersPage"></div>
-          <button class="btnPrimary" id="btnUsersNext"><span class="btnLabel">Next</span></button>
-        </div>
-      `;
-      findAnchor().parentElement?.appendChild?.(wrap) || findAnchor().appendChild(wrap);
-    }
-
-    let state = { q: "", offset: 0, limit: 50 };
-
-    async function load() {
-      const msg = document.getElementById("adminUsersMsg");
-      const tableWrap = document.getElementById("adminUsersTable");
-      const pageEl = document.getElementById("adminUsersPage");
-      const { q, offset, limit } = state;
-
-      msg.textContent = "Loading…";
-      tableWrap.innerHTML = "";
-
-      try {
-        const data = await apiFetch(`/api/admin/users?limit=${limit}&offset=${offset}&q=${encodeURIComponent(q || "")}`);
-        const users = Array.isArray(data.users) ? data.users : [];
-        msg.textContent = users.length ? "" : "No users found.";
-
-        tableWrap.innerHTML = `
-          <table class="table" style="min-width:840px;">
-            <thead>
-              <tr><th>Email</th><th>Created</th><th>Balance</th><th>Admin</th><th style="width:260px;">Actions</th></tr>
-            </thead>
-            <tbody>
-              ${users.map(u => `
-                <tr data-email="${esc(u.email)}">
-                  <td>${esc(u.email)}</td>
-                  <td>${esc(fmtDate(u.created_at))}</td>
-                  <td><input class="input" type="number" min="0" step="1" value="${Number(u.balance||0)}" style="width:120px;" /></td>
-                  <td>${u.is_admin ? "YES" : "NO"}</td>
-                  <td>
-                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                      <button class="btnPrimary btnUserSave"><span class="btnLabel">Save</span></button>
-                      <button class="btnPrimary btnUserDelete"><span class="btnLabel">Delete</span></button>
-                      <span class="muted userRowMsg"></span>
-                    </div>
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        `;
-
-        pageEl.textContent = `Showing ${offset + 1}–${offset + users.length} (limit ${limit})`;
-
-        tableWrap.querySelectorAll("tr[data-email]").forEach(tr => {
-          const email = tr.getAttribute("data-email");
-          const balInput = tr.querySelector("input");
-          const rowMsg = tr.querySelector(".userRowMsg");
-
-          tr.querySelector(".btnUserSave")?.addEventListener("click", async () => {
-            const bal = Number(balInput?.value || 0);
-            if (!Number.isFinite(bal) || bal < 0) { rowMsg.textContent = "Invalid balance."; return; }
-            rowMsg.textContent = "Saving…";
-            try {
-              await apiFetch("/api/admin/user-update", { method: "PUT", jsonBody: { email, balance: Math.floor(bal) } });
-              rowMsg.textContent = "✅ Saved";
-            } catch (e) { rowMsg.textContent = "❌ " + (e.message || String(e)); }
-          });
-
-          tr.querySelector(".btnUserDelete")?.addEventListener("click", async () => {
-            const ok = window.confirm(`Delete account for ${email}?\n\nThis will permanently delete the user and related history.`);
-            if (!ok) return;
-            rowMsg.textContent = "Deleting…";
-            try {
-              await apiFetch(`/api/admin/user-delete?email=${encodeURIComponent(email)}`, { method: "DELETE" });
-              tr.remove();
-            } catch (e) { rowMsg.textContent = "❌ " + (e.message || String(e)); }
-          });
-        });
-
-        const prevBtn = document.getElementById("btnUsersPrev");
-        if (prevBtn) prevBtn.onclick = () => { state.offset = Math.max(state.offset - state.limit, 0); load(); };
-        const nextBtn = document.getElementById("btnUsersNext");
-        if (nextBtn) nextBtn.onclick = () => { state.offset = state.offset + state.limit; load(); };
-
-      } catch (e) {
-        msg.textContent = "❌ " + (e.message || String(e));
-      }
-    }
-
-    const searchBtn = document.getElementById("btnAdminUsersSearch");
-    const searchInput = document.getElementById("adminUsersSearch");
-    if (searchBtn) searchBtn.onclick = () => { state.q = (searchInput?.value || "").trim(); state.offset = 0; load(); };
-    searchInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") { state.q = (searchInput.value || "").trim(); state.offset = 0; load(); } });
-
-    load();
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    // Delay slightly so existing dashboard init (blog, lookup, logout) binds first
-    setTimeout(() => { mountUsersList(); }, 250);
-  });
-})();
