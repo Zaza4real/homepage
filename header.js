@@ -80,3 +80,42 @@
     }
   });
 })();
+
+
+// Active header button based on data-nav (robust)
+(function setActiveNavV2(){
+  const page = (location.pathname.split("/").pop() || "index.html")
+    .replace(".html","");
+
+  document.querySelectorAll("[data-nav]").forEach(btn=>{
+    const nav = btn.getAttribute("data-nav");
+    if (!nav) return;
+    if (nav === page){
+      btn.classList.add("isActive");
+    } else {
+      btn.classList.remove("isActive");
+    }
+  });
+})();
+
+
+// Active header tab (white pill) based on current page
+(function applyActiveHeaderTab(){
+  const page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+  const btns = Array.from(document.querySelectorAll(".tabs .tabBtn"));
+  if (!btns.length) return;
+
+  btns.forEach((b) => {
+    const href = (b.getAttribute("data-href") || "").toLowerCase();
+    const tab = (b.getAttribute("data-tab") || "").toLowerCase();
+
+    const isHome = (page === "index.html" || page === "");
+    const shouldBeActive =
+      (href && href === page) ||
+      (isHome && tab === "home");
+
+    b.classList.toggle("isActive", !!shouldBeActive);
+    b.setAttribute("aria-selected", shouldBeActive ? "true" : "false");
+  });
+})();
