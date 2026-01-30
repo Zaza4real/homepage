@@ -1,4 +1,5 @@
-function escapeHtml(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');}
+let editingBlogId = null;
+
 // Account dashboard + admin
 (() => {
   const AUTH_TOKEN_KEY = "lypo_token_v1";
@@ -11,10 +12,29 @@ function escapeHtml(s){return String(s??'').replaceAll('&','&amp;').replaceAll('
 
   function setText(id, txt) { const el = $(id); if (el) el.textContent = txt; }
 
+
+function hideAdminUI() {
+  document.getElementById("adminCard")?.remove();
+  document.getElementById("blogAdminCard")?.remove();
+  document.getElementById("adminLookupCard")?.remove();
+  document.getElementById("dashAdminTop")?.remove();
+}
+
+
+
   function setDiag(txt) { setText("dashDiag", txt || ""); }
   function setMsg(txt) { setText("dashMsg", txt || ""); }
 
-  function fmtDate(iso) {
+  
+function esc(s){
+  return String(s ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+function fmtDate(iso) {
     try { return new Date(iso).toLocaleString(); } catch { return iso || ""; }
   }
 
@@ -144,6 +164,9 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       return;
     }
 
+    // Confirm Stripe redirect (record payment + add credits)
+    await maybeConfirmStripeReturn();
+
     try {
       const me = await apiFetch("/api/auth/me");
       const email = me?.user?.email || "—";
@@ -158,10 +181,20 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
       // Admin status
       try {
         const st = await apiFetch("/api/admin/status");
-        if (st?.isAdmin) setText("dashAdminTop", "Admin: YES");
-        else setText("dashAdminTop", "Admin: NO");
+        if (st?.isAdmin) {
+          setText("dashAdminTop", "Admin: YES");
+          // Load blog admin tools
+          const blogCard = document.getElementById("blogAdminCard");
+          if (blogCard) blogCard.style.display = "block";
+          if (typeof loadAdminBlog === "function") loadAdminBlog();
+          if (typeof initAdminLookup === "function") initAdminLookup(true);
+        } else {
+          setText("dashAdminTop", "Admin: NO");
+          hideAdminUI();
+        }
       } catch (e) {
         setText("dashAdminTop", "Admin: ERROR");
+        hideAdminUI();
         setDiag(e.message || String(e));
       }
 
@@ -212,10 +245,285 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
     }
   }
 
-  
-  // ---- Admin: Users list (edit/delete)
-  async function adminLoadUsersList({ q = "", offset = 0 } = {}) {
-    const host = document.querySelector("#adminPanel") || document.querySelector(".adminPanel") || document.body;
+  // --- Admin Blog (only loaded for admins) ---
+
+
+async function adminLookupUser(email) {
+  const q = new URLSearchParams({ email: (email || "").trim() }).toString();
+  return apiFetch(`/api/admin/user-lookup?${q}`, { method: "GET" });
+}
+
+function fmtDate(ts) {
+  try {
+    return new Date(ts).toLocaleString();
+  } catch {
+    return String(ts || "");
+  }
+}
+
+function renderLookup(result) {
+  const wrap = document.getElementById("lookupResult");
+  const msg = document.getElementById("lookupMsg");
+  const account = document.getElementById("lookupAccount");
+  const totals = document.getElementById("lookupTotals");
+  const payBody = document.getElementById("lookupPaymentsBody");
+  const vidBody = document.getElementById("lookupVideosBody");
+
+  if (!wrap || !account || !totals || !payBody || !vidBody) return;
+
+  wrap.style.display = "block";
+  msg.textContent = "";
+
+  const u = result.user;
+  const payments = result.payments || [];
+  const videos = result.videos || [];
+
+  const totalUsd = payments.reduce((a,p)=> a + Number(p.amount_usd || 0), 0);
+  const totalCredits = payments.reduce((a,p)=> a + Number(p.lypos || 0), 0);
+  const totalVideoCost = videos.reduce((a,v)=> a + Number(v.cost_credits || 0), 0);
+
+  account.innerHTML = `
+    <div><b>Email:</b> ${esc(u.email)}</div>
+    <div><b>Created:</b> ${esc(fmtDate(u.created_at))}</div>
+    <div><b>Balance:</b> ${esc(String(u.balance))}</div>
+    <div><b>Admin:</b> ${u.is_admin ? "Yes" : "No"}</div>
+  `;
+
+  totals.innerHTML = `
+    <div><b>Purchases:</b> ${payments.length}</div>
+    <div><b>Total spent:</b> $${totalUsd.toFixed(2)}</div>
+    <div><b>Total credits bought:</b> ${totalCredits}</div>
+    <div><b>Videos generated:</b> ${videos.length}</div>
+    <div><b>Total credits used:</b> ${totalVideoCost}</div>
+  `;
+
+  // Purchases
+  if (!payments.length) {
+    payBody.innerHTML = '<tr><td colspan="5" class="mutedCell">No purchases found</td></tr>';
+  } else {
+    payBody.innerHTML = payments.map(p => {
+      const receipt = p.invoice_url ? `<a class="link" href="${p.invoice_url}" target="_blank" rel="noopener">Open</a>` : '<span class="mutedCell">—</span>';
+      return `<tr>
+        <td>${esc(fmtDate(p.created_at))}</td>
+        <td>$${esc(String(p.amount_usd || 0))}</td>
+        <td>${esc(String(p.lypos || 0))}</td>
+        <td>${esc(String(p.status || ""))}</td>
+        <td>${receipt}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  // Videos
+  if (!videos.length) {
+    vidBody.innerHTML = '<tr><td colspan="5" class="mutedCell">No videos found</td></tr>';
+  } else {
+    vidBody.innerHTML = videos.map(v => {
+      const inL = v.input_url ? `<a class="link" href="${v.input_url}" target="_blank" rel="noopener">Input</a>` : '<span class="mutedCell">—</span>';
+      const outL = v.output_url ? `<a class="link" href="${v.output_url}" target="_blank" rel="noopener">Output</a>` : '<span class="mutedCell">—</span>';
+      return `<tr>
+        <td>${esc(fmtDate(v.created_at))}</td>
+        <td>${esc(String(v.status || ""))}</td>
+        <td>${esc(String(v.cost_credits || 0))}</td>
+        <td>${inL}</td>
+        <td>${outL}</td>
+      </tr>`;
+    }).join("");
+  }
+}
+
+
+
+function initAdminLookup(isAdmin) {
+  const card = document.getElementById("adminLookupCard");
+  if (!isAdmin) {
+    if (card) card.style.display = "none";
+    return;
+  }
+  if (card) card.style.display = "block";
+
+  const btn = document.getElementById("btnLookup");
+  const input = document.getElementById("lookupEmail");
+  const msg = document.getElementById("lookupMsg");
+
+  if (!btn || btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+
+  const run = async () => {
+    const email = (input?.value || "").trim();
+    if (!email) {
+      if (msg) msg.textContent = "Enter an email.";
+      return;
+    }
+    try {
+      if (msg) msg.textContent = "Searching…";
+      const result = await adminLookupUser(email);
+      renderLookup(result);
+      if (msg) msg.textContent = "Done.";
+    } catch (e) {
+      if (msg) msg.textContent = e?.message || "Lookup failed";
+    }
+  };
+
+  btn.addEventListener("click", run);
+  if (input) {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") run();
+    });
+  }
+}
+
+async function loadAdminBlog() {
+  const body = $("blogBody");
+  if (!body) return;
+  try {
+    const data = await apiFetch("/api/admin/blog/posts");
+    const posts = data?.posts || [];
+    if (!posts.length) {
+      body.innerHTML = '<tr><td colspan="4" class="mutedCell">No posts yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = posts.map(p => {
+      const created = fmtDate(p.created_at);
+      return `<tr>
+        <td>${created}</td>
+        <td><code>${p.slug}</code></td>
+        <td>${p.status || "draft"}</td>
+        <td>
+          <button class="btnGhost" data-edit="${p.id}" style="padding:6px 10px;">Edit</button>
+          <button class="btnGhost" data-del="${p.id}" style="padding:6px 10px;">Delete</button>
+        </td>
+      </tr>`;
+    }).join("");
+
+    body.querySelectorAll("[data-del]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.getAttribute("data-del"));
+        if (!confirm("Delete this post?")) return;
+        try {
+          await apiFetch(`/api/admin/blog/posts/${id}`, { method: "DELETE" });
+          loadAdminBlog();
+        } catch (e) {
+          alert("Could not delete: " + (e.message || e));
+        }
+      });
+    });
+
+    body.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.getAttribute("data-edit"));
+        const msg = $("blogMsg");
+        if (msg) msg.textContent = "Loading post…";
+        try {
+          const data = await apiFetch(`/api/admin/blog/posts/${id}`);
+          const p = data.post;
+          if (!p) throw new Error("Post not found");
+
+          editingBlogId = id;
+          if ($("blogTitle")) $("blogTitle").value = p.title || "";
+          if ($("blogSlug")) $("blogSlug").value = p.slug || "";
+          if ($("blogExcerpt")) $("blogExcerpt").value = p.excerpt || "";
+          if ($("blogCover")) $("blogCover").value = p.cover_url || "";
+          if ($("blogVideo")) $("blogVideo").value = p.video_url || "";
+          if ($("blogContent")) $("blogContent").value = p.content_html || "";
+          if ($("blogPublish")) $("blogPublish").checked = (p.status === "published");
+
+          const btnSave = $("btnBlogSave");
+          if (btnSave) btnSave.querySelector(".btnLabel") ? (btnSave.querySelector(".btnLabel").textContent = "Update Post") : (btnSave.textContent = "Update Post");
+          if (msg) msg.textContent = `Editing: ${p.slug}`;
+          // Scroll to editor
+          document.querySelector("#blogEditor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (e) {
+          if (msg) msg.textContent = "❌ " + (e.message || "Error");
+        }
+      });
+    });
+
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="4" class="mutedCell">Could not load posts</td></tr>`;
+  }
+}
+
+async function saveBlogPost() {
+  const msg = $("blogMsg");
+  const title = ($("blogTitle")?.value || "").trim();
+  const slug = ($("blogSlug")?.value || "").trim();
+  const excerpt = ($("blogExcerpt")?.value || "").trim();
+  const cover_url = ($("blogCover")?.value || "").trim();
+  const video_url = ($("blogVideo")?.value || "").trim();
+  const content_html = ($("blogContent")?.value || "").trim();
+  const status = $("blogPublish")?.checked ? "published" : "draft";
+
+  if (!title || !slug || !content_html) { if(msg) msg.textContent = "Title, slug, and content are required."; return; }
+  if (msg) msg.textContent = "Saving…";
+  try {
+    if (editingBlogId) {
+      await apiFetch(`/api/admin/blog/posts/${editingBlogId}`, { method: "PUT", jsonBody: { title, slug, excerpt, cover_url, video_url, content_html, status } });
+    } else {
+      await apiFetch("/api/admin/blog/posts", { method: "POST", jsonBody: { title, slug, excerpt, cover_url, video_url, content_html, status } });
+    }
+    if (msg) msg.textContent = "✅ Saved";
+    editingBlogId = null;
+    const btnSave = $("btnBlogSave");
+    if (btnSave) btnSave.querySelector(".btnLabel") ? (btnSave.querySelector(".btnLabel").textContent = "Save Post") : (btnSave.textContent = "Save Post");
+    loadAdminBlog();
+  } catch (e) {
+    if (msg) msg.textContent = "❌ " + (e.message || "Error");
+  }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  $("btnBlogSave")?.addEventListener("click", saveBlogPost);
+
+    $("btnLogoutDash")?.addEventListener("click", () => {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      window.location.href = "auth.html";
+    });
+
+    $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
+
+    load();
+  });
+})();
+
+
+
+// ==================== LYPO_ADMIN_USERS_LIST_V1 ====================
+(function () {
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+  function fmtDate(v) {
+    if (!v) return "";
+    try { return new Date(v).toLocaleString(); } catch { return String(v); }
+  }
+
+  async function ensureAdmin() {
+    try {
+      const me = await apiFetch("/api/auth/me");
+      return !!me?.is_admin;
+    } catch {
+      return false;
+    }
+  }
+
+  function findAnchor() {
+    return document.getElementById("adminLookupResult")
+      || document.getElementById("adminSupportResult")
+      || document.getElementById("adminLookupResults")
+      || document.querySelector("[data-admin-panel]")
+      || document.body;
+  }
+
+  async function mountUsersList() {
+    const isAdmin = await ensureAdmin();
+    if (!isAdmin) return;
+
     let wrap = document.getElementById("adminUsersWrap");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -239,122 +547,98 @@ async function apiFetch(path, { method = "GET", jsonBody = null } = {}) {
           <button class="btnPrimary" id="btnUsersNext"><span class="btnLabel">Next</span></button>
         </div>
       `;
-      // Try to place under existing admin lookup result if present
-      const after = document.getElementById("adminLookupResult") || document.getElementById("adminSupportResult") || document.getElementById("adminLookupResults");
-      if (after && after.parentElement) {
-        after.parentElement.appendChild(wrap);
-      } else {
-        host.appendChild(wrap);
+      findAnchor().parentElement?.appendChild?.(wrap) || findAnchor().appendChild(wrap);
+    }
+
+    let state = { q: "", offset: 0, limit: 50 };
+
+    async function load() {
+      const msg = document.getElementById("adminUsersMsg");
+      const tableWrap = document.getElementById("adminUsersTable");
+      const pageEl = document.getElementById("adminUsersPage");
+      const { q, offset, limit } = state;
+
+      msg.textContent = "Loading…";
+      tableWrap.innerHTML = "";
+
+      try {
+        const data = await apiFetch(`/api/admin/users?limit=${limit}&offset=${offset}&q=${encodeURIComponent(q || "")}`);
+        const users = Array.isArray(data.users) ? data.users : [];
+        msg.textContent = users.length ? "" : "No users found.";
+
+        tableWrap.innerHTML = `
+          <table class="table" style="min-width:840px;">
+            <thead>
+              <tr><th>Email</th><th>Created</th><th>Balance</th><th>Admin</th><th style="width:260px;">Actions</th></tr>
+            </thead>
+            <tbody>
+              ${users.map(u => `
+                <tr data-email="${esc(u.email)}">
+                  <td>${esc(u.email)}</td>
+                  <td>${esc(fmtDate(u.created_at))}</td>
+                  <td><input class="input" type="number" min="0" step="1" value="${Number(u.balance||0)}" style="width:120px;" /></td>
+                  <td>${u.is_admin ? "YES" : "NO"}</td>
+                  <td>
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                      <button class="btnPrimary btnUserSave"><span class="btnLabel">Save</span></button>
+                      <button class="btnPrimary btnUserDelete"><span class="btnLabel">Delete</span></button>
+                      <span class="muted userRowMsg"></span>
+                    </div>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+
+        pageEl.textContent = `Showing ${offset + 1}–${offset + users.length} (limit ${limit})`;
+
+        tableWrap.querySelectorAll("tr[data-email]").forEach(tr => {
+          const email = tr.getAttribute("data-email");
+          const balInput = tr.querySelector("input");
+          const rowMsg = tr.querySelector(".userRowMsg");
+
+          tr.querySelector(".btnUserSave")?.addEventListener("click", async () => {
+            const bal = Number(balInput?.value || 0);
+            if (!Number.isFinite(bal) || bal < 0) { rowMsg.textContent = "Invalid balance."; return; }
+            rowMsg.textContent = "Saving…";
+            try {
+              await apiFetch("/api/admin/user-update", { method: "PUT", jsonBody: { email, balance: Math.floor(bal) } });
+              rowMsg.textContent = "✅ Saved";
+            } catch (e) { rowMsg.textContent = "❌ " + (e.message || String(e)); }
+          });
+
+          tr.querySelector(".btnUserDelete")?.addEventListener("click", async () => {
+            const ok = window.confirm(`Delete account for ${email}?\n\nThis will permanently delete the user and related history.`);
+            if (!ok) return;
+            rowMsg.textContent = "Deleting…";
+            try {
+              await apiFetch(`/api/admin/user-delete?email=${encodeURIComponent(email)}`, { method: "DELETE" });
+              tr.remove();
+            } catch (e) { rowMsg.textContent = "❌ " + (e.message || String(e)); }
+          });
+        });
+
+        const prevBtn = document.getElementById("btnUsersPrev");
+        if (prevBtn) prevBtn.onclick = () => { state.offset = Math.max(state.offset - state.limit, 0); load(); };
+        const nextBtn = document.getElementById("btnUsersNext");
+        if (nextBtn) nextBtn.onclick = () => { state.offset = state.offset + state.limit; load(); };
+
+      } catch (e) {
+        msg.textContent = "❌ " + (e.message || String(e));
       }
     }
 
-    const msg = document.getElementById("adminUsersMsg");
-    const tableWrap = document.getElementById("adminUsersTable");
-    const pageEl = document.getElementById("adminUsersPage");
-    const limit = 50;
-
-    msg.textContent = "Loading…";
-    tableWrap.innerHTML = "";
-
-    try {
-      const data = await apiFetch(`/api/admin/users?limit=${limit}&offset=${offset}&q=${encodeURIComponent(q || "")}`);
-      const users = Array.isArray(data.users) ? data.users : [];
-      msg.textContent = users.length ? "" : "No users found.";
-
-      tableWrap.innerHTML = `
-        <table class="table" style="min-width:840px;">
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Created</th>
-              <th>Balance</th>
-              <th>Admin</th>
-              <th style="width:260px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${users.map(u => `
-              <tr data-email="${escapeHtml(u.email)}">
-                <td>${escapeHtml(u.email)}</td>
-                <td>${escapeHtml(formatDate(u.created_at))}</td>
-                <td>
-                  <input class="input" type="number" min="0" step="1" value="${Number(u.balance||0)}" style="width:120px;" />
-                </td>
-                <td>${u.is_admin ? "YES" : "NO"}</td>
-                <td>
-                  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                    <button class="btnPrimary btnUserSave"><span class="btnLabel">Save</span></button>
-                    <button class="btnPrimary btnUserDelete"><span class="btnLabel">Delete</span></button>
-                    <span class="muted userRowMsg"></span>
-                  </div>
-                </td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      `;
-
-      pageEl.textContent = `Showing ${offset + 1}–${offset + users.length} (limit ${limit})`;
-
-      // Wire row actions
-      tableWrap.querySelectorAll("tr[data-email]").forEach(tr => {
-        const email = tr.getAttribute("data-email");
-        const balInput = tr.querySelector("input");
-        const rowMsg = tr.querySelector(".userRowMsg");
-
-        tr.querySelector(".btnUserSave")?.addEventListener("click", async () => {
-          const bal = Number(balInput?.value || 0);
-          if (!Number.isFinite(bal) || bal < 0) {
-            rowMsg.textContent = "Invalid balance.";
-            return;
-          }
-          rowMsg.textContent = "Saving…";
-          try {
-            const upd = await apiFetch("/api/admin/user-update", { method: "PUT", jsonBody: { email, balance: Math.floor(bal) } });
-            rowMsg.textContent = "✅ Saved";
-            if (upd?.user?.balance !== undefined) balInput.value = String(upd.user.balance);
-          } catch (e) {
-            rowMsg.textContent = "❌ " + (e.message || String(e));
-          }
-        });
-
-        tr.querySelector(".btnUserDelete")?.addEventListener("click", async () => {
-          const ok = window.confirm(`Delete account for ${email}?\n\nThis will permanently delete the user and related history.`);
-          if (!ok) return;
-          rowMsg.textContent = "Deleting…";
-          try {
-            await apiFetch(`/api/admin/user-delete?email=${encodeURIComponent(email)}`, { method: "DELETE" });
-            tr.remove();
-          } catch (e) {
-            rowMsg.textContent = "❌ " + (e.message || String(e));
-          }
-        });
-      });
-
-      // Wire pagination + search
-      { const __el = document.getElementById("btnUsersPrev"); if (__el) __el.onclick = () => adminLoadUsersList({ q, offset: Math.max(offset - limit, 0) }); }
-      { const __el = document.getElementById("btnUsersNext"); if (__el) __el.onclick = () => adminLoadUsersList({ q, offset: offset + limit }); }
-
-      const searchInput = document.getElementById("adminUsersSearch");
-      if (searchInput && !searchInput.value) searchInput.value = q || "";
-      { const __el = document.getElementById("btnAdminUsersSearch"); if (__el) __el.onclick = () => adminLoadUsersList({ q: (searchInput?.value || "").trim(), offset: 0 }); }
-      searchInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") adminLoadUsersList({ q: (searchInput.value || "").trim(), offset: 0 }); });
-
-    } catch (e) {
-      msg.textContent = "❌ " + (e.message || String(e));
-    }
-  }
-
-document.addEventListener("DOMContentLoaded", () => {
-    $("btnLogoutDash")?.addEventListener("click", () => {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      window.location.href = "auth.html";
-    });
-
-    $("btnAdminAdd")?.addEventListener("click", adminAddCredits);
+    const searchBtn = document.getElementById("btnAdminUsersSearch");
+    const searchInput = document.getElementById("adminUsersSearch");
+    if (searchBtn) searchBtn.onclick = () => { state.q = (searchInput?.value || "").trim(); state.offset = 0; load(); };
+    searchInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") { state.q = (searchInput.value || "").trim(); state.offset = 0; load(); } });
 
     load();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Delay slightly so existing dashboard init (blog, lookup, logout) binds first
+    setTimeout(() => { mountUsersList(); }, 250);
   });
 })();
-
-function formatDate(v){ if(!v) return ''; try{ return new Date(v).toLocaleString(); }catch{ return String(v);} }
