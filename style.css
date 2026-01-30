@@ -98,7 +98,9 @@ a{ color:inherit; text-decoration:none; }
 
 
 /* Tabs with LED */
-.tabs{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; position:relative; padding-bottom:6px; }
+.tabs{
+  overflow: visible;
+ display:flex; gap:10px; align-items:center; flex-wrap:wrap; position:relative; padding-bottom:6px; }
 
 .tabUnderline{
   position:absolute;
@@ -176,6 +178,17 @@ a{ color:inherit; text-decoration:none; }
   user-select:none;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Consistent press state across devices (does not change design) */
+.tabBtn.isPressing{
+  transform: translateY(0) scale(.99);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 10px 28px rgba(0,0,0,.45);
+}
+.tabBtn.isActive.isPressing{
+  transform: translateY(0) scale(.99);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 0 18px rgba(255,255,255,.18), 0 10px 28px rgba(0,0,0,.35);
+}
+
 .tabBtn:active{
   transform: translateY(0) scale(.99);
   box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 10px 28px rgba(0,0,0,.45);
@@ -709,7 +722,9 @@ a{ color:inherit; text-decoration:none; }
 }
 
 @media (max-width: 980px){
-  .tabs{ display:none; }
+  .tabs{
+  overflow: visible;
+ display:none; }
   .container{ padding-top: 120px; }
   .logo{ font-size: 40px; letter-spacing: .20em; }
   .tile{ grid-column: span 12; }
@@ -1838,6 +1853,8 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
   }
   .menuToggle{ display:inline-flex; align-items:center; justify-content:center; }
   .tabs{
+  overflow: visible;
+
     position: absolute;
     top: calc(100% + 10px);
     left: 0;

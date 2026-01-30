@@ -1,5 +1,8 @@
 ;// Shared header behavior for all pages
 (() => {
+  // Guard to avoid double-binding navigation handlers across scripts
+  window.__lypo_header_nav = true;
+
   const AUTH_TOKEN_KEY = "lypo_token_v1";
   const token = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
   const isAuthed = () => !!token();
@@ -111,7 +114,25 @@
     return filename;
   };
 
-  const setActiveTab = () => {
+  
+  // On index.html we also need to activate the corresponding panel immediately.
+  // This mirrors the minimal logic from script.js without changing design.
+  function activateIndexTab(tabKey){
+    const tab = String(tabKey || "home").toLowerCase();
+    const tabBtns = Array.from(document.querySelectorAll(".tabBtn")).filter((b)=>b.dataset && b.dataset.tab);
+    const panels = Array.from(document.querySelectorAll(".tabPanel"));
+    tabBtns.forEach((b)=>{
+      const on = (String(b.dataset.tab||"").toLowerCase() === tab);
+      b.classList.toggle("isActive", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    panels.forEach((p)=>{
+      const on = (p.id === `tab-${tab}`);
+      p.classList.toggle("isActive", on);
+    });
+  }
+
+const setActiveTab = () => {
     const key = getDesiredActiveKey();
     let activeBtn = null;
 
@@ -181,13 +202,24 @@
   // Tab navigation
   if (tabs.length) {
     
-  // Navigation behavior:
-  // - Buttons with data-href go to their page
-  // - "Home" (data-tab="home") goes to index.html when not already there
-  // - On index.html, we do NOT force reloads; script.js handles tab panels.
+  
+  // Navigation + consistent press feedback (without changing design)
+  const PRESS_DELAY_MS = 0; // keep header snappy; press feedback handled via pointer states // small delay so the press animation is visible
+
   tabs.forEach((btn) => {
+    if (btn.dataset.lypoBound === "1") return; // prevent duplicate bindings
+    btn.dataset.lypoBound = "1";
+
+    const pressOn = () => btn.classList.add("isPressing");
+    const pressOff = () => btn.classList.remove("isPressing");
+
+    btn.addEventListener("pointerdown", pressOn, { passive: true });
+    btn.addEventListener("pointerup", pressOff, { passive: true });
+    btn.addEventListener("pointercancel", pressOff, { passive: true });
+    btn.addEventListener("blur", pressOff);
+
     btn.addEventListener("click", (e) => {
-      // Make the pressed tab feel instant (avoid "clunky" delay)
+      // Make the pressed tab feel instant
       tabs.forEach((b) => {
         b.classList.remove("isActive");
         b.setAttribute("aria-selected", "false");
@@ -209,25 +241,38 @@
 
       const href = btn.getAttribute("data-href");
       if (href) {
-        // Normal page navigation
-        location.href = href;
+        // Let the press animation show before navigating
+        e.preventDefault();
+        setTimeout(() => (location.href = href), PRESS_DELAY_MS);
         return;
       }
 
       const tab = (btn.getAttribute("data-tab") || "home").toLowerCase();
-
-      // If we're not on index, Home should take us there (no query param needed)
       if (!isIndex) {
-        location.href = "index.html";
+        // From other pages, Home goes to index
+        e.preventDefault();
+        setTimeout(() => (location.href = "index.html"), PRESS_DELAY_MS);
         return;
       }
 
-      // On index.html: do NOT reload or change URL.
-      // The page's script.js already handles showing the correct tab panel.
-      // We simply prevent any default weirdness.
+      // On index.html: activate the panel immediately (no reload)
+      if (isIndex) {
+        e.preventDefault();
+        activateIndexTab(tab);
+        // keep URL clean (optional): ensure no lingering tab param
+        try {
+          const u = new URL(location.href);
+          u.searchParams.delete("tab");
+          history.replaceState({}, "", u.pathname + (u.searchParams.toString() ? "?" + u.searchParams.toString() : "") + u.hash);
+        } catch {}
+        return;
+      }
+
       e.preventDefault();
     });
   });
+
+
 }
 
   // Initialize active state + underline

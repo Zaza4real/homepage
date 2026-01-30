@@ -416,11 +416,14 @@ const pill = $("statusPill");
     const goHome = document.querySelector("[data-go='home']");
 
     // Buttons that navigate to separate pages (e.g., Support / About / Features)
-    const linkBtns = Array.from(document.querySelectorAll('.tabBtn[data-href]'));
-    linkBtns.forEach((b) => b.addEventListener('click', () => {
-      const href = b.dataset.href;
-      if (href) location.href = href;
-    }));
+    // Header.js already handles navigation/press feedback; avoid double binding.
+    if (!window.__lypo_header_nav) {
+      const linkBtns = Array.from(document.querySelectorAll('.tabBtn[data-href]'));
+      linkBtns.forEach((b) => b.addEventListener('click', () => {
+        const href = b.dataset.href;
+        if (href) location.href = href;
+      }));
+    }
 
 
     function activate(tab) {
