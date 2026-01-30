@@ -114,6 +114,8 @@ a{ color:inherit; text-decoration:none; }
   pointer-events:none;
 }
 .tabBtn{
+  min-height: 34px;
+
   appearance:none;
   -webkit-appearance:none;
   font-family: inherit;
@@ -162,6 +164,27 @@ a{ color:inherit; text-decoration:none; }
 }
 .tabBtn:hover::before{ opacity:1; }
 .tabBtn:hover::after{ opacity:1; }
+
+/* Header tab press uniform */
+.tabBtn{
+  min-height: 34px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  user-select:none;
+  -webkit-tap-highlight-color: transparent;
+}
+.tabBtn:active{
+  transform: translateY(0) scale(.99);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 10px 28px rgba(0,0,0,.45);
+}
+.tabBtn.isActive:active{
+  transform: translateY(0) scale(.99);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 0 18px rgba(255,255,255,.18), 0 10px 28px rgba(0,0,0,.35);
+}
+
 .tabBtn.isActive{
   color:rgba(0,0,0,.92);
   background:rgba(255,255,255,.86);
@@ -1848,6 +1871,8 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 
   /* Make all tab buttons full-width and identical on mobile */
   .tabs .tabBtn{
+  min-height: 34px;
+
     width: 100%;
   }
 
