@@ -1929,3 +1929,14 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 .legal h2{ margin-top: 28px; margin-bottom: 8px; }
 .legal p{ line-height: 1.6; }
 
+
+
+/* Balance tip */
+.balanceTip{
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,.65);
+}
+.balanceTip strong{
+  color: rgba(255,255,255,.9);
+}
