@@ -129,7 +129,7 @@
       if (isActive) activeBtn = btn;
     });
 
-    // If nothing matched (edge case), default to Demo/home
+    // If nothing matched (edge case), default to Home/home
     if (!activeBtn && tabs.length) {
       activeBtn = tabs[0];
       activeBtn.classList.add("isActive");
@@ -183,7 +183,7 @@
     
   // Navigation behavior:
   // - Buttons with data-href go to their page
-  // - "Demo" (data-tab="home") goes to index.html when not already there
+  // - "Home" (data-tab="home") goes to index.html when not already there
   // - On index.html, we do NOT force reloads; script.js handles tab panels.
   tabs.forEach((btn) => {
     btn.addEventListener("click", (e) => {
@@ -216,7 +216,7 @@
 
       const tab = (btn.getAttribute("data-tab") || "home").toLowerCase();
 
-      // If we're not on index, Demo/Home should take us there (no query param needed)
+      // If we're not on index, Home should take us there (no query param needed)
       if (!isIndex) {
         location.href = "index.html";
         return;
