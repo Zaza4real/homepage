@@ -323,7 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = $("authEmailPage")?.value?.trim();
     if (!email) return setMsg("Please enter your email first.");
     try {
-      const forgotCandidates = ["/api/auth/forgot-password", "/api/auth/forgot", "/api/auth/request-reset", "/api/auth/password/forgot"];
+      const forgotCandidates = ["/api/auth/forgot-password", "/api/auth/forgot", "/api/auth/request-reset", "/api/auth/password/forgot", "/auth/forgot-password", "/auth/forgot", "/auth/request-reset", "/auth/password/forgot", "/forgot-password", "/forgot"];
       let ok = false;
       let lastErr = null;
       for (const url of forgotCandidates) {

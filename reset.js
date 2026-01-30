@@ -128,10 +128,19 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       btn.disabled = true;
       setMsg("Updating password…");
-      await apiFetch("/api/auth/reset-password", {
+      const resetCandidates = ["/api/auth/reset-password", "/auth/reset-password", "/reset-password", "/api/auth/password/reset", "/auth/password/reset"];
+      let ok = false; let lastErr = null;
+      for (const url of resetCandidates) {
+        try {
+          await apiFetch(url, {
         method: "POST",
         body: JSON.stringify({ email, token, password: p1 }),
       });
+          ok = true; break;
+        } catch(e){ lastErr = e; }
+      }
+      if (!ok) throw lastErr;
+
       setMsg("✅ Password updated. You can now sign in.");
       setTimeout(() => { location.href = "auth.html"; }, 900);
     } catch (e) {
