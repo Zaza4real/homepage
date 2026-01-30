@@ -105,7 +105,9 @@ function initAuthToggle(){
 }
 // Auth page script
 (() => {
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+  const BACKEND_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+    ? "http://localhost:10000"
+    : "https://api.lypo.org";
   const AUTH_TOKEN_KEY = "lypo_token_v1";
 
   const $ = (id) => document.getElementById(id);

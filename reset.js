@@ -1,3 +1,7 @@
+const BACKEND_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+  ? "http://localhost:10000"
+  : "https://api.lypo.org";
+
 async function apiFetch(path, opts = {}) {
     const headers = new Headers(opts.headers || {});
     if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
