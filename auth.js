@@ -323,11 +323,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = $("authEmailPage")?.value?.trim();
     if (!email) return setMsg("Please enter your email first.");
     try {
-      await apiFetch("/api/auth/forgot-password", {
-        method: "POST",
-        body: JSON.stringify({ email })
-      });
-      setMsg("If an account exists for that email, a reset link has been sent.");
+      const forgotCandidates = ["/api/auth/forgot-password", "/api/auth/forgot", "/api/auth/request-reset", "/api/auth/password/forgot"];
+      let ok = false;
+      let lastErr = null;
+      for (const url of forgotCandidates) {
+        try {
+          await apiFetch(url, { method: "POST", body: JSON.stringify({ email }) });
+          ok = true;
+          break;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      if (!ok) throw lastErr;
+setMsg("If an account exists for that email, a reset link has been sent.");
     } catch (e) {
       // Always show a generic message to avoid account enumeration
       setMsg("If an account exists for that email, a reset link has been sent.");
@@ -381,4 +390,4 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 
 document.addEventListener("DOMContentLoaded", async () => {
-  if (redirectToResetPageIfNeeded()) return; const inReset = await maybeHandlePasswordReset(); if (inReset) return; });
+  if (typeof redirectToResetPageIfNeeded === "function" && redirectToResetPageIfNeeded()) return; const inReset = await maybeHandlePasswordReset(); if (inReset) return; });
