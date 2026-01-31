@@ -10,7 +10,7 @@
   const token = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
   const isAuthed = () => !!token();
 
-  const authBtn = document.querySelector(".headerAuthBtn");
+  let authBtn = document.querySelector(".headerAuthBtn");
   const dashBtn = document.querySelector('[data-nav="dashboard"]');
   const logoLink = document.querySelector(".logoWrap");
   const getTabs = () => document.querySelectorAll('.tabBtn');
@@ -261,18 +261,28 @@ const setActiveTab = () => {
     }
 
     
+    co
     const applyAuthState = () => {
-      if (isAuthed()) {
-        // Replace Login/Logout with Dashboard link
-        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Dashboard"));
-        authBtn.setAttribute("href", "dashboard.html");
-        authBtn.onclick = null;
+      const authed = isAuthed();
+
+      // If the auth button previously had a Logout handler attached via addEventListener,
+      // setting onclick=null won't remove it. So we replace the node when switching states.
+      const rebuildAuthBtn = (label, href) => {
+        const fresh = authBtn.cloneNode(true);
+        fresh.querySelector(".btnLabel")?.replaceChildren(document.createTextNode(label));
+        fresh.setAttribute("href", href);
+        // Replace in DOM
+        authBtn.replaceWith(fresh);
+        return fresh;
+      };
+
+      if (authed) {
+        // Replace Login/Logout with Dashboard link (no logout side effects)
+        authBtn = rebuildAuthBtn("Dashboard", "dashboard.html");
       } else {
-        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
-        authBtn.setAttribute("href", "auth.html");
+        authBtn = rebuildAuthBtn("Login", "auth.html");
       }
     };
-
 
     applyAuthState();
 
