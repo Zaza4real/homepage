@@ -543,6 +543,8 @@ async function loadAdminBlog() {
         const msg = $("blogMsg");
         if (msg) msg.textContent = "Loading post…";
         try {
+          console.log(`Attempting to load blog post ID: ${id}`);
+          console.log(`Backend URL: ${BACKEND_BASE_URL}`);
           const data = await apiFetch(`/api/admin/blog/posts/${id}`);
           const p = data.post;
           if (!p) throw new Error("Post not found");
@@ -559,10 +561,12 @@ async function loadAdminBlog() {
           const btnSave = $("btnBlogSave");
           if (btnSave) btnSave.querySelector(".btnLabel") ? (btnSave.querySelector(".btnLabel").textContent = "Update Post") : (btnSave.textContent = "Update Post");
           if (msg) msg.textContent = `Editing: ${p.slug}`;
+          console.log(`Successfully loaded post: ${p.slug}`);
           // Scroll to editor
           document.querySelector("#blogEditor")?.scrollIntoView({ behavior: "smooth", block: "start" });
         } catch (e) {
-          if (msg) msg.textContent = "❌ " + (e.message || "Error");
+          console.error(`Failed to load blog post ID ${id}:`, e);
+          if (msg) msg.textContent = "❌ Backend Error: " + (e.message || "Endpoint not found. Check lypo-backend repo.");
         }
       });
     });
