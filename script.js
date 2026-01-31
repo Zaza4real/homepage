@@ -364,6 +364,7 @@ const pill = $("statusPill");
   // ---- Download (blob only; avoids fullscreen/player)
   function resetDownload() {
     const btn = $("btnDownload");
+    if (previewInner && btn && btn.parentElement !== previewInner) previewInner.appendChild(btn);
     if (!btn) return;
     btn.hidden = true;
     btn.classList.remove("isReady");
@@ -374,13 +375,19 @@ const pill = $("statusPill");
 
   function enableDownload(url) {
     const btn = $("btnDownload");
-    if (!btn) return;
-    btn.hidden = false;
-    btn.dataset.url = url;
-    btn.classList.add("isReady");
-    btn.setAttribute("aria-disabled", "false");
-    btn.removeAttribute("tabindex");
-  }
+    btn.href = url;
+    btn.style.display = "inline-flex";
+
+    // Place Download next to "Output Ready" without removing other info
+    const previewHeader =
+      document.querySelector(".previewHeader") ||
+      document.querySelector(".previewTop") ||
+      document.querySelector(".previewTitle");
+
+    if (previewHeader && btn.parentElement !== previewHeader) {
+      previewHeader.appendChild(btn);
+    }
+}
 
   function guessMp4Name() {
     const original = $("videoFile")?.files?.[0]?.name || "video";
@@ -749,6 +756,7 @@ const pill = $("statusPill");
 
   function attachDownload() {
     const btn = $("btnDownload");
+    if (previewInner && btn && btn.parentElement !== previewInner) previewInner.appendChild(btn);
     if (!btn) return;
 
     btn.addEventListener("click", async () => {
