@@ -11,10 +11,18 @@
   function processContent(html) {
     if (!html) return "";
     
+    // Debug: log what we received from backend
+    console.log('Raw content from backend:', JSON.stringify(html.substring(0, 200)));
+    console.log('Contains \\n?', html.includes('\n'));
+    console.log('Contains <br>?', html.includes('<br'));
+    console.log('Contains <p>?', html.includes('<p>'));
+    
     // Convert all newlines to <br> tags FIRST, before any other processing
     // This ensures line breaks are preserved regardless of HTML structure
     let processed = html.replace(/\r\n/g, '\n'); // Normalize Windows line endings
     processed = processed.replace(/\n/g, '<br>');
+    
+    console.log('Processed content:', JSON.stringify(processed.substring(0, 200)));
     
     return processed;
   }
