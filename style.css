@@ -1959,3 +1959,19 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 }
 
 
+/* Prevent header flash on page load (no design change) */
+html.preload .header,
+html.preload .topbar{
+  opacity: 0;
+}
+html.js .header,
+html.js .topbar{
+  transition: opacity .12s ease;
+}
+
+
+/* Dashboard + Logout tabs (no visual changes, same as others) */
+.headerDashTab,
+.headerLogoutTab{
+  margin-right: 6px;
+}

@@ -1,7 +1,7 @@
 ;// Shared header behavior for all pages
 (() => {
   document.documentElement.classList.add('js');
-  
+  document.documentElement.classList.add('preload');
 
   // Guard to avoid double-binding navigation handlers across scripts
   window.__lypo_header_nav = true;
@@ -32,6 +32,40 @@
 
   // Tabs active state + underline
   const tabsNav = document.querySelector(".tabs");
+
+  // Inject Dashboard + Logout tabs (left side)
+  let dashTabBtn = null;
+  let logoutTabBtn = null;
+
+  function ensureDashTabs(){
+    if (!tabsNav) return;
+
+    if (!dashTabBtn) {
+      dashTabBtn = document.createElement("button");
+      dashTabBtn.className = "tabBtn headerDashTab";
+      dashTabBtn.type = "button";
+      dashTabBtn.textContent = "Dashboard";
+      dashTabBtn.style.display = "none";
+      dashTabBtn.addEventListener("click", () => {
+        location.href = "dashboard.html";
+      });
+      tabsNav.insertBefore(dashTabBtn, tabsNav.firstChild);
+    }
+
+    if (!logoutTabBtn) {
+      logoutTabBtn = document.createElement("button");
+      logoutTabBtn.className = "tabBtn headerLogoutTab";
+      logoutTabBtn.type = "button";
+      logoutTabBtn.textContent = "Logout";
+      logoutTabBtn.style.display = "none";
+      logoutTabBtn.addEventListener("click", () => {
+        localStorage.removeItem("token");
+        location.href = "index.html";
+      });
+      tabsNav.insertBefore(logoutTabBtn, dashTabBtn.nextSibling);
+    }
+  }
+
   // Inject Dashboard tab (visible only when logged in)
   dashTabBtn = document.querySelector('.headerDashTab');
   if (tabsNav && !dashTabBtn) {
@@ -59,7 +93,6 @@
 
   // Mobile collapse (injected toggle button; no HTML changes needed)
   const headerEl = document.querySelector(".header");
-  if (!headerEl) return;
   let menuBtn = document.querySelector(".menuToggle");
 
   const ensureMenuBtn = () => {
@@ -262,30 +295,32 @@ const setActiveTab = () => {
     }
 
     
-    co
+    
     const applyAuthState = () => {
       const authed = isAuthed();
-
-      // If the auth button previously had a Logout handler attached via addEventListener,
-      // setting onclick=null won't remove it. So we replace the node when switching states.
-      const rebuildAuthBtn = (label, href) => {
-        const fresh = authBtn.cloneNode(true);
-        fresh.querySelector(".btnLabel")?.replaceChildren(document.createTextNode(label));
-        fresh.setAttribute("href", href);
-        // Replace in DOM
-        authBtn.replaceWith(fresh);
-        return fresh;
-      };
+      ensureDashTabs();
 
       if (authed) {
-        // Replace Login/Logout with Dashboard link (no logout side effects)
-        authBtn = rebuildAuthBtn("Dashboard", "dashboard.html");
+        dashTabBtn.style.display = "";
+        logoutTabBtn.style.display = "";
       } else {
-        authBtn = rebuildAuthBtn("Login", "auth.html");
+        dashTabBtn.style.display = "none";
+        logoutTabBtn.style.display = "none";
       }
     };
 
+
+
     applyAuthState();
+
+    authBtn.addEventListener("click", (e) => {
+      if (isAuthed()) {
+        e.preventDefault();
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        // go home after logout
+        location.href = "index.html";
+      }
+    });
   }
 
   // Tab navigation
@@ -367,13 +402,13 @@ const setActiveTab = () => {
   
   function finishHeaderPaint(){
     requestAnimationFrame(() => {
-      
+      document.documentElement.classList.remove('preload');
     });
   }
 
 // Initialize active state + underline
   const sync = () => requestAnimationFrame(setActiveTab);
-  try { sync(); } finally {  }
+  try { sync(); } finally { finishHeaderPaint(); }
   window.addEventListener("resize", () => {
     // avoid layout thrash
     clearTimeout(window.__lypoTabResizeT);
