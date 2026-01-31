@@ -59,7 +59,7 @@
       logoutTabBtn.textContent = "Logout";
       logoutTabBtn.style.display = "none";
       logoutTabBtn.addEventListener("click", () => {
-        localStorage.removeItem("token");
+        localStorage.removeItem(AUTH_TOKEN_KEY);
         location.href = "index.html";
       });
       tabsNav.insertBefore(logoutTabBtn, dashTabBtn.nextSibling);
@@ -303,9 +303,12 @@ const setActiveTab = () => {
       if (authed) {
         dashTabBtn.style.display = "";
         logoutTabBtn.style.display = "";
+        // Keep right button consistent: show "Dashboard"
+        if (authBtn) authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Dashboard"));
       } else {
         dashTabBtn.style.display = "none";
         logoutTabBtn.style.display = "none";
+        if (authBtn) authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
       }
     };
 
