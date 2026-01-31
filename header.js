@@ -1,5 +1,8 @@
 ;// Shared header behavior for all pages
 (() => {
+  document.documentElement.classList.add('js');
+  document.documentElement.classList.add('preload');
+
   // Guard to avoid double-binding navigation handlers across scripts
   window.__lypo_header_nav = true;
 
@@ -10,7 +13,8 @@
   const authBtn = document.querySelector(".headerAuthBtn");
   const dashBtn = document.querySelector('[data-nav="dashboard"]');
   const logoLink = document.querySelector(".logoWrap");
-  const tabs = document.querySelectorAll(".tabBtn");
+  const getTabs = () => document.querySelectorAll('.tabBtn');
+  let tabs = getTabs();
 
   // Make logo always go to homepage
   if (logoLink) {
@@ -28,7 +32,30 @@
 
   // Tabs active state + underline
   const tabsNav = document.querySelector(".tabs");
+  // Inject Dashboard tab (visible only when logged in)
+  dashTabBtn = document.querySelector('.headerDashTab');
+  if (tabsNav && !dashTabBtn) {
+    dashTabBtn = document.createElement("button");
+    dashTabBtn.className = "tabBtn headerDashTab";
+    dashTabBtn.type = "button";
+    dashTabBtn.setAttribute("role", "tab");
+    dashTabBtn.setAttribute("aria-selected", "false");
+    dashTabBtn.setAttribute("data-href", "dashboard.html");
+    dashTabBtn.textContent = "Dashboard";
+    dashTabBtn.style.display = "none";
+    // Place it after About (or at end if not found)
+    const aboutBtn = Array.from(tabsNav.querySelectorAll(".tabBtn")).find(b => (b.getAttribute("data-href") || "").toLowerCase() === "about.html");
+    if (aboutBtn && aboutBtn.nextSibling) {
+      tabsNav.insertBefore(dashTabBtn, aboutBtn.nextSibling);
+    } else {
+      tabsNav.appendChild(dashTabBtn);
+    }
+  }
+
   let underlineEl = null;
+
+  // Refresh tabs after any dynamic injections
+  tabs = getTabs();
 
   // Mobile collapse (injected toggle button; no HTML changes needed)
   const headerEl = document.querySelector(".header");
@@ -157,6 +184,14 @@ const setActiveTab = () => {
       activeBtn.setAttribute("aria-selected", "true");
     }
 
+    // Dashboard page highlight (safe)
+    if (dashTabBtn) {
+      const onDash = !!isDashboard;
+      dashTabBtn.classList.toggle('isActive', onDash);
+      dashTabBtn.setAttribute('aria-selected', onDash ? 'true' : 'false');
+      if (onDash) activeBtn = dashTabBtn;
+    }
+
     // Move underline
     if (tabsNav && activeBtn) {
       const ul = ensureUnderline();
@@ -175,17 +210,34 @@ const setActiveTab = () => {
   };
 
   if (authBtn) {
+    // Inject Dashboard button (shown only when logged in)
+    const headerRight = document.querySelector(".headerRight");
+    let dashLink = document.querySelector(".headerDashBtn");
+    if (headerRight && !dashLink) {
+      dashLink = document.createElement("a");
+      dashLink.className = "btnGhost headerAuthBtn headerDashBtn";
+      dashLink.href = "dashboard.html";
+      dashLink.style.textDecoration = "none";
+      dashLink.style.display = "none";
+      dashLink.style.alignItems = "center";
+      dashLink.style.gap = "10px";
+      dashLink.innerHTML = '<span class="btnLabel">Dashboard</span><span class="btnGlow"></span>';
+      headerRight.insertBefore(dashLink, authBtn);
+    }
+
+    
     const applyAuthState = () => {
       if (isAuthed()) {
-        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
-        authBtn.setAttribute("href", "#");
-        authBtn.classList.add("isActive", false);
+        // Replace Login/Logout with Dashboard link
+        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Dashboard"));
+        authBtn.setAttribute("href", "dashboard.html");
+        authBtn.onclick = null;
       } else {
         authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
         authBtn.setAttribute("href", "auth.html");
-        authBtn.classList.toggle("isActive", isAuth);
       }
     };
+
 
     applyAuthState();
 
@@ -275,9 +327,16 @@ const setActiveTab = () => {
 
 }
 
-  // Initialize active state + underline
+  
+  function finishHeaderPaint(){
+    requestAnimationFrame(() => {
+      document.documentElement.classList.remove('preload');
+    });
+  }
+
+// Initialize active state + underline
   const sync = () => requestAnimationFrame(setActiveTab);
-  sync();
+  try { sync(); } finally { finishHeaderPaint(); }
   window.addEventListener("resize", () => {
     // avoid layout thrash
     clearTimeout(window.__lypoTabResizeT);
