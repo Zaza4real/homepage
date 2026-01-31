@@ -1,7 +1,7 @@
 ;// Shared header behavior for all pages
 (() => {
   document.documentElement.classList.add('js');
-  document.documentElement.classList.add('preload');
+  
 
   // Guard to avoid double-binding navigation handlers across scripts
   window.__lypo_header_nav = true;
@@ -59,6 +59,7 @@
 
   // Mobile collapse (injected toggle button; no HTML changes needed)
   const headerEl = document.querySelector(".header");
+  if (!headerEl) return;
   let menuBtn = document.querySelector(".menuToggle");
 
   const ensureMenuBtn = () => {
@@ -285,15 +286,6 @@ const setActiveTab = () => {
     };
 
     applyAuthState();
-
-    authBtn.addEventListener("click", (e) => {
-      if (isAuthed()) {
-        e.preventDefault();
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        // go home after logout
-        location.href = "index.html";
-      }
-    });
   }
 
   // Tab navigation
@@ -375,13 +367,13 @@ const setActiveTab = () => {
   
   function finishHeaderPaint(){
     requestAnimationFrame(() => {
-      document.documentElement.classList.remove('preload');
+      
     });
   }
 
 // Initialize active state + underline
   const sync = () => requestAnimationFrame(setActiveTab);
-  try { sync(); } finally { finishHeaderPaint(); }
+  try { sync(); } finally {  }
   window.addEventListener("resize", () => {
     // avoid layout thrash
     clearTimeout(window.__lypoTabResizeT);
