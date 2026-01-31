@@ -13,7 +13,8 @@
   const authBtn = document.querySelector(".headerAuthBtn");
   const dashBtn = document.querySelector('[data-nav="dashboard"]');
   const logoLink = document.querySelector(".logoWrap");
-  const tabs = document.querySelectorAll(".tabBtn");
+  const getTabs = () => document.querySelectorAll('.tabBtn');
+  let tabs = getTabs();
 
   // Make logo always go to homepage
   if (logoLink) {
@@ -25,13 +26,40 @@
   const filename = path.split("/").pop() || "index.html";
   const isIndex = filename === "" || filename === "index.html" || filename === "/";
   const isDashboard = filename.includes("dashboard");
+  if (dashTabBtn) {
+    dashTabBtn.classList.toggle('isActive', isDashboard);
+    dashTabBtn.setAttribute('aria-selected', isDashboard ? 'true' : 'false');
+  }
   const isAuth = filename.includes("auth");
 
   if (dashBtn) dashBtn.classList.toggle("isActive", isDashboard);
 
   // Tabs active state + underline
   const tabsNav = document.querySelector(".tabs");
+  // Inject Dashboard tab (visible only when logged in)
+  let dashTabBtn = document.querySelector(".headerDashTab");
+  if (tabsNav && !dashTabBtn) {
+    dashTabBtn = document.createElement("button");
+    dashTabBtn.className = "tabBtn headerDashTab";
+    dashTabBtn.type = "button";
+    dashTabBtn.setAttribute("role", "tab");
+    dashTabBtn.setAttribute("aria-selected", "false");
+    dashTabBtn.setAttribute("data-href", "dashboard.html");
+    dashTabBtn.textContent = "Dashboard";
+    dashTabBtn.style.display = "none";
+    // Place it after About (or at end if not found)
+    const aboutBtn = Array.from(tabsNav.querySelectorAll(".tabBtn")).find(b => (b.getAttribute("data-href") || "").toLowerCase() === "about.html");
+    if (aboutBtn && aboutBtn.nextSibling) {
+      tabsNav.insertBefore(dashTabBtn, aboutBtn.nextSibling);
+    } else {
+      tabsNav.appendChild(dashTabBtn);
+    }
+  }
+
   let underlineEl = null;
+
+  // Refresh tabs after any dynamic injections
+  tabs = getTabs();
 
   // Mobile collapse (injected toggle button; no HTML changes needed)
   const headerEl = document.querySelector(".header");
