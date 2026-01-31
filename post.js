@@ -7,6 +7,21 @@
 
   function esc(s){ return String(s||"").replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
   function fmtDate(iso){ try { return new Date(iso).toLocaleDateString(); } catch { return ""; } }
+  
+  function processContent(html) {
+    if (!html) return "";
+    // If content doesn't have any HTML tags, treat as plain text and preserve line breaks
+    if (!html.includes('<') && !html.includes('>')) {
+      return `<p>${html.replace(/\n/g, '<br>')}</p>`;
+    }
+    // If content has <p> tags but no <br>, add line break preservation
+    if (html.includes('<p>') && !html.includes('<br')) {
+      return html.replace(/<p>([\s\S]*?)<\/p>/g, (match, content) => {
+        return `<p>${content.replace(/\n/g, '<br>')}</p>`;
+      });
+    }
+    return html;
+  }
 
   async function load() {
     const qs = new URLSearchParams(location.search||"");
@@ -27,7 +42,7 @@
       if (p.video_url) parts.push(`<div class="postVideo"><video controls preload="metadata" src="${esc(p.video_url)}"></video></div>`);
       mediaEl.innerHTML = parts.join("");
 
-      bodyEl.innerHTML = p.content_html || (p.excerpt ? `<p>${esc(p.excerpt)}</p>` : "");
+      bodyEl.innerHTML = processContent(p.content_html) || (p.excerpt ? `<p>${esc(p.excerpt)}</p>` : "");
     } catch (e) {
       titleEl.textContent = "Could not load post";
     }
