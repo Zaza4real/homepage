@@ -1759,16 +1759,3 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 .blogPostPage {
   padding-bottom: 60px;
 }
-
-
-/* Download button next to Output Ready (no layout loss) */
-.previewHeader,
-.previewTop,
-.previewTitle{
-  position: relative;
-}
-
-#btnDownload{
-  margin-left: auto;
-  align-self: center;
-}
