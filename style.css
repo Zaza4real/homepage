@@ -1493,9 +1493,102 @@ button.btnLink{ display:inline-flex; align-items:center; }
 
 .postCover img{ width:100%; aspect-ratio: 16 / 9; height:auto; object-fit:cover; border-radius:16px; display:block; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.18); }
 .postVideo video{ width:100%; aspect-ratio: 16 / 9; height:auto; border-radius:16px; margin-top:12px; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.18); }
-.postBody{ margin-top:14px; line-height:1.6; }
-.postBody h2{ margin:18px 0 8px; }
-.postBody p{ margin:10px 0; }
+
+/* Main blog post body typography */
+.postBody{ 
+  margin-top:20px; 
+  line-height:1.75;
+  font-size: 16px;
+  color: rgba(255,255,255,.90);
+  max-width: 780px;
+  text-align: left;
+}
+.postBody h1 { 
+  font-size: 28px; 
+  line-height: 1.3;
+  margin: 1.8em 0 0.8em 0;
+  letter-spacing: -0.01em;
+  color: rgba(255,255,255,.95);
+}
+.postBody h2 { 
+  font-size: 24px; 
+  line-height: 1.35;
+  margin: 1.6em 0 0.7em 0;
+  letter-spacing: -0.01em;
+  color: rgba(255,255,255,.94);
+}
+.postBody h3 { 
+  font-size: 20px; 
+  line-height: 1.4;
+  margin: 1.4em 0 0.6em 0;
+  color: rgba(255,255,255,.92);
+}
+.postBody p { 
+  margin: 0 0 1.2em 0;
+  line-height: 1.75;
+  color: rgba(255,255,255,.88);
+}
+.postBody ul,
+.postBody ol {
+  margin: 1em 0 1.4em 1.5em;
+  padding-left: 0.5em;
+}
+.postBody li {
+  margin: 0.5em 0;
+  line-height: 1.65;
+  color: rgba(255,255,255,.87);
+}
+.postBody blockquote {
+  margin: 1.4em 0;
+  padding: 1em 1.2em;
+  border-left: 3px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.04);
+  border-radius: 8px;
+  color: rgba(255,255,255,.90);
+}
+.postBody code {
+  background: rgba(255,255,255,.10);
+  padding: 0.2em 0.5em;
+  border-radius: 6px;
+  font-size: 0.92em;
+  color: rgba(255,255,255,.95);
+}
+.postBody pre {
+  background: rgba(0,0,0,.30);
+  padding: 1em;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  overflow-x: auto;
+  margin: 1.2em 0;
+}
+.postBody pre code {
+  background: none;
+  padding: 0;
+}
+.postBody img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 14px;
+  margin: 1.5em 0;
+  border: 1px solid rgba(255,255,255,.10);
+}
+.postBody a {
+  color: rgba(100,200,255,.95);
+  text-decoration: underline;
+  text-decoration-color: rgba(100,200,255,.4);
+  transition: text-decoration-color .2s ease;
+}
+.postBody a:hover {
+  text-decoration-color: rgba(100,200,255,.95);
+}
+.postBody strong {
+  font-weight: 700;
+  color: rgba(255,255,255,.95);
+}
+.postBody em {
+  font-style: italic;
+  color: rgba(255,255,255,.90);
+}
 
 
 /* Blog layout polish: prevent single-line overflow and improve readability */
@@ -1522,61 +1615,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
 }
 
 
-/* Blog post typography polish */
-.postContent {
-  max-width: 760px;
-  margin: 0 auto;
-}
-
-.postContent h1,
-.postContent h2,
-.postContent h3 {
-  margin-top: 1.6em;
-  margin-bottom: 0.6em;
-  line-height: 1.25;
-}
-
-.postContent h1 { font-size: 28px; }
-.postContent h2 { font-size: 22px; }
-.postContent h3 { font-size: 18px; }
-
-.postContent p {
-  margin: 0.9em 0;
-  line-height: 1.65;
-  color: #d7d7d7;
-}
-
-.postContent ul,
-.postContent ol {
-  margin: 1em 0 1em 1.2em;
-}
-
-.postContent li {
-  margin: 0.4em 0;
-  line-height: 1.55;
-}
-
-.postContent blockquote {
-  margin: 1.2em 0;
-  padding: 0.8em 1em;
-  border-left: 3px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.03);
-  border-radius: 8px;
-  color: #e6e6e6;
-}
-
-.postContent code {
-  background: rgba(255,255,255,0.08);
-  padding: 0.2em 0.4em;
-  border-radius: 6px;
-  font-size: 0.9em;
-}
-
-.postContent img {
-  max-width: 100%;
-  border-radius: 12px;
-  margin: 1.2em 0;
-}
+/* Removed duplicate .postContent styles - now using .postBody */
 
 
 /* Dashboard emphasis when logged in */
@@ -1595,83 +1634,48 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 
 /* Constrain post content width */
 .postContainer{
-  max-width: 760px;
+  max-width: 820px;
   margin: 0 auto;
+}
+
+/* Post card styling */
+.postCard {
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 24px 80px rgba(0,0,0,.35);
 }
 
 /* Fix cover image aspect + size */
 .postCover{
-  margin: 0 0 18px;
+  margin: 12px 0 18px;
 }
 .postCover img{
   width: 100%;
-  max-height: 340px;
+  max-height: 380px;
   object-fit: cover;
-  border-radius: 18px;
-}
-
-/* Improve post header spacing */
-.postHeader{
-  margin-bottom: 18px;
-}
-.postHeader h1{
-  font-size: 24px;
-  line-height: 1.25;
-  margin-bottom: 8px;
-}
-.postMeta{
-  font-size: 12px;
-  opacity: .7;
-}
-
-/* Clean body text rhythm */
-.postBody{
-  font-size: 15px;
-  line-height: 1.75;
-}
-.postBody p{
-  margin: 0 0 14px;
-}
-
-/* Lists */
-.postBody ul,
-.postBody ol{
-  margin: 0 0 16px;
-  padding-left: 20px;
-}
-
-/* Headings */
-.postBody h2{
-  margin-top: 26px;
-  margin-bottom: 10px;
-}
-.postBody h3{
-  margin-top: 22px;
-  margin-bottom: 8px;
-}
-
-/* Images inside content */
-.postBody img{
-  margin: 18px 0;
   border-radius: 16px;
-  max-height: 420px;
-  object-fit: cover;
 }
 
-/* Quotes */
-.postBody blockquote{
-  margin: 18px 0;
-  padding: 14px 16px;
-  font-size: 14px;
+/* Post meta styling */
+#postMeta{
+  font-size: 13px;
+  opacity: .72;
+  color: rgba(255,255,255,.70);
 }
 
 /* Mobile tuning */
 @media (max-width: 640px){
-  .postHeader h1{
-    font-size: 20px;
+  .postContainer{
+    max-width: 100%;
+  }
+  #postTitle{
+    font-size: 22px !important;
   }
   .postCover img{
-    max-height: 220px;
+    max-height: 240px;
+  }
+  .postBody{
+    font-size: 15px;
   }
 }
 
@@ -1689,15 +1693,6 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
   transform: translateY(-1px);
   border-color: rgba(255,255,255,.14);
   background: rgba(0,0,0,.18);
-}
-
-/* Post polish */
-.postBody{
-  max-width: 780px;
-}
-#postMeta{
-  font-size: 12px;
-  opacity: .72;
 }
 
 
@@ -1729,33 +1724,7 @@ body.isAuthed .btnGhost[data-nav="dashboard"]:hover{
 /* Admin panels hidden by default; shown only for admins */
 .adminPanel{ display:none; }
 
-
-/* Blog typography polish (no layout changes elsewhere) */
-.blogContent {
-  text-align: left;
-  line-height: 1.75;
-  font-size: 16px;
-  max-width: 760px;
-}
-
-.blogContent p {
-  margin: 0 0 1.1em 0;
-}
-
-.blogContent h1,
-.blogContent h2,
-.blogContent h3 {
-  margin: 1.6em 0 0.6em 0;
-  line-height: 1.3;
-}
-
-.blogContent img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 14px;
-  margin: 1.4em 0;
-}
-
+/* Blog post page spacing */
 .blogPostPage {
   padding-bottom: 60px;
 }
