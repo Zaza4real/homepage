@@ -10,17 +10,13 @@
   
   function processContent(html) {
     if (!html) return "";
-    // If content doesn't have any HTML tags, treat as plain text and preserve line breaks
-    if (!html.includes('<') && !html.includes('>')) {
-      return `<p>${html.replace(/\n/g, '<br>')}</p>`;
-    }
-    // If content has <p> tags but no <br>, add line break preservation
-    if (html.includes('<p>') && !html.includes('<br')) {
-      return html.replace(/<p>([\s\S]*?)<\/p>/g, (match, content) => {
-        return `<p>${content.replace(/\n/g, '<br>')}</p>`;
-      });
-    }
-    return html;
+    
+    // Convert all newlines to <br> tags FIRST, before any other processing
+    // This ensures line breaks are preserved regardless of HTML structure
+    let processed = html.replace(/\r\n/g, '\n'); // Normalize Windows line endings
+    processed = processed.replace(/\n/g, '<br>');
+    
+    return processed;
   }
 
   async function load() {
