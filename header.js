@@ -1,5 +1,8 @@
 ;// Shared header behavior for all pages
 (() => {
+  document.documentElement.classList.add('js');
+  document.documentElement.classList.add('preload');
+
   // Guard to avoid double-binding navigation handlers across scripts
   window.__lypo_header_nav = true;
 
@@ -175,6 +178,21 @@ const setActiveTab = () => {
   };
 
   if (authBtn) {
+    // Inject Dashboard button (shown only when logged in)
+    const headerRight = document.querySelector(".headerRight");
+    let dashLink = document.querySelector(".headerDashBtn");
+    if (headerRight && !dashLink) {
+      dashLink = document.createElement("a");
+      dashLink.className = "btnGhost headerAuthBtn headerDashBtn";
+      dashLink.href = "dashboard.html";
+      dashLink.style.textDecoration = "none";
+      dashLink.style.display = "none";
+      dashLink.style.alignItems = "center";
+      dashLink.style.gap = "10px";
+      dashLink.innerHTML = '<span class="btnLabel">Dashboard</span><span class="btnGlow"></span>';
+      headerRight.insertBefore(dashLink, authBtn);
+    }
+
     const applyAuthState = () => {
       if (isAuthed()) {
         authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
@@ -275,9 +293,17 @@ const setActiveTab = () => {
 
 }
 
-  // Initialize active state + underline
+  
+  function finishHeaderPaint(){
+    requestAnimationFrame(() => {
+      document.documentElement.classList.remove('preload');
+    });
+  }
+
+// Initialize active state + underline
   const sync = () => requestAnimationFrame(setActiveTab);
   sync();
+  finishHeaderPaint();
   window.addEventListener("resize", () => {
     // avoid layout thrash
     clearTimeout(window.__lypoTabResizeT);
