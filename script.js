@@ -364,7 +364,6 @@ const pill = $("statusPill");
   // ---- Download (blob only; avoids fullscreen/player)
   function resetDownload() {
     const btn = $("btnDownload");
-    if (previewInner && btn && btn.parentElement !== previewInner) previewInner.appendChild(btn);
     if (!btn) return;
     btn.hidden = true;
     btn.classList.remove("isReady");
@@ -374,11 +373,7 @@ const pill = $("statusPill");
   }
 
   function enableDownload(url) {
-    // Move Download button into preview header (top-right)
-    const previewInner = document.querySelector(".previewInner");
-
     const btn = $("btnDownload");
-    if (previewInner && btn && btn.parentElement !== previewInner) previewInner.appendChild(btn);
     if (!btn) return;
     btn.hidden = false;
     btn.dataset.url = url;
@@ -754,7 +749,6 @@ const pill = $("statusPill");
 
   function attachDownload() {
     const btn = $("btnDownload");
-    if (previewInner && btn && btn.parentElement !== previewInner) previewInner.appendChild(btn);
     if (!btn) return;
 
     btn.addEventListener("click", async () => {
