@@ -26,10 +26,6 @@
   const filename = path.split("/").pop() || "index.html";
   const isIndex = filename === "" || filename === "index.html" || filename === "/";
   const isDashboard = filename.includes("dashboard");
-  if (dashTabBtn) {
-    dashTabBtn.classList.toggle('isActive', isDashboard);
-    dashTabBtn.setAttribute('aria-selected', isDashboard ? 'true' : 'false');
-  }
   const isAuth = filename.includes("auth");
 
   if (dashBtn) dashBtn.classList.toggle("isActive", isDashboard);
@@ -37,7 +33,7 @@
   // Tabs active state + underline
   const tabsNav = document.querySelector(".tabs");
   // Inject Dashboard tab (visible only when logged in)
-  let dashTabBtn = document.querySelector(".headerDashTab");
+  dashTabBtn = document.querySelector('.headerDashTab');
   if (tabsNav && !dashTabBtn) {
     dashTabBtn = document.createElement("button");
     dashTabBtn.className = "tabBtn headerDashTab";
@@ -188,6 +184,14 @@ const setActiveTab = () => {
       activeBtn.setAttribute("aria-selected", "true");
     }
 
+    // Dashboard page highlight (safe)
+    if (dashTabBtn) {
+      const onDash = !!isDashboard;
+      dashTabBtn.classList.toggle('isActive', onDash);
+      dashTabBtn.setAttribute('aria-selected', onDash ? 'true' : 'false');
+      if (onDash) activeBtn = dashTabBtn;
+    }
+
     // Move underline
     if (tabsNav && activeBtn) {
       const ul = ensureUnderline();
@@ -330,8 +334,7 @@ const setActiveTab = () => {
 
 // Initialize active state + underline
   const sync = () => requestAnimationFrame(setActiveTab);
-  sync();
-  finishHeaderPaint();
+  try { sync(); } finally { finishHeaderPaint(); }
   window.addEventListener("resize", () => {
     // avoid layout thrash
     clearTimeout(window.__lypoTabResizeT);
