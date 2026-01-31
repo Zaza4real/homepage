@@ -81,13 +81,48 @@
     });
 
     // Close when a tab is clicked (mobile)
-    tabs.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (window.matchMedia("(max-width: 768px)").matches) {
-          setMenuOpen(false);
-        }
+    
+  tabs.forEach((btn) => {
+    if (btn.dataset.lypoBound === "1") return;
+    btn.dataset.lypoBound = "1";
+
+    btn.addEventListener("click", (e) => {
+      const href = btn.getAttribute("data-href");
+      const tab = (btn.getAttribute("data-tab") || "").toLowerCase();
+
+      // Visual active state (instant)
+      tabs.forEach((b) => {
+        b.classList.remove("isActive");
+        b.setAttribute("aria-selected", "false");
       });
+      btn.classList.add("isActive");
+      btn.setAttribute("aria-selected", "true");
+
+      // Desktop underline
+      if (tabsNav && window.matchMedia("(min-width: 769px)").matches) {
+        const ul = ensureUnderline();
+        const navRect = tabsNav.getBoundingClientRect();
+        const btnRect = btn.getBoundingClientRect();
+        ul.style.transform = `translateX(${Math.max(0, btnRect.left - navRect.left)}px)`;
+        ul.style.width = `${Math.max(12, btnRect.width)}px`;
+        ul.style.opacity = "1";
+      }
+
+      // Normal navigation buttons
+      if (href) {
+        window.location.href = href;
+        return;
+      }
+
+      // Index page tab switching only
+      if (isIndex && tab) {
+        e.preventDefault();
+        activateIndexTab(tab);
+        return;
+      }
     });
+  });
+
 
     // Close if clicking outside
     document.addEventListener("click", (e) => {
