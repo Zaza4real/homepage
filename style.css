@@ -1502,6 +1502,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
   color: rgba(255,255,255,.90);
   max-width: 780px;
   text-align: left;
+  white-space: pre-line;
 }
 .postBody h1 { 
   font-size: 28px; 
