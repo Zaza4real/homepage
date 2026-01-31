@@ -608,7 +608,7 @@ const pill = $("statusPill");
       if (j?.status === "succeeded" && j?.outputUrl) return j;
       if (j?.status === "failed") throw new Error(j?.error || "Job failed");
       await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-      setStatus("Generating…");
+    
     }
     throw new Error("Timed out waiting for result");
   }
