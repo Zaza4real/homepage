@@ -11,18 +11,44 @@
   function processContent(html) {
     if (!html) return "";
     
-    // Debug: log what we received from backend
-    console.log('Raw content from backend:', JSON.stringify(html.substring(0, 200)));
-    console.log('Contains \\n?', html.includes('\n'));
-    console.log('Contains <br>?', html.includes('<br'));
-    console.log('Contains <p>?', html.includes('<p>'));
+    // Debug logging
+    console.log('=== BLOG POST DEBUG ===');
+    console.log('Raw content (first 300 chars):', html.substring(0, 300));
+    console.log('Full length:', html.length);
+    console.log('Has newlines (\\n):', html.includes('\n'));
+    console.log('Has <br>:', html.includes('<br'));
+    console.log('Has <p>:', html.includes('<p>'));
     
-    // Convert all newlines to <br> tags FIRST, before any other processing
-    // This ensures line breaks are preserved regardless of HTML structure
-    let processed = html.replace(/\r\n/g, '\n'); // Normalize Windows line endings
-    processed = processed.replace(/\n/g, '<br>');
+    // COMPREHENSIVE FIX: Handle all possible formats
+    let processed = html;
     
-    console.log('Processed content:', JSON.stringify(processed.substring(0, 200)));
+    // 1. Normalize line endings (Windows → Unix)
+    processed = processed.replace(/\r\n/g, '\n');
+    processed = processed.replace(/\r/g, '\n');
+    
+    // 2. If content has NO HTML tags at all, wrap and convert newlines
+    if (!processed.includes('<') && !processed.includes('>')) {
+      processed = '<div>' + processed.replace(/\n/g, '<br>\n') + '</div>';
+      console.log('Format: Plain text, converted to HTML with <br> tags');
+    }
+    // 3. If content has <p> tags, add <br> for newlines inside them
+    else if (processed.includes('<p>')) {
+      // Replace newlines with <br> but only inside <p> tags
+      processed = processed.replace(/<p>([\s\S]*?)<\/p>/gi, function(match, content) {
+        return '<p>' + content.replace(/\n+/g, '<br>') + '</p>';
+      });
+      // Also handle newlines outside <p> tags
+      processed = processed.replace(/\n/g, '<br>');
+      console.log('Format: Has <p> tags, added <br> for line breaks');
+    }
+    // 4. If it's other HTML, just convert all newlines to <br>
+    else {
+      processed = processed.replace(/\n/g, '<br>');
+      console.log('Format: HTML content, converted newlines to <br>');
+    }
+    
+    console.log('Processed (first 300 chars):', processed.substring(0, 300));
+    console.log('======================');
     
     return processed;
   }

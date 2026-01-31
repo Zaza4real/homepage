@@ -1502,7 +1502,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
   color: rgba(255,255,255,.90);
   max-width: 780px;
   text-align: left;
-  white-space: pre-line;
+  white-space: normal;
 }
 .postBody h1 { 
   font-size: 28px; 
@@ -1531,13 +1531,13 @@ button.btnLink{ display:inline-flex; align-items:center; }
   margin: 0 0 1.2em 0;
   line-height: 1.75;
   color: rgba(255,255,255,.88);
-  white-space: pre-line;
+  white-space: normal;
   text-align: left;
 }
 .postBody br {
   display: block;
-  content: "";
-  margin: 0.5em 0;
+  margin: 0.3em 0;
+  line-height: 0;
 }
 .postBody ul,
 .postBody ol {
@@ -1549,7 +1549,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
   margin: 0.5em 0;
   line-height: 1.65;
   color: rgba(255,255,255,.87);
-  white-space: pre-line;
+  white-space: normal;
   text-align: left;
 }
 .postBody blockquote {
@@ -1559,7 +1559,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
   background: rgba(255,255,255,.04);
   border-radius: 8px;
   color: rgba(255,255,255,.90);
-  white-space: pre-line;
+  white-space: normal;
   text-align: left;
 }
 .postBody code {
@@ -1604,6 +1604,10 @@ button.btnLink{ display:inline-flex; align-items:center; }
 .postBody em {
   font-style: italic;
   color: rgba(255,255,255,.90);
+}
+.postBody div {
+  text-align: left;
+  white-space: normal;
 }
 
 
