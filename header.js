@@ -1,178 +1,286 @@
+;// Shared header behavior for all pages
 (() => {
-  // Make sure header never stays hidden
-  document.documentElement.classList.add("js");
-  document.documentElement.classList.add("preload");
-  requestAnimationFrame(() => document.documentElement.classList.remove("preload"));
+  // Guard to avoid double-binding navigation handlers across scripts
+  window.__lypo_header_nav = true;
 
-  const AUTH_TOKEN_KEY = "lypo_token"; // keep consistent with backend/frontend auth
-  const isAuthed = () => {
-    const t = localStorage.getItem(AUTH_TOKEN_KEY);
-    return !!(t && String(t).trim().length > 10);
-  };
+  const AUTH_TOKEN_KEY = "lypo_token_v1";
+  const token = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
+  const isAuthed = () => !!token();
 
-  const filename = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const authBtn = document.querySelector(".headerAuthBtn");
+  const dashBtn = document.querySelector('[data-nav="dashboard"]');
+  const logoLink = document.querySelector(".logoWrap");
+  const tabs = document.querySelectorAll(".tabBtn");
+
+  // Make logo always go to homepage
+  if (logoLink) {
+    logoLink.setAttribute("href", "index.html");
+  }
+
+  // Highlight current page in header
+  const path = (location.pathname || "").toLowerCase();
+  const filename = path.split("/").pop() || "index.html";
   const isIndex = filename === "" || filename === "index.html" || filename === "/";
   const isDashboard = filename.includes("dashboard");
+  const isAuth = filename.includes("auth");
 
+  if (dashBtn) dashBtn.classList.toggle("isActive", isDashboard);
+
+  // Tabs active state + underline
   const tabsNav = document.querySelector(".tabs");
-  const authBtn = document.querySelector(".headerAuthBtn");
+  let underlineEl = null;
 
-  // Inject Dashboard + Logout into LEFT nav (only visible when logged in)
-  let dashTabBtn = null;
-  let logoutTabBtn = null;
+  // Mobile collapse (injected toggle button; no HTML changes needed)
+  const headerEl = document.querySelector(".header");
+  let menuBtn = document.querySelector(".menuToggle");
 
-  function ensureDashTabs() {
-    if (!tabsNav) return;
+  const ensureMenuBtn = () => {
+    if (!headerEl || !tabsNav) return null;
+    if (menuBtn) return menuBtn;
 
-    if (!dashTabBtn) {
-      dashTabBtn = document.createElement("button");
-      dashTabBtn.type = "button";
-      dashTabBtn.className = "tabBtn headerDashTab";
-      dashTabBtn.textContent = "Dashboard";
-      dashTabBtn.dataset.href = "dashboard.html";
-      dashTabBtn.style.display = "none";
-      tabsNav.insertBefore(dashTabBtn, tabsNav.firstChild);
-    }
+    menuBtn = document.createElement("button");
+    menuBtn.className = "menuToggle";
+    menuBtn.type = "button";
+    menuBtn.setAttribute("aria-label", "Open menu");
+    menuBtn.setAttribute("aria-expanded", "false");
+    menuBtn.innerHTML = '<span class="menuIcon" aria-hidden="true">☰</span>';
 
-    if (!logoutTabBtn) {
-      logoutTabBtn = document.createElement("button");
-      logoutTabBtn.type = "button";
-      logoutTabBtn.className = "tabBtn headerLogoutTab";
-      logoutTabBtn.textContent = "Logout";
-      logoutTabBtn.style.display = "none";
-      logoutTabBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        location.href = "index.html";
+    // Insert just before the tabs
+    headerEl.insertBefore(menuBtn, tabsNav);
+
+    menuBtn.addEventListener("click", () => {
+      const open = !tabsNav.classList.contains("open");
+      setMenuOpen(open);
+    });
+
+    // Close when a tab is clicked (mobile)
+    tabs.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (window.matchMedia("(max-width: 768px)").matches) {
+          setMenuOpen(false);
+        }
       });
-      tabsNav.insertBefore(logoutTabBtn, dashTabBtn.nextSibling);
+    });
+
+    // Close if clicking outside
+    document.addEventListener("click", (e) => {
+      if (!tabsNav.classList.contains("open")) return;
+      const t = e.target;
+      if (t instanceof Element) {
+        const inside = tabsNav.contains(t) || menuBtn.contains(t);
+        if (!inside) setMenuOpen(false);
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.matchMedia("(min-width: 769px)").matches) {
+        setMenuOpen(false);
+      }
+    });
+
+    return menuBtn;
+  };
+
+  const setMenuOpen = (open) => {
+    if (!tabsNav) return;
+    tabsNav.classList.toggle("open", open);
+    const b = ensureMenuBtn();
+    if (!b) return;
+    b.classList.toggle("isOpen", open);
+    b.setAttribute("aria-expanded", open ? "true" : "false");
+    b.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    const icon = b.querySelector(".menuIcon");
+    if (icon) icon.textContent = open ? "✕" : "☰";
+  };
+
+
+  const ensureUnderline = () => {
+    if (!tabsNav) return null;
+    if (underlineEl) return underlineEl;
+    underlineEl = document.createElement("div");
+    underlineEl.className = "tabUnderline";
+    tabsNav.appendChild(underlineEl);
+    return underlineEl;
+  };
+
+  const getDesiredActiveKey = () => {
+    // index.html can set tab via ?tab=
+    const params = new URLSearchParams(location.search || "");
+    const tabParam = (params.get("tab") || "").toLowerCase();
+    if (isIndex) {
+      return tabParam || "home";
     }
-  }
+    // non-index pages: match by filename (support.html, features.html, etc.)
+    return filename;
+  };
 
-  function applyAuthState() {
-    const authed = isAuthed();
-    ensureDashTabs();
-
-    if (dashTabBtn) dashTabBtn.style.display = authed ? "" : "none";
-    if (logoutTabBtn) logoutTabBtn.style.display = authed ? "" : "none";
-
-    if (authBtn) {
-      // Right-side button: Login when logged out, Dashboard when logged in
-      const label = authBtn.querySelector(".btnLabel");
-      if (label) label.textContent = authed ? "Dashboard" : "Login";
-    }
-  }
-
-  // Auth button navigation
-  if (authBtn) {
-    authBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      location.href = isAuthed() ? "dashboard.html" : "auth.html";
+  
+  // On index.html we also need to activate the corresponding panel immediately.
+  // This mirrors the minimal logic from script.js without changing design.
+  function activateIndexTab(tabKey){
+    const tab = String(tabKey || "home").toLowerCase();
+    const tabBtns = Array.from(document.querySelectorAll(".tabBtn")).filter((b)=>b.dataset && b.dataset.tab);
+    const panels = Array.from(document.querySelectorAll(".tabPanel"));
+    tabBtns.forEach((b)=>{
+      const on = (String(b.dataset.tab||"").toLowerCase() === tab);
+      b.classList.toggle("isActive", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    panels.forEach((p)=>{
+      const on = (p.id === `tab-${tab}`);
+      p.classList.toggle("isActive", on);
     });
   }
 
-  // Active tab + underline
-  const ensureUnderline = () => {
-    if (!tabsNav) return null;
-    let ul = tabsNav.querySelector(".tabUnderline");
-    if (!ul) {
-      ul = document.createElement("div");
-      ul.className = "tabUnderline";
-      tabsNav.appendChild(ul);
-    }
-    return ul;
-  };
-
-  function normalizePath(p) {
-    const clean = String(p || "").split("?")[0].split("#")[0].toLowerCase();
-    if (!clean || clean === "/" || clean === "index.html") return "index.html";
-    return clean.replace(/^\//, "");
-  }
-
-  function syncActive() {
-    if (!tabsNav) return;
-    const ul = ensureUnderline();
-    const current = normalizePath(location.pathname.split("/").pop() || "index.html");
-
-    const tabs = Array.from(tabsNav.querySelectorAll(".tabBtn"));
+const setActiveTab = () => {
+    const key = getDesiredActiveKey();
     let activeBtn = null;
 
     tabs.forEach((btn) => {
-      // Skip logout - it's an action, not a page
-      if (btn.classList.contains("headerLogoutTab")) return;
+      const href = (btn.getAttribute("data-href") || "").toLowerCase();
+      const tab = (btn.getAttribute("data-tab") || "").toLowerCase();
 
-      const href = btn.dataset.href || "";
-      const isHome = (btn.dataset.tab || "").toLowerCase() === "home";
-      const target = isHome ? "index.html" : normalizePath(href);
+      const isActive =
+        (isIndex && tab && tab === key) ||
+        (!isIndex && href && href === key);
 
-      const on =
-        (isDashboard && btn.classList.contains("headerDashTab")) ||
-        (!isDashboard && target && current === target);
+      btn.classList.toggle("isActive", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
 
-      btn.classList.toggle("isActive", on);
-      btn.setAttribute("aria-selected", on ? "true" : "false");
-      if (on) activeBtn = btn;
+      if (isActive) activeBtn = btn;
     });
 
-    // default to Home if none matched (on index)
-    if (!activeBtn) {
-      const home = tabs.find((b) => (b.dataset.tab || "").toLowerCase() === "home");
-      if (home && isIndex) {
-        home.classList.add("isActive");
-        home.setAttribute("aria-selected", "true");
-        activeBtn = home;
-      }
+    // If nothing matched (edge case), default to Home/home
+    if (!activeBtn && tabs.length) {
+      activeBtn = tabs[0];
+      activeBtn.classList.add("isActive");
+      activeBtn.setAttribute("aria-selected", "true");
     }
 
-    if (!ul || !activeBtn) return;
+    // Move underline
+    if (tabsNav && activeBtn) {
+      const ul = ensureUnderline();
+      if (!ul) return;
 
-    // hide underline on mobile stacked menu
-    if (window.matchMedia("(max-width: 768px)").matches) {
-      ul.style.opacity = "0";
-      return;
+      const navRect = tabsNav.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
+
+      const left = Math.max(0, btnRect.left - navRect.left);
+      const width = Math.max(12, btnRect.width);
+
+      ul.style.transform = `translateX(${left}px)`;
+      ul.style.width = `${width}px`;
+      ul.style.opacity = "1";
     }
+  };
 
-    const navRect = tabsNav.getBoundingClientRect();
-    const btnRect = activeBtn.getBoundingClientRect();
-    const left = Math.max(0, btnRect.left - navRect.left);
-    const width = Math.max(12, btnRect.width);
-    ul.style.transform = `translateX(${left}px)`;
-    ul.style.width = `${width}px`;
-    ul.style.opacity = "1";
-  }
-
-  // Tab clicks (data-href)
-  if (tabsNav) {
-    tabsNav.addEventListener("click", (e) => {
-      const btn = e.target.closest(".tabBtn");
-      if (!btn) return;
-
-      // Logout handled separately
-      if (btn.classList.contains("headerLogoutTab")) return;
-
-      const href = btn.dataset.href;
-      const tab = (btn.dataset.tab || "").toLowerCase();
-
-      if (href) {
-        location.href = href;
-        return;
+  if (authBtn) {
+    const applyAuthState = () => {
+      if (isAuthed()) {
+        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Logout"));
+        authBtn.setAttribute("href", "#");
+        authBtn.classList.add("isActive", false);
+      } else {
+        authBtn.querySelector(".btnLabel")?.replaceChildren(document.createTextNode("Login"));
+        authBtn.setAttribute("href", "auth.html");
+        authBtn.classList.toggle("isActive", isAuth);
       }
+    };
 
-      if (tab === "home") {
-        location.href = "index.html";
-        return;
-      }
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
     applyAuthState();
-    syncActive();
-    // second pass after paint for first-tab underline
-    setTimeout(syncActive, 0);
+
+    authBtn.addEventListener("click", (e) => {
+      if (isAuthed()) {
+        e.preventDefault();
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        // go home after logout
+        location.href = "index.html";
+      }
+    });
+  }
+
+  // Tab navigation
+  if (tabs.length) {
+    
+  
+  // Navigation + consistent press feedback (without changing design)
+  const PRESS_DELAY_MS = 0; // keep header snappy; press feedback handled via pointer states // small delay so the press animation is visible
+
+  tabs.forEach((btn) => {
+    if (btn.dataset.lypoBound === "1") return; // prevent duplicate bindings
+    btn.dataset.lypoBound = "1";
+
+    const pressOn = () => btn.classList.add("isPressing");
+    const pressOff = () => btn.classList.remove("isPressing");
+
+    btn.addEventListener("pointerdown", pressOn, { passive: true });
+    btn.addEventListener("pointerup", pressOff, { passive: true });
+    btn.addEventListener("pointercancel", pressOff, { passive: true });
+    btn.addEventListener("blur", pressOff);
+
+    btn.addEventListener("click", (e) => {
+      // Make the pressed tab feel instant
+      tabs.forEach((b) => {
+        b.classList.remove("isActive");
+        b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("isActive");
+      btn.setAttribute("aria-selected", "true");
+
+      // Move underline immediately on desktop
+      if (tabsNav && window.matchMedia("(min-width: 769px)").matches) {
+        const ul = ensureUnderline();
+        const navRect = tabsNav.getBoundingClientRect();
+        const btnRect = btn.getBoundingClientRect();
+        const left = Math.max(0, btnRect.left - navRect.left);
+        const width = Math.max(12, btnRect.width);
+        ul.style.transform = `translateX(${left}px)`;
+        ul.style.width = `${width}px`;
+        ul.style.opacity = "1";
+      }
+
+      const href = btn.getAttribute("data-href");
+      if (href) {
+        // Let the press animation show before navigating
+        e.preventDefault();
+        setTimeout(() => (location.href = href), PRESS_DELAY_MS);
+        return;
+      }
+
+      const tab = (btn.getAttribute("data-tab") || "home").toLowerCase();
+      if (!isIndex) {
+        // From other pages, Home goes to index
+        e.preventDefault();
+        setTimeout(() => (location.href = "index.html"), PRESS_DELAY_MS);
+        return;
+      }
+
+      // On index.html: activate the panel immediately (no reload)
+      if (isIndex) {
+        e.preventDefault();
+        activateIndexTab(tab);
+        // keep URL clean (optional): ensure no lingering tab param
+        try {
+          const u = new URL(location.href);
+          u.searchParams.delete("tab");
+          history.replaceState({}, "", u.pathname + (u.searchParams.toString() ? "?" + u.searchParams.toString() : "") + u.hash);
+        } catch {}
+        return;
+      }
+
+      e.preventDefault();
+    });
   });
 
+
+}
+
+  // Initialize active state + underline
+  const sync = () => requestAnimationFrame(setActiveTab);
+  sync();
   window.addEventListener("resize", () => {
-    syncActive();
+    // avoid layout thrash
+    clearTimeout(window.__lypoTabResizeT);
+    window.__lypoTabResizeT = setTimeout(sync, 60);
   });
 })();

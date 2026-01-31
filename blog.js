@@ -1,5 +1,5 @@
 (() => {
-  const BACKEND_BASE_URL = "https://api.lypo.org";
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
 
   const list = document.getElementById("blogList");
   function esc(s){ return String(s||"").replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
