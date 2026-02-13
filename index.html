@@ -55,6 +55,36 @@
 
  <!-- Critical CSS Inlined -->
  <style>
+    /* Desktop Header - Critical for preventing FOUC */
+    .header {
+      position: fixed;
+      top: 18px; left: 50%;
+      transform: translateX(-50%);
+      width: min(1040px, calc(100% - 40px));
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(0, 0, 0, .38);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 999px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, .55);
+      z-index: 1000 !important; /* Force high z-index */
+    }
+    
+    .logoWrap { padding: 6px 10px; }
+    .logo {
+      font-size: 44px;
+      line-height: 1;
+      letter-spacing: .22em;
+      font-weight: 1000;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, .95);
+      text-shadow: 0 0 14px rgba(255, 255, 255, .08), 0 0 36px rgba(255, 255, 255, .06), 0 12px 44px rgba(0, 0, 0, .70);
+      position: relative;
+    }
+
   /* ========================================
   PROFESSIONAL MOBILE HEADER WITH HAMBURGER MENU
   No more horizontal scrolling - clean & modern!
