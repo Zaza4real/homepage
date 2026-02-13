@@ -1,3 +1,13 @@
+import express from "express";
+import Replicate from "replicate";
+import Busboy from "busboy";
+import crypto from "crypto";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import Stripe from "stripe";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import pg from "pg";
+import { Resend } from "resend";
 
 async function recordPaymentFromSessionIfMissing(sessionId, email) {
   try {
@@ -31,16 +41,6 @@ async function recordPaymentFromSessionIfMissing(sessionId, email) {
     console.error("recordPaymentFromSessionIfMissing failed:", e.message);
   }
 }
-import express from "express";
-import Replicate from "replicate";
-import Busboy from "busboy";
-import crypto from "crypto";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import Stripe from "stripe";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import pg from "pg";
-import { Resend } from "resend";
 
 // Resend email client (safe init)
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -76,7 +76,8 @@ function requireAdmin(req, res, next) {
 const allowedOrigins = new Set([
   "https://digitalgeekworld.com",
   "https://www.digitalgeekworld.com",
-  "https://homepage-3d78.onrender.com",
+  "https://lypo-backend.onrender.com",
+  "https://api.lypo.org",
   "https://lypo.org",
   "https://www.lypo.org",
   process.env.FRONTEND_URL || ""
