@@ -3,7 +3,7 @@
   if (window.__LYPO_INIT__) return;
   window.__LYPO_INIT__ = true;
 
-  const BACKEND_BASE_URL = "https://api.lypo.org";
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const POLL_INTERVAL_MS = 1400;
   const POLL_TIMEOUT_MS = 8 * 60 * 1000;
 

@@ -28,7 +28,7 @@ async function getSelectedVideoDurationSeconds() {
   if (window.__LYPO_INIT__) return;
   window.__LYPO_INIT__ = true;
 
-  const BACKEND_BASE_URL = "https://api.lypo.org";
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const POLL_INTERVAL_MS = 1400;
   const POLL_TIMEOUT_MS = 8 * 60 * 1000;
 
@@ -785,7 +785,7 @@ function showAuthModal(show) {
 // Buy credits (integrated modal, opens Stripe in a new tab)
 // Buy credits (inline)
 (function attachBuyCredits(){
-  const BACKEND_BASE_URL = "https://api.lypo.org";
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const AUTH_TOKEN_KEY = "lypo_token_v1";
   const CREDITS_PER_USD = 100; // matches backend LYPOS_PER_USD
 

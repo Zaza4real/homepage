@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const BACKEND_BASE = "https://api.lypo.org";
+  const BACKEND_BASE = "https://lypo-backend.onrender.com";
   const KLING_COST_PER_SECOND = 20; // 20 credits per second
   const AUTH_TOKEN_KEY = "lypo_token_v1";
 

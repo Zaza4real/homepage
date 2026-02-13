@@ -1,6 +1,6 @@
 const BACKEND_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
   ? "http://localhost:10000"
-  : "https://api.lypo.org";
+  : "https://lypo-backend.onrender.com";
 
 async function apiFetch(path, opts = {}) {
     const headers = new Headers(opts.headers || {});

@@ -508,7 +508,7 @@ async function uploadAllBlogs() {
     console.log(`\n📝 Uploading post ${i + 1}/${blogPosts.length}: "${post.title}"`);
     
     try {
-      const response = await fetch('https://api.lypo.org/api/admin/blog/posts', {
+      const response = await fetch('https://lypo-backend.onrender.com/api/admin/blog/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,13 +1,3 @@
-import express from "express";
-import Replicate from "replicate";
-import Busboy from "busboy";
-import crypto from "crypto";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import Stripe from "stripe";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import pg from "pg";
-import { Resend } from "resend";
 
 async function recordPaymentFromSessionIfMissing(sessionId, email) {
   try {
@@ -41,6 +31,16 @@ async function recordPaymentFromSessionIfMissing(sessionId, email) {
     console.error("recordPaymentFromSessionIfMissing failed:", e.message);
   }
 }
+import express from "express";
+import Replicate from "replicate";
+import Busboy from "busboy";
+import crypto from "crypto";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import Stripe from "stripe";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import pg from "pg";
+import { Resend } from "resend";
 
 // Resend email client (safe init)
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -76,8 +76,7 @@ function requireAdmin(req, res, next) {
 const allowedOrigins = new Set([
   "https://digitalgeekworld.com",
   "https://www.digitalgeekworld.com",
-  "https://lypo-backend.onrender.com",
-  "https://api.lypo.org",
+  "https://homepage-3d78.onrender.com",
   "https://lypo.org",
   "https://www.lypo.org",
   process.env.FRONTEND_URL || ""
@@ -194,7 +193,7 @@ async function sendSupportEmail({ fromEmail, subject, message, authedEmail }) {
     <p><strong>From:</strong> ${fromLine}${authedLine ? ` (logged in as ${authedLine})` : ""}</p>
     <p><strong>Subject:</strong> ${safeSubject}</p>
     <p><strong>Message:</strong></p>
-    <pre style="white-space:pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">${body.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+    <pre style="white-space:pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">${body.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>
   `;
 
   if (!to) {
@@ -323,12 +322,6 @@ async function getUserByEmail(email) {
     [e]
   );
   return rows[0] || null;
-}
-
-async function getBalance(email) {
-  const e = normEmail(email);
-  const { rows } = await pool.query("SELECT balance FROM users WHERE email=$1", [e]);
-  return Number(rows[0]?.balance || 0);
 }
 async function createUser(email, passwordHash) {
   const e = normEmail(email);
@@ -460,7 +453,7 @@ async function chargeBalance(email, cost) {
   } catch (err) {
     try {
       await client.query("ROLLBACK");
-    } catch { }
+    } catch {}
     throw err;
   } finally {
     client.release();
@@ -496,20 +489,20 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), async
     const amountTotal = Number(session.amount_total || 0) / 100;
     const sessionId = session.id;
     let invoiceUrl = null;
-    try {
-      // For one-time payments, Stripe may not create an "invoice". In that case we store the charge receipt URL.
-      if (session.invoice) {
-        const inv = await stripe.invoices.retrieve(String(session.invoice));
-        // Prefer a directly downloadable PDF when available.
-        invoiceUrl = inv.invoice_pdf || inv.hosted_invoice_url || null;
-      } else if (session.payment_intent) {
-        const pi = await stripe.paymentIntents.retrieve(String(session.payment_intent), { expand: ["charges"] });
-        const charge = pi?.charges?.data?.[0];
-        invoiceUrl = charge?.receipt_url || null;
-      }
-    } catch (e) {
-      invoiceUrl = null;
-    }
+try {
+  // For one-time payments, Stripe may not create an "invoice". In that case we store the charge receipt URL.
+  if (session.invoice) {
+    const inv = await stripe.invoices.retrieve(String(session.invoice));
+    // Prefer a directly downloadable PDF when available.
+    invoiceUrl = inv.invoice_pdf || inv.hosted_invoice_url || null;
+  } else if (session.payment_intent) {
+    const pi = await stripe.paymentIntents.retrieve(String(session.payment_intent), { expand: ["charges"] });
+    const charge = pi?.charges?.data?.[0];
+    invoiceUrl = charge?.receipt_url || null;
+  }
+} catch (e) {
+  invoiceUrl = null;
+}
 
     if (email && lypos > 0) {
       try {
@@ -589,7 +582,7 @@ app.post("/api/auth/signup", async (req, res) => {
         row = await getUserByEmail(e);
       }
     }
-  } catch { }
+  } catch {}
 
   res.json({ token: signToken(e, row?.is_admin), user: publicUserRow(row) });
 });
@@ -668,7 +661,7 @@ app.get("/api/admin/users", auth, requireAdmin, asyncHandler(async (req, res) =>
   params.push(offset);
 
   const { rows } = await pool.query(
-    `SELECT email, balance, is_admin, created_at FROM users ${where} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    `SELECT email, balance, is_admin, created_at FROM users ${where} ORDER BY created_at DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
     params
   );
   res.json({ users: rows });
@@ -824,8 +817,7 @@ app.post("/api/stripe/create-checkout-session", auth, async (req, res) => {
     ],
     metadata: { email, lypos: String(lypos) },
     success_url: `${frontendBase}/dashboard.html?paid=1&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${frontendBase}/dashboard.html?paid=0`
-  });
+    cancel_url: `${frontendBase}/dashboard.html?paid=0`});
 
   res.json({ url: session.url });
 });
@@ -904,9 +896,7 @@ app.get("/api/stripe/confirm", auth, asyncHandler(async (req, res) => {
 ---------------------------- */
 const {
   REPLICATE_API_TOKEN,
-  REPLICATE_MODEL_VERSION, // REQUIRED for Heygen
-  REPLICATE_VOICEOVER_VERSION, // for Voiceover
-  REPLICATE_CAPTION_VERSION, // for TikTok Captions
+  REPLICATE_MODEL_VERSION, // REQUIRED
   S3_ENDPOINT,
   S3_REGION = "auto",
   S3_ACCESS_KEY_ID,
@@ -971,184 +961,19 @@ async function createHeygenPrediction({ videoUrl, outputLanguage }) {
    Routes
 ---------------------------- */
 app.get("/health", (_req, res) => res.json({ ok: true }));
-app.get("/api/canary", (_req, res) => res.json({ status: "alive", tool: "voiceover", version: "v1.1" }));
 
 app.get("/api/languages", (_req, res) => {
   res.json({
     languages: [
-      "English", "Spanish", "French", "German", "Italian", "Portuguese",
-      "Dutch", "Swedish", "Norwegian", "Danish", "Finnish",
-      "Polish", "Czech", "Slovak", "Hungarian", "Romanian",
-      "Greek", "Turkish", "Ukrainian", "Russian",
-      "Arabic", "Hebrew",
-      "Hindi", "Bengali", "Urdu",
-      "Chinese", "Japanese", "Korean", "Vietnamese", "Thai", "Indonesian",
-      "ZazaTest"
+      "English","Spanish","French","German","Italian","Portuguese",
+      "Dutch","Swedish","Norwegian","Danish","Finnish",
+      "Polish","Czech","Slovak","Hungarian","Romanian",
+      "Greek","Turkish","Ukrainian","Russian",
+      "Arabic","Hebrew",
+      "Hindi","Bengali","Urdu",
+      "Chinese","Japanese","Korean","Vietnamese","Thai","Indonesian"
     ]
   });
-});
-
-/* ---------------------------
-   AI Voiceover
----------------------------- */
-app.post("/api/voiceover/generate", auth, asyncHandler(async (req, res) => {
-  const { text, voice, exaggeration, temperature, pitch } = req.body;
-  if (!text) return res.status(400).json({ error: "Missing text" });
-
-  // 50 credits per 1000 characters
-  const cost = Math.max(1, Math.ceil((text.length / 1000) * 50));
-  const email = req.user.email;
-
-  const charge = await chargeBalance(email, cost);
-  if (!charge.ok) {
-    if (charge.code === "INSUFFICIENT") return res.status(402).json({ error: "INSUFFICIENT_CREDITS", required: cost, balance: charge.balance });
-    return res.status(401).json({ error: "Invalid user" });
-  }
-
-  const version = requireEnv("REPLICATE_VOICEOVER_VERSION", REPLICATE_VOICEOVER_VERSION);
-  const prediction = await replicate.predictions.create({
-    version,
-    input: {
-      text,
-      voice,
-      exaggeration: exaggeration || 0.5,
-      cfg: temperature || 0.5,
-      pitch: pitch || "medium"
-    }
-  });
-
-  await upsertVideo({ email, predictionId: prediction.id, status: prediction.status });
-
-  res.json({ jobId: prediction.id, status: prediction.status });
-}));
-
-app.get("/api/voiceover/status/:id", auth, asyncHandler(async (req, res) => {
-  const predictionId = req.params.id;
-  const prediction = await replicate.predictions.get(predictionId);
-
-  let audioUrl = null;
-  if (prediction.status === "succeeded") {
-    audioUrl = prediction.output;
-    if (Array.isArray(audioUrl)) audioUrl = audioUrl[0];
-  }
-
-  await upsertVideo({ email: req.user.email, predictionId, status: prediction.status, outputUrl: audioUrl });
-
-  res.json({
-    status: prediction.status === "succeeded" ? "completed" : prediction.status,
-    audioUrl,
-    error: prediction.error,
-    remainingCredits: await getBalance(req.user.email)
-  });
-}));
-
-/* ---------------------------
-   TikTok Captions
----------------------------- */
-app.post("/api/tiktok-captions", auth, (req, res) => {
-  try {
-    requireEnv("REPLICATE_API_TOKEN", REPLICATE_API_TOKEN);
-    requireEnv("REPLICATE_CAPTION_VERSION", REPLICATE_CAPTION_VERSION);
-    requireEnv("S3_ENDPOINT", S3_ENDPOINT);
-    requireEnv("S3_BUCKET", S3_BUCKET);
-    requireEnv("PUBLIC_BASE_URL", PUBLIC_BASE_URL);
-
-    const bb = Busboy({
-      headers: req.headers,
-      limits: { fileSize: 200 * 1024 * 1024 } // 200MB
-    });
-
-    let captionSize = 50;
-    let fileInfo = null;
-    let chunks = [];
-
-    bb.on("field", (name, val) => {
-      if (name === "caption_size") captionSize = Number(val || 50);
-    });
-
-    bb.on("file", (name, file, info) => {
-      if (name !== "video") {
-        file.resume();
-        return;
-      }
-      fileInfo = info;
-      chunks = [];
-      file.on("data", (d) => chunks.push(d));
-      file.on("limit", () => { chunks = []; });
-    });
-
-    bb.on("finish", async () => {
-      try {
-        if (!fileInfo) return res.status(400).json({ error: "Missing video file" });
-
-        // Fixed cost for TikTok captions: 50 credits
-        const cost = 50;
-        const email = req.user.email;
-        const charge = await chargeBalance(email, cost);
-        if (!charge.ok && charge.code === "INSUFFICIENT") {
-          return res.status(402).json({ error: "INSUFFICIENT_CREDITS", required: cost, balance: charge.balance });
-        }
-
-        const body = Buffer.concat(chunks);
-        const original = fileInfo.filename || "video.mp4";
-        const ext = (original.split(".").pop() || "mp4").toLowerCase();
-        const key = `uploads/tiktok_${crypto.randomUUID()}.${ext}`;
-
-        await s3.send(new PutObjectCommand({
-          Bucket: S3_BUCKET,
-          Key: key,
-          Body: body,
-          ContentType: fileInfo.mimeType || "video/mp4"
-        }));
-
-        const base = PUBLIC_BASE_URL.replace(/\/$/, "");
-        const videoUrl = `${base}/${key}`;
-
-        const version = REPLICATE_CAPTION_VERSION || "18a45ff0d95feb4449d192bbdc06b4a6df168fa33def76dfc51b78ae224b599b";
-        const prediction = await replicate.predictions.create({
-          version,
-          input: {
-            video_file_input: videoUrl,
-            font_size: Math.round(captionSize / 7), // Scale appropriately
-            subs_position: "bottom75"
-          }
-        });
-
-        await upsertVideo({ email, predictionId: prediction.id, status: prediction.status, inputUrl: videoUrl });
-
-        res.json({ jobId: prediction.id, status: prediction.status });
-      } catch (e) {
-        res.status(500).json({ error: e?.message || "Internal error" });
-      }
-    });
-
-    req.pipe(bb);
-  } catch (e) {
-    res.status(500).json({ error: e?.message || "Internal error" });
-  }
-});
-
-app.get("/api/tiktok-captions/:id", auth, async (req, res) => {
-  try {
-    const predictionId = req.params.id;
-    const prediction = await replicate.predictions.get(predictionId);
-
-    let outputUrl = null;
-    if (prediction.status === "succeeded") {
-      outputUrl = prediction.output;
-      if (Array.isArray(outputUrl)) outputUrl = outputUrl[0];
-    }
-
-    await upsertVideo({ email: req.user.email, predictionId, status: prediction.status, outputUrl });
-
-    res.json({
-      status: prediction.status,
-      output: outputUrl,
-      error: prediction.error
-    });
-  } catch (e) {
-    res.status(500).json({ error: e?.message || "Internal error" });
-  }
 });
 
 /**

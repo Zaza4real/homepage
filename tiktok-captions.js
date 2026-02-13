@@ -3,7 +3,7 @@
   if (window.__TIKTOK_CAPTIONS_INIT__) return;
   window.__TIKTOK_CAPTIONS_INIT__ = true;
 
-  const BACKEND_BASE_URL = "https://api.lypo.org";
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const COST_PER_VIDEO = 50; // 50 credits per caption generation
 
   // DOM elements
@@ -31,26 +31,22 @@
   let isProcessing = false;
   let captionSize = 50;
 
+  // Initialize
+  init();
+
   function init() {
     attachUploadHandlers();
     attachGenerateHandler();
     attachCaptionControls();
     loadCreditsBalance();
   }
-
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
+  
   // Attach caption style controls
   function attachCaptionControls() {
     // Caption size slider
     const captionSizeSlider = document.getElementById('captionSize');
     const captionSizeValue = document.getElementById('captionSizeValue');
-
+    
     if (captionSizeSlider) {
       captionSizeSlider.addEventListener('input', (e) => {
         captionSize = parseInt(e.target.value, 10);
@@ -67,7 +63,7 @@
     console.log("🔍 Loading credits balance...");
     console.log("Auth token exists:", !!authToken);
     console.log("creditsBalance element exists:", !!creditsBalance);
-
+    
     if (!authToken) {
       console.warn("⚠️ No auth token found - user not logged in");
       if (creditsBalance) {
@@ -84,24 +80,24 @@
     try {
       console.log("🌐 Fetching user data from /api/auth/me...");
       const res = await fetch(`${BACKEND_BASE_URL}/api/auth/me`, {
-        headers: {
+        headers: { 
           Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         }
       });
-
+      
       console.log("📡 Response status:", res.status);
-
+      
       if (!res.ok) {
         console.error("❌ Failed to load user data:", res.status);
         const errorText = await res.text();
         console.error("Error response:", errorText);
-
+        
         if (creditsBalance) {
           creditsBalance.textContent = "Balance: Error";
           // No color styling - use default chip color
         }
-
+        
         // If unauthorized, token might be invalid
         if (res.status === 401) {
           console.warn("⚠️ Token invalid - clearing and redirecting to login");
@@ -112,15 +108,15 @@
         }
         return;
       }
-
+      
       const data = await res.json();
       console.log("✅ User data received:", data);
-
+      
       // Backend returns "balance" not "credits"
       const balance = data.user?.balance ?? data.user?.credits ?? 0;
       console.log("Balance value:", balance);
       console.log("Balance type:", typeof balance);
-
+      
       if (data.user && typeof balance === "number") {
         console.log("💰 Setting balance to:", balance);
         if (creditsBalance) {
@@ -151,7 +147,7 @@
   // Upload handlers
   function attachUploadHandlers() {
     btnPickVideo.addEventListener("click", () => videoFileInput.click());
-
+    
     videoFileInput.addEventListener("change", (e) => {
       const file = e.target.files?.[0];
       if (file) handleFileSelected(file);
@@ -183,19 +179,19 @@
     const validFormats = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
     const fileExt = file.name.toLowerCase().split('.').pop();
     const validExtensions = ['mp4', 'mov', 'avi', 'webm'];
-
+    
     if (!validFormats.includes(file.type) && !validExtensions.includes(fileExt)) {
       alert(`⚠️ Unsupported video format: ${file.type || fileExt}\n\nPlease use MP4, MOV, AVI, or WebM format.\n\nTip: You can convert your video using a free tool like CloudConvert.com`);
       return;
     }
-
+    
     // Check file size (max 200MB)
     const maxSize = 200 * 1024 * 1024;
     if (file.size > maxSize) {
       alert(`⚠️ Video too large: ${(file.size / 1024 / 1024).toFixed(1)}MB\n\nMaximum size: 200MB\n\nPlease compress your video first.`);
       return;
     }
-
+    
     selectedFile = file;
     videoNameEl.textContent = file.name;
     videoNameEl.style.color = "rgba(255,255,255,0.9)";
@@ -206,7 +202,7 @@
   function attachGenerateHandler() {
     btnGenerate.addEventListener("click", async () => {
       if (isProcessing) return;
-
+      
       if (!selectedFile) {
         alert("Please select a video first");
         return;
@@ -224,7 +220,7 @@
 
   async function generateCaptions() {
     isProcessing = true;
-
+    
     // Disable generate button with strong purple breathing effect
     if (btnGenerate) {
       btnGenerate.disabled = true;
@@ -232,7 +228,7 @@
       btnGenerate.style.cursor = 'not-allowed';
       btnGenerate.classList.add('generating'); // Purple breathing animation
     }
-
+    
     // Show generating modal
     if (window.GeneratingModal) {
       window.GeneratingModal.show(
@@ -240,10 +236,10 @@
         "AI is adding captions to your video.<br>This may take 1-3 minutes.<br><br><span style='color: rgba(255,255,255,0.7); font-size: 13px;'>📱 Note: iPhone videos and non-MP4 formats may take longer due to automatic conversion.</span>"
       );
     }
-
+    
     // Make status pill prominent
     if (statusPill) statusPill.classList.add("active");
-
+    
     setStatus("Uploading video...", true);
     showSkeleton(true);
     resetOutput();
@@ -261,7 +257,7 @@
       // Upload and generate with timeout
       const uploadController = new AbortController();
       const uploadTimeout = setTimeout(() => uploadController.abort(), 60000); // 60 second upload timeout
-
+      
       let res;
       try {
         res = await fetch(`${BACKEND_BASE_URL}/api/tiktok-captions`, {
@@ -279,7 +275,7 @@
         }
         throw uploadError;
       }
-
+      
       clearTimeout(uploadTimeout);
 
       if (!res.ok) {
@@ -297,7 +293,7 @@
 
       const data = await res.json();
       console.log("✅ Upload complete, job ID:", data.jobId);
-
+      
       // Poll for result with longer timeout
       setStatus("Generating captions... Please do not refresh or close this page.", true);
       const result = await pollJob(data.jobId);
@@ -309,15 +305,15 @@
       enableDownload(result.outputUrl);
       setPreviewTitle("Captions ready!");
       setPreviewHint("Video with captions is ready. Click Download to save.");
-
+      
       // Hide generating modal with success sound
       if (window.GeneratingModal) {
         window.GeneratingModal.hide(true);
       }
-
+      
       // Remove active status
       if (statusPill) statusPill.classList.remove("active");
-
+      
       // Reload credits
       await loadCreditsBalance();
 
@@ -325,7 +321,7 @@
       console.error("❌ Generation error:", error);
       setStatus("Error ❌", false);
       showSkeleton(false);
-
+      
       // Re-enable generate button on error
       if (btnGenerate) {
         btnGenerate.disabled = false;
@@ -333,15 +329,15 @@
         btnGenerate.style.cursor = 'pointer';
         btnGenerate.classList.remove('generating');
       }
-
+      
       // Hide generating modal (no sound on error)
       if (window.GeneratingModal) {
         window.GeneratingModal.hide(false);
       }
-
+      
       // Remove active status
       if (statusPill) statusPill.classList.remove("active");
-
+      
       // More user-friendly error messages
       let errorMsg = error.message;
       if (error.message.includes("timeout")) {
@@ -354,11 +350,11 @@
       } else if (error.message.includes("insufficient")) {
         errorMsg = "💳 Insufficient credits. Please purchase more credits to continue.";
       }
-
+      
       alert(`Error: ${errorMsg}`);
     } finally {
       isProcessing = false;
-
+      
       // Re-enable generate button when done
       if (btnGenerate) {
         btnGenerate.disabled = false;
@@ -366,12 +362,12 @@
         btnGenerate.style.cursor = 'pointer';
         btnGenerate.classList.remove('generating');
       }
-
+      
       // Ensure modal is hidden (final cleanup)
       if (window.GeneratingModal) {
         window.GeneratingModal.hide(false);
       }
-
+      
       // Remove active status (final cleanup)
       if (statusPill) statusPill.classList.remove("active");
     }
@@ -390,23 +386,23 @@
     while (attempts < maxAttempts) {
       await sleep(pollInterval);
       attempts++;
-
+      
       // Update status every 30 seconds to show progress (no time shown)
       if (attempts % 30 === 0) {
         setStatus(`Generating captions... Please wait.`, true);
         console.log(`⏱️ Progress: ${attempts}/${maxAttempts} seconds`);
       }
-
+      
       try {
         // Add timeout to individual fetch requests
         const pollController = new AbortController();
         const pollTimeout = setTimeout(() => pollController.abort(), 10000); // 10 second timeout per poll
-
+        
         const res = await fetch(`${BACKEND_BASE_URL}/api/tiktok-captions/${jobId}`, {
           headers: { Authorization: `Bearer ${authToken}` },
           signal: pollController.signal
         });
-
+        
         clearTimeout(pollTimeout);
 
         if (!res.ok) {
@@ -420,31 +416,31 @@
 
         const data = await res.json();
         consecutiveErrors = 0; // Reset error counter on success
-
+        
         console.log(`📊 Poll #${attempts}: status = ${data.status}`);
 
         if (data.status === "succeeded") {
           // Autocaption returns output as a URL string or array
           let outputUrl = data.output;
-
+          
           // If output is an array, get the first item
           if (Array.isArray(outputUrl)) {
             outputUrl = outputUrl[0];
           }
-
+          
           console.log("✅ Job succeeded! Output URL:", outputUrl);
-
+          
           if (!outputUrl) {
             throw new Error("No output video URL received from server");
           }
-
+          
           return { outputUrl };
-
+          
         } else if (data.status === "failed") {
           const errorMsg = data.error || "Video generation failed";
           console.error("❌ Job failed:", errorMsg);
           console.error("📋 Full error details:", data);
-
+          
           // Provide helpful error messages based on error type
           let userMsg = errorMsg;
           if (typeof errorMsg === 'string') {
@@ -456,21 +452,21 @@
               userMsg = '💾 Out of memory. Your video is too large. Please compress it first.';
             }
           }
-
+          
           throw new Error(userMsg);
-
+          
         } else if (data.status === "processing" || data.status === "starting") {
           // Show progress if available
           if (data.progress) {
             setStatus(`Generating... ${Math.round(data.progress * 100)}%`, true);
           }
           // Continue polling
-
+          
         } else {
           console.log(`⏳ Job status: ${data.status || 'unknown'}, continuing...`);
           // Continue polling for other statuses
         }
-
+        
       } catch (error) {
         if (error.name === 'AbortError') {
           console.warn(`⚠️ Poll request timeout (attempt ${attempts})`);
@@ -522,24 +518,24 @@
   function showOutputVideo(url) {
     if (outputVideo && previewBox) {
       console.log("Setting video source:", url);
-
+      
       // Set video source
       outputVideo.src = url;
       outputVideo.hidden = false;
       outputVideo.crossOrigin = "anonymous"; // Enable CORS
-
+      
       // Add error handler
       outputVideo.onerror = (e) => {
         console.error("Video load error:", e);
         console.error("Video src:", outputVideo.src);
         alert("Video loaded but may have playback issues. Try downloading it instead.");
       };
-
+      
       // Add success handler
       outputVideo.onloadeddata = () => {
         console.log("Video loaded successfully!");
       };
-
+      
       outputVideo.load();
       previewBox.classList.add("hasVideo");
     }
@@ -548,19 +544,19 @@
   function enableDownload(url) {
     if (btnDownload) {
       console.log("Enabling download button with URL:", url);
-
+      
       // Remove hidden attribute
       btnDownload.hidden = false;
       btnDownload.removeAttribute('hidden');
-
+      
       // Force visibility with inline style
       btnDownload.style.display = 'inline-flex';
       btnDownload.style.visibility = 'visible';
       btnDownload.style.opacity = '1';
-
+      
       // Add ready class for animation
       btnDownload.classList.add('isReady');
-
+      
       // Set click handler to FORCE download (not open in browser)
       btnDownload.onclick = async (e) => {
         e.preventDefault();
@@ -571,7 +567,7 @@
           const response = await fetch(url);
           const blob = await response.blob();
           const objectUrl = window.URL.createObjectURL(blob);
-
+          
           // Create temporary download link
           const a = document.createElement('a');
           a.href = objectUrl;
@@ -579,7 +575,7 @@
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-
+          
           // Clean up object URL
           window.URL.revokeObjectURL(objectUrl);
           console.log("✅ Download started!");
@@ -590,7 +586,7 @@
           window.open(url, '_blank');
         }
       };
-
+      
       console.log("Download button enabled and visible!");
     } else {
       console.error("Download button element not found!");
@@ -629,7 +625,7 @@
     }
 
     // No loop by default, ensure audio is enabled
-    Object.values(vids).forEach((v) => {
+    Object.values(vids).forEach((v) => { 
       if (v) {
         v.loop = false;
         v.muted = false; // Ensure audio plays
@@ -645,7 +641,7 @@
 
     function stopAll() {
       Object.entries(vids).forEach(([key, v]) => {
-        try { v?.pause(); } catch { }
+        try { v?.pause(); } catch {}
         setPlaying(key, false);
       });
     }
@@ -660,7 +656,7 @@
         stopAll();
 
         if (!isPlaying) {
-          v.play().then(() => setPlaying(key, true)).catch(() => { });
+          v.play().then(() => setPlaying(key, true)).catch(() => {});
         }
       });
     });
@@ -670,7 +666,7 @@
       v?.addEventListener("play", () => setPlaying(key, true));
       v?.addEventListener("pause", () => setPlaying(key, false));
       v?.addEventListener("ended", () => setPlaying(key, false));
-
+      
       // Hide loading icon when video loads
       v?.addEventListener("loadeddata", () => {
         const tile = tiles[key];

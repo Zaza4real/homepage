@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dropdown Test - LYPO</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      padding: 20px;
+      background: #070A12;
+      color: white;
+    }
+    
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+    }
+    
+    .debug-output {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .log-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .log-success {
+      color: #4ade80;
+    }
+    
+    .log-error {
+      color: #ef4444;
+    }
+    
+    .log-info {
+      color: #60a5fa;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Dropdown Test Page - Mobile-First</h1>
+  <p>This page tests the Tools dropdown functionality on mobile and desktop.</p>
+  <p style="background: rgba(255,180,0,0.2); padding: 12px; border-radius: 8px; border-left: 4px solid #fbbf24;">
+    <strong>📱 MOBILE:</strong> Tap the "Tools" button below to test!<br>
+    <strong>🖥️ DESKTOP:</strong> Click the "Tools" button to test!
+  </p>
+  
+  <!-- Test Header -->
+  <div class="test-section">
+    <h2>Test Header</h2>
+    <header class="header">
+      <a class="logoWrap" href="index.html">
+        <span class="logo">LYPO</span>
+      </a>
+
+      <nav class="tabs">
+        <button class="tabBtn" data-href="index.html" type="button">Home</button>
+        
+        <div class="toolsDropdown">
+          <button class="tabBtn isActive" id="toolsBtn" type="button">
+            Tools <span class="dropdownArrow">▾</span>
+          </button>
+          <div class="toolsMenu" id="toolsMenu" hidden>
+            <a href="index.html" class="toolItem">
+              <span class="toolIcon">🎬</span>
+              <div class="toolInfo">
+                <div class="toolName">Video Translator</div>
+                <div class="toolDesc">Translate & dub videos</div>
+              </div>
+            </a>
+            
+            <a href="tiktok-captions.html" class="toolItem">
+              <span class="toolIcon">📱</span>
+              <div class="toolInfo">
+                <div class="toolName">TikTok Captions</div>
+                <div class="toolDesc">Auto-generate captions</div>
+              </div>
+            </a>
+          </div>
+        </div>
+        
+        <button class="tabBtn" data-href="features.html" type="button">Features</button>
+      </nav>
+
+      <div class="headerRight">
+        <button class="btnPrimary headerAuthBtn" type="button">
+          <span class="btnLabel">Login</span>
+        </button>
+      </div>
+    </header>
+  </div>
+  
+  <!-- Debug Console -->
+  <div class="test-section">
+    <h2>Debug Console</h2>
+    <div class="debug-output" id="debugOutput">
+      <div class="log-entry log-info">Ready to test...</div>
+    </div>
+  </div>
+  
+  <!-- Test Instructions -->
+  <div class="test-section">
+    <h2>Test Instructions</h2>
+    <ol>
+      <li><strong>Tap/Click "Tools" button</strong> - Dropdown should open</li>
+      <li><strong>Check Debug Console</strong> - Should show events</li>
+      <li><strong>Tap/Click outside</strong> - Dropdown should close</li>
+      <li><strong>Tap/Click tool item</strong> - Should navigate</li>
+    </ol>
+    
+    <h3>Expected Results:</h3>
+    <ul>
+      <li>✅ Button responds to touch/click</li>
+      <li>✅ Dropdown appears below button</li>
+      <li>✅ Dropdown has dark background</li>
+      <li>✅ Tool items are clickable</li>
+      <li>✅ Closes when clicking outside</li>
+    </ul>
+  </div>
+  
+  <!-- Status Checks -->
+  <div class="test-section">
+    <h2>Status Checks</h2>
+    <div id="statusChecks"></div>
+  </div>
+  
+  <script>
+    // Debug logger
+    const debugOutput = document.getElementById('debugOutput');
+    const statusChecks = document.getElementById('statusChecks');
+    
+    // Save original console.log BEFORE any modifications
+    const originalLog = console.log.bind(console);
+    
+    function log(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      debugOutput.appendChild(entry);
+      debugOutput.scrollTop = debugOutput.scrollHeight;
+      // Use original console.log to avoid recursion
+      originalLog(message);
+    }
+    
+    // Initial status checks
+    function runStatusChecks() {
+      const toolsBtn = document.getElementById('toolsBtn');
+      const toolsMenu = document.getElementById('toolsMenu');
+      
+      let html = '<ul>';
+      
+      if (toolsBtn) {
+        html += '<li class="log-success">✅ Tools button found</li>';
+        log('Tools button found', 'success');
+      } else {
+        html += '<li class="log-error">❌ Tools button NOT found</li>';
+        log('Tools button NOT found', 'error');
+      }
+      
+      if (toolsMenu) {
+        html += '<li class="log-success">✅ Tools menu found</li>';
+        log('Tools menu found', 'success');
+      } else {
+        html += '<li class="log-error">❌ Tools menu NOT found</li>';
+        log('Tools menu NOT found', 'error');
+      }
+      
+      // Check if header.js is loaded
+      if (window.console && originalLog) {
+        html += '<li class="log-success">✅ Console available</li>';
+      }
+      
+      html += '</ul>';
+      statusChecks.innerHTML = html;
+    }
+    
+    // Monitor console.log (use original to avoid recursion)
+    console.log = function(...args) {
+      originalLog.apply(console, args);
+      if (args[0] && typeof args[0] === 'string') {
+        const msg = args[0];
+        // Only log dropdown-related messages to avoid spam
+        if (msg.includes('dropdown') || msg.includes('Mobile-first') || msg.includes('Interaction') || msg.includes('DROPDOWN') || msg.includes('✅') || msg.includes('🎯') || msg.includes('📱')) {
+          const type = msg.includes('✅') ? 'success' : msg.includes('❌') ? 'error' : 'info';
+          const entry = document.createElement('div');
+          entry.className = `log-entry log-${type}`;
+          entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+          debugOutput.appendChild(entry);
+          debugOutput.scrollTop = debugOutput.scrollHeight;
+        }
+      }
+    };
+    
+    // Run checks
+    setTimeout(runStatusChecks, 500);
+    
+    // Monitor button clicks
+    setTimeout(() => {
+      const toolsBtn = document.getElementById('toolsBtn');
+      const toolsMenu = document.getElementById('toolsMenu');
+      
+      if (toolsBtn) {
+        toolsBtn.addEventListener('touchstart', () => log('👆 touchstart on button', 'info'));
+        toolsBtn.addEventListener('mousedown', () => log('🖱️ mousedown on button', 'info'));
+        toolsBtn.addEventListener('click', () => log('🖱️ click on button', 'info'));
+        
+        log('Event listeners attached to button', 'success');
+      }
+      
+      if (toolsMenu) {
+        // Monitor visibility changes
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'hidden') {
+              const isHidden = toolsMenu.hasAttribute('hidden');
+              log(`Dropdown ${isHidden ? 'HIDDEN' : 'VISIBLE'}`, isHidden ? 'error' : 'success');
+            }
+            if (mutation.attributeName === 'aria-hidden') {
+              const ariaHidden = toolsMenu.getAttribute('aria-hidden');
+              log(`aria-hidden: ${ariaHidden}`, ariaHidden === 'false' ? 'success' : 'info');
+            }
+          });
+        });
+        
+        observer.observe(toolsMenu, {
+          attributes: true,
+          attributeFilter: ['hidden', 'aria-hidden', 'style']
+        });
+        
+        log('Mutation observer attached to menu', 'success');
+      }
+    }, 600);
+  </script>
+  
+  <script src="header.js"></script>
+</body>
+</html>

@@ -199,7 +199,7 @@ async function uploadYouTubeVoiceoverBlog() {
   try {
     console.log('📤 Uploading YouTube voiceover blog post...');
     
-    const response = await fetch('https://api.lypo.org/api/admin/blog/posts', {
+    const response = await fetch('https://lypo-backend.onrender.com/api/admin/blog/posts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

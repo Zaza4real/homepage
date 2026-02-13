@@ -1,7 +1,7 @@
 // Support page (send email via backend + Resend)
 (() => {
   const AUTH_TOKEN_KEY = "lypo_token_v1";
-  const BACKEND_BASE_URL = "https://api.lypo.org";
+  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
 
   const $ = (id) => document.getElementById(id);
   const token = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";

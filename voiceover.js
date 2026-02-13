@@ -3,7 +3,7 @@
 (function () {
   "use strict";
 
-  const API_BASE = "https://api.lypo.org";
+  const API_BASE = "https://lypo-backend.onrender.com";
   //const API_BASE = "http://localhost:3000"; // Development
 
   // DOM Elements
@@ -30,12 +30,6 @@
 
   let userBalance = 0;
   let isGenerating = false;
-  let referenceAudioUrl = null; // Prevent ReferenceError in checkGenerateReady
-
-  // Dummy function to prevent ReferenceError in resetTool
-  function removeAudio() {
-    console.log("Audio removal requested but not implemented");
-  }
 
   // ============================
   // INITIALIZATION
@@ -43,16 +37,16 @@
 
   async function init() {
     console.log("🎙️ Initializing LYPO Voiceover Tool...");
-
+    
     // Setup event listeners
     setupEventListeners();
-
+    
     // Check authentication
     await checkAuth();
-
+    
     // Update character count and cost
     updateCharacterCount();
-
+    
     console.log("✅ Voiceover tool initialized");
   }
 
@@ -60,30 +54,30 @@
     // Text input listeners
     textInput.addEventListener("input", updateCharacterCount);
     textInput.addEventListener("input", checkGenerateReady);
-
+    
     // Voice selection
     voiceSelect.addEventListener("change", checkGenerateReady);
-
+    
     // Exaggeration slider
     exaggerationSlider.addEventListener("input", () => {
       exaggerationValue.textContent = parseFloat(exaggerationSlider.value).toFixed(1);
     });
-
+    
     // Temperature slider
     temperatureSlider.addEventListener("input", () => {
       temperatureValue.textContent = parseFloat(temperatureSlider.value).toFixed(1);
     });
-
+    
     // Pitch slider
     pitchSlider.addEventListener("input", () => {
       const pitchLabels = ["X-Low", "Low", "Medium", "High", "X-High"];
       pitchValue.textContent = pitchLabels[parseInt(pitchSlider.value)];
     });
-
+    
     // Reference audio upload
     // Generate button
     generateBtn.addEventListener("click", handleGenerate);
-
+    
     // New voiceover button
     if (newVoiceoverBtn) {
       newVoiceoverBtn.addEventListener("click", resetTool);
@@ -97,36 +91,36 @@
   function updateCharacterCount() {
     const text = textInput.value.trim();
     const chars = text.length;
-
+    
     // Update character count
     charCount.textContent = chars;
-
+    
     // Calculate cost (50 credits per 1000 characters)
     const cost = Math.ceil((chars / 1000) * 50);
     creditCost.textContent = cost;
-
+    
     // Update button label
     if (generateBtnLabel) {
       generateBtnLabel.textContent = `Generate Voiceover (${cost} credits)`;
     }
-
+    
     return cost;
   }
 
   function checkGenerateReady() {
     const text = textInput.value.trim();
     const cost = updateCharacterCount();
-
+    
     // Enable button if:
     // 1. Text is not empty
     // 2. User has enough credits
     // 3. Not currently generating
-    const canGenerate = text.length > 0 &&
-      userBalance >= cost &&
-      !isGenerating;
-
+    const canGenerate = text.length > 0 && 
+                       userBalance >= cost && 
+                       !isGenerating;
+    
     generateBtn.disabled = !canGenerate;
-
+    
     if (text.length > 0 && userBalance < cost) {
       setStatus("Insufficient credits", "error");
     } else if (text.length > 0 && userBalance >= cost) {
@@ -173,9 +167,9 @@
         // Backend returns balance, not credits
         const balance = data.user.balance ?? data.user.credits ?? 0;
         console.log("💰 Balance value:", balance);
-
+        
         userBalance = balance;
-
+        
         if (creditsBalance) {
           creditsBalance.textContent = `${balance} Credits`;
           creditsBalance.style.cursor = "pointer";
@@ -183,7 +177,7 @@
             window.location.href = "index.html#buycredits";
           };
         }
-
+        
         checkGenerateReady();
       }
     } catch (err) {
@@ -204,7 +198,7 @@
 
   async function handleGenerate() {
     if (isGenerating) return;
-
+    
     const text = textInput.value.trim();
     const voice = voiceSelect.value;
     const exaggeration = parseFloat(exaggerationSlider.value); // 0.0 to 1.0
@@ -212,22 +206,22 @@
     const pitchOptions = ["x-low", "low", "medium", "high", "x-high"];
     const pitch = pitchOptions[parseInt(pitchSlider.value)]; // Maps to API enum
     const cost = updateCharacterCount();
-
+    
     if (!text) {
       setStatus("Please enter text to convert", "error");
       return;
     }
-
+    
     if (userBalance < cost) {
       setStatus("Insufficient credits", "error");
       return;
     }
-
+    
     try {
       isGenerating = true;
       generateBtn.disabled = true;
       generateBtn.classList.add("generating");
-
+      
       // Show generating modal
       if (window.GeneratingModal) {
         window.GeneratingModal.show(
@@ -235,16 +229,16 @@
           "AI is creating your professional voiceover.<br>This may take 30-60 seconds."
         );
       }
-
+      
       outputSection.style.display = "none";
-
+      
       setStatus("Starting Chatterbox Pro generation...", "loading");
-
+      
       const token = localStorage.getItem("lypo_token_v1");
       if (!token) {
         throw new Error("Please login to continue");
       }
-
+      
       // Call backend API to generate voiceover
       console.log("🎙️ Submitting Chatterbox Pro voiceover request...");
       console.log(`   Text length: ${text.length} chars`);
@@ -252,7 +246,7 @@
       console.log(`   Exaggeration: ${exaggeration}`);
       console.log(`   Temperature (cfg): ${temperature}`);
       console.log(`   Pitch: ${pitch}`);
-
+      
       const response = await fetch(`${API_BASE}/api/voiceover/generate`, {
         method: "POST",
         headers: {
@@ -267,29 +261,29 @@
           pitch: pitch,
         }),
       });
-
+      
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Generation failed");
       }
-
+      
       const data = await response.json();
       console.log("✅ Voiceover request submitted:", data);
-
+      
       if (!data.jobId) {
         throw new Error("No job ID received");
       }
-
+      
       // Poll for completion
       await pollVoiceoverStatus(data.jobId);
-
+      
     } catch (error) {
       console.error("❌ Generation error:", error);
       setStatus(error.message || "Generation failed", "error");
       isGenerating = false;
       generateBtn.disabled = false;
       generateBtn.classList.remove("generating");
-
+      
       // Hide generating modal (no sound on error)
       if (window.GeneratingModal) {
         window.GeneratingModal.hide(false);
@@ -299,35 +293,35 @@
 
   async function pollVoiceoverStatus(jobId) {
     console.log("⏳ Polling voiceover status for job:", jobId);
-
+    
     const token = localStorage.getItem("lypo_token_v1");
     const maxAttempts = 60; // 5 minutes max (5 second intervals)
     let attempts = 0;
-
+    
     const poll = async () => {
       try {
         attempts++;
-
+        
         if (attempts > maxAttempts) {
           throw new Error("Generation timeout. Please try again.");
         }
-
+        
         const response = await fetch(`${API_BASE}/api/voiceover/status/${jobId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
+        
         if (!response.ok) {
           throw new Error("Failed to check status");
         }
-
+        
         const data = await response.json();
         console.log(`📊 Status check ${attempts}:`, data.status);
-
+        
         if (data.status === "completed" && data.audioUrl) {
           // Success!
           console.log("✅ Voiceover generated successfully!");
           setStatus("Voiceover complete!", "success");
-
+          
           // Update balance
           if (data.remainingCredits !== undefined) {
             userBalance = data.remainingCredits;
@@ -335,27 +329,27 @@
               creditsBalance.textContent = `${userBalance} Credits`;
             }
           }
-
+          
           // Display audio
           displayAudio(data.audioUrl);
-
+          
           isGenerating = false;
           generateBtn.disabled = false;
           generateBtn.classList.remove("generating");
-
+          
           // Hide generating modal with success sound
           if (window.GeneratingModal) {
             window.GeneratingModal.hide(true);
           }
-
+          
         } else if (data.status === "failed") {
           throw new Error(data.error || "Generation failed");
-
+          
         } else {
           // Still processing - Show helpful messages based on status and time
           let statusMsg;
           const elapsed = attempts * 5;
-
+          
           if (data.status === "starting") {
             if (elapsed < 15) {
               statusMsg = `⏳ Starting Chatterbox Pro... (${elapsed}s)`;
@@ -371,38 +365,38 @@
           } else {
             statusMsg = `Status: ${data.status} (${elapsed}s)`;
           }
-
+          
           setStatus(statusMsg, "loading");
-
+          
           // Continue polling after 5 seconds
           setTimeout(poll, 5000);
         }
-
+        
       } catch (error) {
         console.error("❌ Polling error:", error);
         setStatus(error.message || "Failed to generate voiceover", "error");
         isGenerating = false;
         generateBtn.disabled = false;
         generateBtn.classList.remove("generating");
-
+        
         // Hide generating modal (no sound on error)
         if (window.GeneratingModal) {
           window.GeneratingModal.hide(false);
         }
       }
     };
-
+    
     // Start polling
     setTimeout(poll, 2000); // First check after 2 seconds
   }
 
   function displayAudio(audioUrl) {
     console.log("🎵 Displaying audio:", audioUrl);
-
+    
     // Set audio source
     audioPlayer.src = audioUrl;
     audioPlayer.load();
-
+    
     // Set download button to force download (not open in browser)
     downloadBtn.onclick = async (e) => {
       e.preventDefault();
@@ -425,10 +419,10 @@
         window.open(audioUrl, '_blank');
       }
     };
-
+    
     // Show output section
     outputSection.style.display = "block";
-
+    
     // Scroll to output
     setTimeout(() => {
       outputSection.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -437,7 +431,7 @@
 
   function resetTool() {
     console.log("🔄 Resetting tool...");
-
+    
     // Clear inputs
     textInput.value = "";
     voiceSelect.selectedIndex = 0;
@@ -447,23 +441,23 @@
     temperatureValue.textContent = "0.5";
     pitchSlider.value = 2;
     pitchValue.textContent = "Medium";
-
+    
     // Clear reference audio
     removeAudio();
-
+    
     // Reset UI
     outputSection.style.display = "none";
     audioPlayer.src = "";
     isGenerating = false;
     generateBtn.disabled = false;
     generateBtn.classList.remove("generating");
-
+    
     // Update counts
     updateCharacterCount();
     checkGenerateReady();
-
+    
     setStatus("Ready", "ready");
-
+    
     // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -474,12 +468,12 @@
 
   function setStatus(message, type = "info") {
     if (!progressText || !statusPill) return;
-
+    
     progressText.textContent = message;
-
+    
     // Update status pill appearance
     statusPill.classList.remove("active", "error", "success");
-
+    
     if (type === "loading") {
       statusPill.classList.add("active");
       statusPill.querySelector(".loader").style.opacity = "1";
@@ -497,7 +491,7 @@
       statusPill.querySelector(".loader").style.opacity = "0";
       statusPill.querySelector(".ping").style.opacity = "0.6";
     }
-
+    
     console.log(`📊 Status: ${message} (${type})`);
   }
 

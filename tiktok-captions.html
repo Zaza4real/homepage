@@ -1,40 +1,38 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+  
   <!-- Security Headers -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-
+  
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
-
+  
   <title>TikTok Captions • LYPO</title>
-  <link rel="canonical" href="https://lypo.org/tiktok-captions.html" />
   <meta name="description" content="Generate viral TikTok captions and subtitles automatically with AI." />
-
+  
   <!-- DNS Prefetch -->
-  <link rel="dns-prefetch" href="//api.lypo.org" />
-  <link rel="preconnect" href="https://api.lypo.org" crossorigin />
-
+  <link rel="dns-prefetch" href="//lypo-backend.onrender.com" />
+  <link rel="preconnect" href="https://lypo-backend.onrender.com" crossorigin />
+  
   <!-- Preload critical resources -->
-  <link rel="preload" href="style.min.css" as="style" />
-  <link rel="stylesheet" href="mobile-header.min.css" />
-
-  <link rel="stylesheet" href="style.min.css" />
-  <link rel="stylesheet" href="mobile-header.min.css" />
-  <link rel="stylesheet" href="home-cleanup.min.css" />
-
+  <link rel="preload" href="style.css" as="style" />
+  <link rel="stylesheet" href="mobile-header.css" />
+  
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobile-header.css" />
+  <link rel="stylesheet" href="home-cleanup.css" />
+  
   <!-- Analytics -->
-  <script src="analytics.min.js" defer></script>
+  <script src="analytics.js" defer></script>
   <!-- Google tag (gtag.js) - Google Analytics 4 & Google Ads -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG0Q52LT2K"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
+    function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-FG0Q52LT2K');
     gtag('config', 'AW-16928193692');
@@ -59,11 +57,10 @@
     <nav class="tabs" role="navigation" aria-label="Main navigation">
       <!-- Home Button -->
       <button class="tabBtn" role="button" aria-label="Home" data-href="index.html" type="button">Home</button>
-
+      
       <!-- Tools Dropdown -->
       <div class="toolsDropdown">
-        <button class="tabBtn isActive" id="toolsBtn" role="button" aria-label="Tools" aria-haspopup="true"
-          aria-expanded="false" type="button">
+        <button class="tabBtn isActive" id="toolsBtn" role="button" aria-label="Tools" aria-haspopup="true" aria-expanded="false" type="button">
           Tools <span class="dropdownArrow">▾</span>
         </button>
         <div class="toolsMenu" id="toolsMenu" role="menu" hidden>
@@ -74,7 +71,7 @@
               <div class="toolDesc">Translate & dub videos with AI</div>
             </div>
           </a>
-
+          
           <a href="tiktok-captions.html" class="toolItem" role="menuitem" data-tool="tiktok-captions">
             <span class="toolIcon">📱</span>
             <div class="toolInfo">
@@ -82,7 +79,7 @@
               <div class="toolDesc">Auto-generate viral captions</div>
             </div>
           </a>
-
+          
           <a href="kling-video.html" class="toolItem" role="menuitem" data-tool="kling-video">
             <span class="toolIcon">🎥</span>
             <div class="toolInfo">
@@ -90,7 +87,7 @@
               <div class="toolDesc">Generate cinematic AI videos</div>
             </div>
           </a>
-
+          
           <a href="voiceover.html" class="toolItem" role="menuitem" data-tool="voiceover">
             <span class="toolIcon">🎙️</span>
             <div class="toolInfo">
@@ -98,7 +95,7 @@
               <div class="toolDesc">Professional text-to-speech</div>
             </div>
           </a>
-
+          
           <div class="toolItemDisabled" role="menuitem" aria-disabled="true">
             <span class="toolIcon">🔜</span>
             <div class="toolInfo">
@@ -108,9 +105,8 @@
           </div>
         </div>
       </div>
-
-      <button class="tabBtn" role="button" aria-label="Features" data-href="features.html"
-        type="button">Features</button>
+      
+      <button class="tabBtn" role="button" aria-label="Features" data-href="features.html" type="button">Features</button>
       <button class="tabBtn" role="button" aria-label="Support" data-href="support.html" type="button">Support</button>
       <button class="tabBtn" role="button" aria-label="Blog" data-href="blog.html" type="button">Blog</button>
       <button class="tabBtn" role="button" aria-label="About" data-href="about.html" type="button">About</button>
@@ -129,12 +125,12 @@
       <!-- Hero Section -->
       <div class="hero">
         <h1 class="h1">
-          Generate <span class="grad">viral TikTok captions</span><br />
+          Generate <span class="grad">viral TikTok captions</span><br/>
           automatically with AI
         </h1>
 
         <p class="sub">
-          Upload your video and get perfectly timed captions and subtitles.<br />
+          Upload your video and get perfectly timed captions and subtitles.<br/>
           Perfect for TikTok, Instagram Reels, and YouTube Shorts.
         </p>
 
@@ -145,10 +141,7 @@
             <div class="demoTitle">TikTok Caption Generator</div>
             <div class="chips">
               <span class="chip">💎 Good things take time</span>
-              <span class="chip" id="creditsBalance" aria-live="polite" style="cursor: pointer; transition: all 0.2s;"
-                onclick="window.location.href='index.html#buycredits';"
-                onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(139, 92, 246, 0.5)';"
-                onmouseout="this.style.transform='scale(1)'; this.style.borderColor='';">Balance: — Credits</span>
+              <span class="chip" id="creditsBalance" aria-live="polite" style="cursor: pointer; transition: all 0.2s;" onclick="window.location.href='index.html#buycredits';" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(139, 92, 246, 0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='';">Balance: — Credits</span>
             </div>
           </div>
 
@@ -163,35 +156,21 @@
               </div>
 
               <div class="showTabMedia">
-                <div class="miniVid"
-                  style="background: linear-gradient(135deg, rgba(139,92,246,0.4), rgba(59,130,246,0.4));">
-                  <div
-                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; z-index: 0;">
-                    🎬</div>
-                  <video class="miniVidEl" id="miniNoCaptions" src="tiktok-before.mp4" poster="tiktok-before-poster.jpg"
-                    playsinline preload="auto" aria-label="Video without captions"></video>
-                  <button class="miniPlay" type="button" data-play="nocaptions"
-                    aria-label="Play video without captions">▶</button>
-                  <div class="miniWave" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span><span></span>
-                  </div>
+                <div class="miniVid" style="background: linear-gradient(135deg, rgba(139,92,246,0.4), rgba(59,130,246,0.4));">
+                  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; z-index: 0;">🎬</div>
+                  <video class="miniVidEl" id="miniNoCaptions" src="tiktok-before.mp4" poster="tiktok-before-poster.jpg" playsinline preload="auto" aria-label="Video without captions"></video>
+                  <button class="miniPlay" type="button" data-play="nocaptions" aria-label="Play video without captions">▶</button>
+                  <div class="miniWave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
                   <div class="miniCap">Without Captions</div>
                 </div>
 
                 <div class="miniArrow" aria-hidden="true">→</div>
 
-                <div class="miniVid"
-                  style="background: linear-gradient(135deg, rgba(139,92,246,0.4), rgba(59,130,246,0.4));">
-                  <div
-                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; z-index: 0;">
-                    🎬</div>
-                  <video class="miniVidEl" id="miniWithCaptions" src="tiktok-after.mp4" poster="tiktok-after-poster.jpg"
-                    playsinline preload="auto" aria-label="Video with captions"></video>
-                  <button class="miniPlay" type="button" data-play="withcaptions"
-                    aria-label="Play video with captions">▶</button>
-                  <div class="miniWave" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span><span></span>
-                  </div>
+                <div class="miniVid" style="background: linear-gradient(135deg, rgba(139,92,246,0.4), rgba(59,130,246,0.4));">
+                  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; z-index: 0;">🎬</div>
+                  <video class="miniVidEl" id="miniWithCaptions" src="tiktok-after.mp4" poster="tiktok-after-poster.jpg" playsinline preload="auto" aria-label="Video with captions"></video>
+                  <button class="miniPlay" type="button" data-play="withcaptions" aria-label="Play video with captions">▶</button>
+                  <div class="miniWave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
                   <div class="miniCap">With Captions</div>
                 </div>
               </div>
@@ -203,14 +182,18 @@
               <div style="display: grid; gap: 16px; margin-top: 12px;">
                 <!-- Caption Size -->
                 <div>
-                  <label for="captionSize"
-                    style="display: block; margin-bottom: 8px; font-size: 14px; color: rgba(255,255,255,0.9);">
+                  <label for="captionSize" style="display: block; margin-bottom: 8px; font-size: 14px; color: rgba(255,255,255,0.9);">
                     Caption Size: <span id="captionSizeValue" style="color: #8B5CF6; font-weight: 600;">50</span> words
                   </label>
-                  <input type="range" id="captionSize" min="15" max="70" value="50"
-                    style="width: 100%; height: 6px; border-radius: 3px; background: rgba(139,92,246,0.2); outline: none; -webkit-appearance: none; appearance: none;" />
-                  <div
-                    style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; color: rgba(255,255,255,0.5);">
+                  <input 
+                    type="range" 
+                    id="captionSize" 
+                    min="15" 
+                    max="70" 
+                    value="50" 
+                    style="width: 100%; height: 6px; border-radius: 3px; background: rgba(139,92,246,0.2); outline: none; -webkit-appearance: none; appearance: none;"
+                  />
+                  <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; color: rgba(255,255,255,0.5);">
                     <span>Short (15)</span>
                     <span>Long (70)</span>
                   </div>
@@ -254,11 +237,9 @@
             </div>
 
             <!-- Pricing Info -->
-            <div
-              style="margin-bottom:16px;padding:12px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:8px;font-size:13px;line-height:1.6;">
+            <div style="margin-bottom:16px;padding:12px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:8px;font-size:13px;line-height:1.6;">
               <strong style="color:rgba(139,92,246,1);">💡 Pricing:</strong> Video generation costs 50 credits<br>
-              <span style="color:rgba(255,255,255,0.7);font-size:12px;">📱 iPhone videos automatically converted for
-                compatibility</span>
+              <span style="color:rgba(255,255,255,0.7);font-size:12px;">📱 iPhone videos automatically converted for compatibility</span>
             </div>
 
             <!-- Action Buttons -->
@@ -267,7 +248,7 @@
                 <span class="btnLabel">Generate Captions (50 credits)</span>
                 <span class="btnGlow"></span>
               </button>
-
+              
               <div class="statusPill" id="statusPill" aria-live="polite">
                 <span class="ping"></span>
                 <span class="loader"></span>
@@ -280,30 +261,22 @@
 
       <!-- Info Section -->
       <div class="infoSection" style="margin-top: 60px;">
-        <h2 style="font-size: 28px; font-weight: 900; margin-bottom: 20px; text-align: center;">Why Use TikTok Captions?
-        </h2>
-        <div
-          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto;">
-          <div
-            style="padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+        <h2 style="font-size: 28px; font-weight: 900; margin-bottom: 20px; text-align: center;">Why Use TikTok Captions?</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto;">
+          <div style="padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
             <div style="font-size: 32px; margin-bottom: 12px;">📈</div>
             <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Boost Engagement</h3>
-            <p style="color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.6;">Videos with captions get 40%
-              more engagement on social media</p>
+            <p style="color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.6;">Videos with captions get 40% more engagement on social media</p>
           </div>
-          <div
-            style="padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+          <div style="padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
             <div style="font-size: 32px; margin-bottom: 12px;">⚡</div>
             <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Save Time</h3>
-            <p style="color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.6;">Auto-generate captions in
-              seconds instead of manual typing</p>
+            <p style="color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.6;">Auto-generate captions in seconds instead of manual typing</p>
           </div>
-          <div
-            style="padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+          <div style="padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
             <div style="font-size: 32px; margin-bottom: 12px;">🌍</div>
             <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Reach More</h3>
-            <p style="color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.6;">Make your content accessible to
-              everyone, including the deaf community</p>
+            <p style="color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.6;">Make your content accessible to everyone, including the deaf community</p>
           </div>
         </div>
       </div>
@@ -312,7 +285,7 @@
       <div class="heroFooter" style="margin-top: 80px;">
         <div class="muted" style="font-size: 13px; max-width: 700px; margin: 0 auto; text-align: center;">
           Generate professional captions for TikTok, Instagram Reels, YouTube Shorts, and more.
-          <br />Perfect timing, viral-ready styling, and instant results.
+          <br/>Perfect timing, viral-ready styling, and instant results.
         </div>
       </div>
     </section>
@@ -341,10 +314,9 @@
   </main>
 
   <!-- Scripts -->
-  <script defer src="generating-modal.js"></script>
-  <script src="header.min.js" defer></script>
-  <script src="tiktok-captions.min.js" defer></script>
-  <script src="mobile-header.min.js" defer></script>
+  <script src="generating-modal.js"></script>
+  <script src="header.js" defer></script>
+  <script src="tiktok-captions.js" defer></script>
+  <script src="mobile-header.js" defer></script>
 </body>
-
 </html>

@@ -1,11 +1,28 @@
 # LYPO.org - Robots.txt for MAXIMUM CRAWL EFFICIENCY
-# Updated: 2026-02-13
+# Updated: 2026-02-04
 
 User-agent: *
 Allow: /
 Crawl-delay: 0
 
-# Block private areas and test files
+# High-priority pages for faster indexing
+Allow: /index.html
+Allow: /kling-video.html
+Allow: /tiktok-captions.html
+Allow: /voiceover.html
+Allow: /blog.html
+Allow: /post.html
+Allow: /features.html
+
+# Allow all assets for proper page rendering
+Allow: /assets/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.webp
+
+# Block private areas
 Disallow: /api/
 Disallow: /admin/
 Disallow: /dashboard.html
@@ -13,20 +30,28 @@ Disallow: /auth.html
 Disallow: /reset.html
 Disallow: /test-
 Disallow: /debug
-Disallow: /*.tmp
-Disallow: /original_images_backup/
-Disallow: /*.sh
 
-# Specific bot instructions
+# Specific bot instructions for faster indexing
 User-agent: Googlebot
 Allow: /
 Crawl-delay: 0
+# Prioritize new AI tools and content
+Allow: /kling-video.html
+Allow: /tiktok-captions.html
+Allow: /voiceover.html
+Allow: /post.html?slug=youtube-voiceover-tool-free-ai
+Allow: /post.html?slug=kling-ai-video-generator-text-image-to-video-turbo-realistic
+Allow: /post.html?slug=fastest-ai-video-generator-2026-speed-comparison
+Allow: /post.html?slug=quick-easy-signup-30-seconds
+Allow: /post.html?slug=50-free-credits-sign-up-offer
+Allow: /post.html?slug=tiktok-views-dropped-suddenly-fix
+Allow: /post.html?slug=tiktok-algorithm-2026-captions-required
 
 User-agent: Googlebot-Image
 Allow: /assets/
-Allow: /*.webp
 Allow: /*.png
 Allow: /*.jpg
+Allow: /*.webp
 
 User-agent: Bingbot
 Allow: /
@@ -64,5 +89,12 @@ Allow: /
 User-agent: TelegramBot
 Allow: /
 
-# Sitemap location
+# Sitemap location (CRITICAL!)
 Sitemap: https://lypo.org/sitemap.xml
+
+# RSS Feed for blog subscribers
+# RSS: https://lypo.org/blog-rss.xml
+
+# Additional sitemap ping for faster discovery
+# Google: http://www.google.com/ping?sitemap=https://lypo.org/sitemap.xml
+# Bing: http://www.bing.com/ping?sitemap=https://lypo.org/sitemap.xml
