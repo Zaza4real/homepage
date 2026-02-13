@@ -1917,7 +1917,7 @@ button.btnLink{ display:inline-flex; align-items:center; }
   color: rgba(255,255,255,.90);
   max-width: 100%;
   text-align: left;
-  white-space: normal;
+  white-space: pre-line;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
