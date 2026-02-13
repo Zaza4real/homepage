@@ -1574,7 +1574,25 @@
      height: 240px;
     }
    }
- </style>
+ 
+   .miniPlay {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .16);
+    background: rgba(0, 0, 0, .38);
+    color: rgba(255, 255, 255, .92);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, .36);
+    z-index: 10;
+    backdrop-filter: blur(4px);
+   }
+</style>
  <link rel="preload" href="style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
  <noscript>
   <link rel="stylesheet" href="style.css">
