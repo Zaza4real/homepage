@@ -132,6 +132,30 @@
     const safeTitle = String(p.title || 'Post').trim();
     document.title = `${safeTitle} • LYPO Blog`;
 
+    // Dynamic SEO update
+    const safeSlug = p.slug || new URLSearchParams(window.location.search).get('slug');
+    if (safeSlug) {
+      const canonicalUrl = `https://lypo.org/post.html?slug=${safeSlug}`;
+
+      // Update Canonical Link
+      const canonicalEl = document.getElementById('dynamic-canonical') || document.querySelector('link[rel="canonical"]');
+      if (canonicalEl) canonicalEl.setAttribute('href', canonicalUrl);
+
+      // Update Meta Description & OG
+      const safeDesc = esc(p.excerpt || p.title || "Read our latest blog post").substring(0, 160);
+      const descEl = document.querySelector('meta[name="description"]');
+      if (descEl) descEl.setAttribute('content', safeDesc);
+
+      const ogUrlEl = document.querySelector('meta[property="og:url"]');
+      if (ogUrlEl) ogUrlEl.setAttribute('content', canonicalUrl);
+
+      const ogTitleEl = document.querySelector('meta[property="og:title"]');
+      if (ogTitleEl) ogTitleEl.setAttribute('content', safeTitle);
+
+      const ogDescEl = document.querySelector('meta[property="og:description"]');
+      if (ogDescEl) ogDescEl.setAttribute('content', safeDesc);
+    }
+
     // Set content safely
     titleEl.textContent = safeTitle;
     if (metaEl) metaEl.textContent = p.published_at ? fmtDate(p.published_at) : "";

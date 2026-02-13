@@ -15,6 +15,8 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <link rel="shortcut icon" href="favicon.ico" />
 
+  <!-- Google Search Console Verify -->
+  <meta name="google-site-verification" content="INSERT_YOUR_CODE_HERE" />
   <title>LYPO — AI Video Translation | Preserve Voice & Sync Lips</title>
   <meta name="description"
     content="Translate your videos to any language while preserving your voice and syncing lips perfectly. Professional AI video dubbing made simple." />
@@ -48,12 +50,43 @@
   <link rel="preconnect" href="https://lypo-backend.onrender.com" crossorigin />
   <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
   <!-- Standard Stylesheets (No FOUC) -->
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="mobile-header.css" />
+
+<style id="critical-css">
+:root {
+  --header-offset: 132px; --bg: #070A12; --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.66); --border: rgba(255,255,255,.12);
+  --shadow: 0 25px 80px rgba(0,0,0,.55); --r: 22px;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; color: var(--text); background: var(--bg); font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; overflow-x: hidden; }
+.bg { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
+.grid { position: absolute; inset: 0; background: linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(circle at 40% 12%, black 0%, transparent 65%); opacity: .22; }
+.header { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); width: min(1040px, calc(100% - 40px)); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border: 1px solid var(--border); background: rgba(0,0,0,.38); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 999px; box-shadow: var(--shadow); z-index: 10; }
+.logoWrap { padding: 6px 10px; }
+.logo { font-size: 44px; line-height: 1; letter-spacing: .22em; font-weight: 1000; text-transform: uppercase; color: rgba(255,255,255,.95); position: relative; }
+.logoTagline { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); margin-top: 4px; }
+.tabs { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.tabBtn { border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); padding: 10px 16px; border-radius: 999px; font-weight: 900; font-size: 13px; line-height: 1; }
+.headerRight { display: flex; align-items: center; gap: 12px; }
+.hero { padding-top: 12px; }
+.h1 { margin: 16px 0 10px; font-size: clamp(34px, 5vw, 54px); line-height: 1.05; letter-spacing: -0.03em; }
+.grad { background: linear-gradient(90deg, #00e1ff, #8e54ff, #ff7878); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sub { margin: 0; max-width: 72ch; color: var(--muted); font-size: 17px; line-height: 1.65; }
+@media only screen and (max-width: 768px) {
+  .header { top: 12px; width: calc(100% - 24px); padding: 12px 16px; border-radius: 16px; z-index: 1000; }
+  .logo { font-size: 20px; } .logoTagline, .tabs { display: none; }
+}
+</style>
+
+  <link rel="preload" href="style.min.css" as="style" />
+  <link rel="preload" href="mobile-header.min.css" as="style" />
+  <link rel="stylesheet" href="style.min.css" />
+  <link rel="stylesheet" href="mobile-header.min.css" />
+
 
 
   <!-- Analytics (deferred) -->
-  <script src="analytics.js" defer></script>
+  <script src="analytics.min.js" defer></script>
 
   <!-- Google tag (gtag.js) - Google Analytics 4 & Google Ads -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG0Q52LT2K"></script>
@@ -624,7 +657,7 @@ GET /api/dub/:id   (poll status + outputUrl)</pre>
   <script async src="https://js.stripe.com/v3/"></script>
   <script src="generating-modal.js" defer></script>
   <script src="header.js" defer></script>
-  <script src="script.js" defer></script>
+  <script src="script.min.js" defer></script>
   <script src="apple-google-pay.js" defer></script>
 
   <!-- Auth modal (hidden; does not affect layout) -->
