@@ -48,16 +48,16 @@
   <link rel="preconnect" href="https://lypo-backend.onrender.com" crossorigin />
 
   <!-- Preload critical resources -->
-  <link rel="preload" href="style.min.css" as="style" />
+  <link rel="preload" href="style.css" as="style" />
   <link rel="preload" href="script.js" as="script" />
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.min.css" />
-  <link rel="stylesheet" href="mobile-header.min.css" />
-  <link rel="stylesheet" href="home-cleanup.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobile-header.css" />
+  <link rel="stylesheet" href="home-cleanup.css" />
 
   <!-- Analytics (deferred) -->
-  <script src="analytics.min.js" defer></script>
+  <script src="analytics.js" defer></script>
 
   <!-- Google tag (gtag.js) - Google Analytics 4 & Google Ads -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG0Q52LT2K"></script>
@@ -355,23 +355,25 @@
 
                 <div class="showTabMedia">
                   <div class="miniVid">
-                    <video class="miniVidEl" id="miniEnglish" src="english.mp4" playsinline preload="none"
-                      loading="lazy" aria-label="English sample video"></video>
+                    <video class="miniVidEl" id="miniEnglish" src="english.mp4" playsinline preload="metadata"
+                      aria-label="English sample video"></video>
                     <button class="miniPlay" type="button" data-play="english"
                       aria-label="Play English sample">▶</button>
                     <div class="miniWave" aria-hidden="true">
-                      <span></span><span></span><span></span><span></span><span></span></div>
+                      <span></span><span></span><span></span><span></span><span></span>
+                    </div>
                     <div class="miniCap">English</div>
                   </div>
 
                   <div class="miniArrow" aria-hidden="true">→</div>
 
                   <div class="miniVid">
-                    <video class="miniVidEl" id="miniFrench" src="french.mp4" playsinline preload="none" loading="lazy"
+                    <video class="miniVidEl" id="miniFrench" src="french.mp4" playsinline preload="metadata"
                       aria-label="French sample video"></video>
                     <button class="miniPlay" type="button" data-play="french" aria-label="Play French sample">▶</button>
                     <div class="miniWave" aria-hidden="true">
-                      <span></span><span></span><span></span><span></span><span></span></div>
+                      <span></span><span></span><span></span><span></span><span></span>
+                    </div>
                     <div class="miniCap">French</div>
                   </div>
                 </div>
@@ -623,8 +625,8 @@ GET  /api/dub/:id      (poll status + outputUrl)</pre>
   <!-- Scripts - Optimized Loading -->
   <script src="https://js.stripe.com/v3/"></script>
   <script src="generating-modal.js" defer></script>
-  <script src="header.min.js" defer></script>
-  <script src="script.min.js" defer></script>
+  <script src="header.js" defer></script>
+  <script src="script.js" defer></script>
   <script src="apple-google-pay.js" defer></script>
 
   <!-- Auth modal (hidden; does not affect layout) -->
