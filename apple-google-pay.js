@@ -1,6 +1,6 @@
 // Apple Pay & Google Pay Integration
 (function initDigitalWallets() {
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+  const BACKEND_BASE_URL = "https://api.lypo.org";
   const AUTH_TOKEN_KEY = "lypo_token_v1";
   const STRIPE_PUBLISHABLE_KEY = "pk_live_51SuHX0HBkW640wivIsKZc7KOycRmUlGHIfNiEKQAjhif9GOCB2QrZzA5rv8ITinvJltg1gmV7a2pTmHAT2rUe4za00iRXgYJbF";
   

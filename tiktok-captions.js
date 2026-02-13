@@ -3,7 +3,7 @@
   if (window.__TIKTOK_CAPTIONS_INIT__) return;
   window.__TIKTOK_CAPTIONS_INIT__ = true;
 
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+  const BACKEND_BASE_URL = "https://api.lypo.org";
   const COST_PER_VIDEO = 50; // 50 credits per caption generation
 
   // DOM elements

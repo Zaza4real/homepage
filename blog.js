@@ -1,19 +1,19 @@
 // OPTIMIZED & SECURED Blog loader
 (() => {
   "use strict";
-  
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+
+  const BACKEND_BASE_URL = "https://api.lypo.org";
   const CACHE_KEY = "lypo_blog_cache_v2"; // Bumped version
   const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes cache (reduces backend load)
-  
+
   const list = document.getElementById("blogList");
   if (!list) return; // Guard clause
 
   // SECURITY: Strict HTML escaping with ALL special chars
-  const escapeMap = { 
-    "&": "&amp;", 
-    "<": "&lt;", 
-    ">": "&gt;", 
+  const escapeMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
     '"': "&quot;",
     "'": "&#x27;",
     "/": "&#x2F;"
@@ -25,9 +25,9 @@
     if (!url) return "";
     const urlStr = String(url).trim().toLowerCase();
     // Block dangerous protocols
-    if (urlStr.startsWith("javascript:") || 
-        urlStr.startsWith("data:") || 
-        urlStr.startsWith("vbscript:")) {
+    if (urlStr.startsWith("javascript:") ||
+      urlStr.startsWith("data:") ||
+      urlStr.startsWith("vbscript:")) {
       return "";
     }
     return String(url).trim();
@@ -39,10 +39,10 @@
     try {
       const date = new Date(iso);
       if (isNaN(date.getTime())) return "";
-      return date.toLocaleDateString(undefined, { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       });
     } catch {
       return "";
@@ -54,20 +54,20 @@
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (!cached) return null;
-      
+
       const parsed = JSON.parse(cached);
       if (!parsed || !parsed.data || !Array.isArray(parsed.data)) {
         // Corrupted cache
         localStorage.removeItem(CACHE_KEY);
         return null;
       }
-      
+
       const age = Date.now() - (parsed.timestamp || 0);
-      
+
       if (age < CACHE_DURATION) {
         return parsed.data;
       }
-      
+
       // Expired
       localStorage.removeItem(CACHE_KEY);
       return null;
@@ -75,7 +75,7 @@
       // Corrupted or quota exceeded
       try {
         localStorage.removeItem(CACHE_KEY);
-      } catch {}
+      } catch { }
       return null;
     }
   }
@@ -83,11 +83,11 @@
   // Save to cache with error handling
   function setCache(data) {
     if (!Array.isArray(data)) return;
-    
+
     try {
       // Validate data before caching
       const validData = data.filter(p => p && typeof p === 'object');
-      
+
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         data: validData,
         timestamp: Date.now(),
@@ -103,7 +103,7 @@
             localStorage.removeItem(key);
           }
         });
-      } catch {}
+      } catch { }
     }
   }
 
@@ -128,12 +128,12 @@
       const safeExcerpt = esc(p.excerpt || "");
       const safeDate = esc(fmtDate(p.published_at));
       const safeCoverUrl = sanitizeUrl(p.cover_url);
-      
+
       // Only include cover if URL is safe and starts with https
-      const cover = safeCoverUrl && safeCoverUrl.startsWith('https://') 
-        ? `<div class="blogCover"><img src="${esc(safeCoverUrl)}" alt="${safeTitle}" loading="lazy" decoding="async" crossorigin="anonymous" /></div>` 
+      const cover = safeCoverUrl && safeCoverUrl.startsWith('https://')
+        ? `<div class="blogCover"><img src="${esc(safeCoverUrl)}" alt="${safeTitle}" loading="lazy" decoding="async" crossorigin="anonymous" /></div>`
         : "";
-      
+
       return `
         <a class="blogItem" href="post.html?slug=${safeSlug}" rel="noopener" data-post="${safeSlug}">
           ${cover}
@@ -151,7 +151,7 @@
   async function load() {
     // Show loading state immediately
     list.innerHTML = '<div class="mutedCell" role="status" aria-live="polite">Loading posts...</div>';
-    
+
     // Try cache first
     const cached = getCached();
     if (cached && cached.length > 0) {
@@ -184,7 +184,7 @@
         mode: 'cors',
         cache: 'no-cache' // Always get fresh data from server
       });
-      
+
       if (timeoutId) clearTimeout(timeoutId);
 
       if (!res.ok) {
@@ -198,36 +198,36 @@
       }
 
       const data = await res.json();
-      
+
       // Validate response structure
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format');
       }
-      
+
       const posts = Array.isArray(data.posts) ? data.posts : [];
-      
+
       // Cache valid posts only
       if (posts.length > 0) {
         setCache(posts);
       }
-      
+
       // Render if not silent
       if (!silent) {
         list.innerHTML = renderPosts(posts);
       }
-      
+
     } catch (e) {
       if (timeoutId) clearTimeout(timeoutId);
       console.error("Blog load error:", e);
-      
+
       // Don't show error if silent (background refresh)
       if (silent) return;
-      
+
       // Show user-friendly error with retry
-      const errorMsg = e.name === 'AbortError' 
-        ? '⏱ Server is waking up (free tier cold start). Please wait and retry in 10 seconds...' 
+      const errorMsg = e.name === 'AbortError'
+        ? '⏱ Server is waking up (free tier cold start). Please wait and retry in 10 seconds...'
         : '⚠️ Could not load posts. Please try again.';
-      
+
       list.innerHTML = `
         <div class="mutedCell" role="alert">
           ${esc(errorMsg)} 
@@ -245,7 +245,7 @@
   } else {
     load();
   }
-  
+
   // Prefetch post pages on hover (performance optimization)
   list.addEventListener('mouseover', (e) => {
     const link = e.target.closest('a[data-post]');

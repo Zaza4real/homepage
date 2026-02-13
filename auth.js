@@ -79,7 +79,7 @@ async function maybeHandlePasswordReset() {
 }
 
 
-function initAuthToggle(){
+function initAuthToggle() {
   const tabLogin = $("tabLogin");
   const tabSignup = $("tabSignup");
   const confirm = $("confirmPassWrap");
@@ -107,12 +107,12 @@ function initAuthToggle(){
 (() => {
   const BACKEND_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
     ? "http://localhost:10000"
-    : "https://lypo-backend.onrender.com";
+    : "https://api.lypo.org";
   const AUTH_TOKEN_KEY = "lypo_token_v1";
-  
+
   // IMPORTANT: Replace this with your actual Google Client ID from Google Cloud Console
   const GOOGLE_CLIENT_ID = "1015062802676-jgvv6l7mt6isq3154t39bkn29a4cqml7.apps.googleusercontent.com";
-  
+
   // TEMPORARY: Disable Google Sign-In until backend is ready
   const DISABLE_GOOGLE_SIGNIN = false; // Google Sign-In enabled!
 
@@ -123,13 +123,13 @@ function initAuthToggle(){
   function setMsg(msg) {
     const el = $("authMsgPage");
     if (!el) return;
-    
+
     // Clear any pending timeout
     if (msgTimeout) {
       clearTimeout(msgTimeout);
       msgTimeout = null;
     }
-    
+
     // If empty message, fade out
     if (!msg || msg.trim() === "") {
       el.style.opacity = "0";
@@ -139,18 +139,18 @@ function initAuthToggle(){
       }, 150);
       return;
     }
-    
+
     // Set content immediately (before fade-in to prevent flash)
     el.textContent = msg;
-    
+
     // Force reflow to ensure transition works
     void el.offsetHeight;
-    
+
     // Fade in
     el.style.opacity = "1";
   }
 
-  function showConfirmPass(show){
+  function showConfirmPass(show) {
     const wrap = $("confirmPassWrap");
     if (wrap) wrap.style.display = show ? "" : "none";
   }
@@ -164,7 +164,7 @@ function initAuthToggle(){
     if (ct.includes("application/json")) data = await res.json().catch(() => null);
     else data = await res.text().catch(() => null);
     if (!res.ok) {
-      const msg = data?.error || (typeof data==="string" && data.trim()) || `Request failed (${res.status})`;
+      const msg = data?.error || (typeof data === "string" && data.trim()) || `Request failed (${res.status})`;
       const e = new Error(msg);
       e.status = res.status;
       throw e;
@@ -190,41 +190,41 @@ function initAuthToggle(){
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
     const password2 = $("authPass2Page")?.value || "";
-    
+
     // Clear previous message
     setMsg("");
-    
+
     // Validation
-    if (!email || !password) { 
-      setMsg("❌ Please enter email and password."); 
-      return; 
+    if (!email || !password) {
+      setMsg("❌ Please enter email and password.");
+      return;
     }
-    
+
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setMsg("❌ Please enter a valid email address.");
       return;
     }
-    
+
     // Password length validation
     if (password.length < 6) {
       setMsg("❌ Password must be at least 6 characters long.");
       return;
     }
-    
+
     // Password confirmation validation
-    if (password !== password2) { 
-      setMsg("❌ Passwords do not match."); 
-      return; 
+    if (password !== password2) {
+      setMsg("❌ Passwords do not match.");
+      return;
     }
-    
+
     // Password strength indicator
     if (password.length < 8) {
       setMsg("⚠️ Password is weak. Consider using 8+ characters for better security.");
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
-    
+
     try {
       setMsg("Creating account…");
       const out = await apiFetch("/api/auth/signup", {
@@ -232,12 +232,12 @@ function initAuthToggle(){
         body: JSON.stringify({ email, password })
       });
       localStorage.setItem(AUTH_TOKEN_KEY, out.token);
-      
+
       // Track signup conversion
       if (typeof trackConversion === "function") {
         trackConversion("signup_success", null);
       }
-      
+
       setMsg("✅ Account created! Redirecting…");
       setTimeout(() => {
         window.location.href = "index.html";
@@ -256,23 +256,23 @@ function initAuthToggle(){
 
     const email = $("authEmailPage")?.value?.trim();
     const password = $("authPassPage")?.value || "";
-    
+
     // Clear previous message
     setMsg("");
-    
+
     // Validation
-    if (!email || !password) { 
-      setMsg("❌ Please enter email and password."); 
-      return; 
+    if (!email || !password) {
+      setMsg("❌ Please enter email and password.");
+      return;
     }
-    
+
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setMsg("❌ Please enter a valid email address.");
       return;
     }
-    
+
     try {
       setMsg("Logging in…");
       const out = await apiFetch("/api/auth/login", {
@@ -280,12 +280,12 @@ function initAuthToggle(){
         body: JSON.stringify({ email, password })
       });
       localStorage.setItem(AUTH_TOKEN_KEY, out.token);
-      
+
       // Track login success
       if (typeof trackEvent === "function") {
         trackEvent("login_success", { method: "email" });
       }
-      
+
       setMsg("✅ Logged in! Redirecting…");
       setTimeout(() => {
         window.location.href = "index.html";
@@ -307,12 +307,12 @@ function initAuthToggle(){
         body: JSON.stringify({ credential })
       });
       localStorage.setItem(AUTH_TOKEN_KEY, out.token);
-      
+
       // Track Google sign-in
       if (typeof trackConversion === "function") {
         trackConversion("google_signin_success");
       }
-      
+
       setMsg("✅ Signed in! Redirecting…");
       setTimeout(() => {
         window.location.href = "index.html";
@@ -333,13 +333,13 @@ function initAuthToggle(){
       console.log("🔒 Google Sign-In disabled");
       const btn = document.getElementById("googleSignInBtn");
       if (btn) btn.style.display = "none";
-      
+
       // Also hide the divider
       const divider = btn?.previousElementSibling;
       if (divider) divider.style.display = "none";
       return;
     }
-    
+
     if (typeof google === 'undefined' || !google.accounts) {
       console.warn("Google Sign-In not loaded yet, retrying...");
       setTimeout(initGoogleSignIn, 100);
@@ -369,127 +369,127 @@ function initAuthToggle(){
     );
   }
 
-  
-async function maybeHandleEmailVerify() {
-  const hash = String(location.hash || "");
-  if (!hash.includes("verify=")) return false;
 
-  const params = new URLSearchParams(hash.replace(/^#/, ""));
-  const token = params.get("verify") || "";
-  const email = params.get("email") || "";
+  async function maybeHandleEmailVerify() {
+    const hash = String(location.hash || "");
+    if (!hash.includes("verify=")) return false;
 
-  // Clean URL (keep page but remove token from address bar)
-  history.replaceState(null, "", "auth.html");
+    const params = new URLSearchParams(hash.replace(/^#/, ""));
+    const token = params.get("verify") || "";
+    const email = params.get("email") || "";
 
-  try {
-    setMsg("Verifying email…");
-    await apiFetch("/api/auth/verify-email", {
-      method: "POST",
-      body: JSON.stringify({ email, token }),
-    });
-    setMsg("✅ Email verified! You can now log in.");
-    // Focus login
-    showConfirmPass(false);
-    $("authEmailPage") && ($("authEmailPage").value = email);
-    $("authPassPage")?.focus();
-    return true;
-  } catch (e) {
-    setMsg(e?.message || "Could not verify email.");
-    return true;
-  }
-}
-
-
-
-function setResetMsg(msg){
-  const el = document.getElementById("resetMsg");
-  if (el) el.textContent = msg || "";
-}
-
-async function maybeHandlePasswordReset() {
-  const hash = String(location.hash || "");
-  if (!hash.includes("reset=")) return false;
-
-  const params = new URLSearchParams(hash.replace(/^#/, ""));
-  const token = params.get("reset") || "";
-  const email = params.get("email") || "";
-
-  // Show reset UI
-  const resetCard = document.getElementById("resetCard");
-  if (resetCard) resetCard.style.display = "block";
-
-  // Hide normal auth UI (login/signup)
-  const authCard = document.querySelector(".authCard");
-  if (authCard) authCard.style.display = "none";
-
-  // Clean URL so token isn't kept in address bar history
-  history.replaceState(null, "", "auth.html");
-
-  const btn = document.getElementById("btnDoReset");
-  if (!btn) return true;
-
-  btn.onclick = async () => {
-    const p1 = document.getElementById("resetPass1")?.value || "";
-    const p2 = document.getElementById("resetPass2")?.value || "";
-    if (!p1 || !p2) { setResetMsg("Please enter your new password twice."); return; }
-    if (p1 !== p2) { setResetMsg("Passwords do not match."); return; }
-    if (p1.length < 6) { setResetMsg("Password too short (min 6 characters)."); return; }
+    // Clean URL (keep page but remove token from address bar)
+    history.replaceState(null, "", "auth.html");
 
     try {
-      btn.disabled = true;
-      setResetMsg("Updating password…");
-      await apiFetch("/api/auth/reset-password", {
+      setMsg("Verifying email…");
+      await apiFetch("/api/auth/verify-email", {
         method: "POST",
-        body: JSON.stringify({ email, token, password: p1 }),
+        body: JSON.stringify({ email, token }),
       });
-      setResetMsg("✅ Password updated. You can now log in.");
-      // After success, show normal auth UI again
-      if (authCard) authCard.style.display = "";
-      if (resetCard) resetCard.style.display = "none";
-      document.getElementById("authEmailPage") && (document.getElementById("authEmailPage").value = email);
-      document.getElementById("authPassPage")?.focus();
+      setMsg("✅ Email verified! You can now log in.");
+      // Focus login
+      showConfirmPass(false);
+      $("authEmailPage") && ($("authEmailPage").value = email);
+      $("authPassPage")?.focus();
+      return true;
     } catch (e) {
-      setResetMsg(e?.message || "Could not reset password. Please request a new link.");
-    } finally {
-      btn.disabled = false;
+      setMsg(e?.message || "Could not verify email.");
+      return true;
     }
-  };
-
-  return true;
-}
+  }
 
 
 
-function redirectToResetPageIfNeeded(){
-  const hash = String(location.hash || "");
-  if (!hash.includes("reset=")) return false;
-  const params = new URLSearchParams(hash.replace(/^#/, ""));
-  const token = params.get("reset") || "";
-  const email = params.get("email") || "";
-  if (!token || !email) return false;
-  // Move reset flow to dedicated page (avoids UI overlap)
-  location.replace(`reset.html?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`);
-  return true;
-}
+  function setResetMsg(msg) {
+    const el = document.getElementById("resetMsg");
+    if (el) el.textContent = msg || "";
+  }
 
-document.addEventListener("DOMContentLoaded", () => {
+  async function maybeHandlePasswordReset() {
+    const hash = String(location.hash || "");
+    if (!hash.includes("reset=")) return false;
+
+    const params = new URLSearchParams(hash.replace(/^#/, ""));
+    const token = params.get("reset") || "";
+    const email = params.get("email") || "";
+
+    // Show reset UI
+    const resetCard = document.getElementById("resetCard");
+    if (resetCard) resetCard.style.display = "block";
+
+    // Hide normal auth UI (login/signup)
+    const authCard = document.querySelector(".authCard");
+    if (authCard) authCard.style.display = "none";
+
+    // Clean URL so token isn't kept in address bar history
+    history.replaceState(null, "", "auth.html");
+
+    const btn = document.getElementById("btnDoReset");
+    if (!btn) return true;
+
+    btn.onclick = async () => {
+      const p1 = document.getElementById("resetPass1")?.value || "";
+      const p2 = document.getElementById("resetPass2")?.value || "";
+      if (!p1 || !p2) { setResetMsg("Please enter your new password twice."); return; }
+      if (p1 !== p2) { setResetMsg("Passwords do not match."); return; }
+      if (p1.length < 6) { setResetMsg("Password too short (min 6 characters)."); return; }
+
+      try {
+        btn.disabled = true;
+        setResetMsg("Updating password…");
+        await apiFetch("/api/auth/reset-password", {
+          method: "POST",
+          body: JSON.stringify({ email, token, password: p1 }),
+        });
+        setResetMsg("✅ Password updated. You can now log in.");
+        // After success, show normal auth UI again
+        if (authCard) authCard.style.display = "";
+        if (resetCard) resetCard.style.display = "none";
+        document.getElementById("authEmailPage") && (document.getElementById("authEmailPage").value = email);
+        document.getElementById("authPassPage")?.focus();
+      } catch (e) {
+        setResetMsg(e?.message || "Could not reset password. Please request a new link.");
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    return true;
+  }
+
+
+
+  function redirectToResetPageIfNeeded() {
+    const hash = String(location.hash || "");
+    if (!hash.includes("reset=")) return false;
+    const params = new URLSearchParams(hash.replace(/^#/, ""));
+    const token = params.get("reset") || "";
+    const email = params.get("email") || "";
+    if (!token || !email) return false;
+    // Move reset flow to dedicated page (avoids UI overlap)
+    location.replace(`reset.html?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`);
+    return true;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
     // Initialize Google Sign-In
     initGoogleSignIn();
-    
+
     // Password validation (no password help box - it was causing issues)
     const passInput = $("authPassPage");
-    
+
     if (passInput) {
       // Real-time password validation (debounced to prevent flickering)
       let validationTimeout = null;
       passInput.addEventListener("input", () => {
         const value = passInput.value;
-        
+
         // Clear previous timeout
         if (validationTimeout) {
           clearTimeout(validationTimeout);
         }
-        
+
         // Debounce validation to prevent flickering
         validationTimeout = setTimeout(() => {
           if (value.length > 0 && value.length < 6) {
@@ -506,21 +506,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 300); // 300ms debounce
       }, { passive: true });
     }
-    
+
     $("btnSignupPage")?.addEventListener("click", () => {
-    const wrap = $("confirmPassWrap");
-    if (wrap && wrap.style.display === "none") {
-      wrap.style.display = "";
-      $("authPass2Page")?.focus();
-      setMsg("Please confirm your password to continue.");
-      return;
-    }
-    doSignup().catch(e => setMsg(`❌ ${e.message || "Sign up failed."}`));
-  });
+      const wrap = $("confirmPassWrap");
+      if (wrap && wrap.style.display === "none") {
+        wrap.style.display = "";
+        $("authPass2Page")?.focus();
+        setMsg("Please confirm your password to continue.");
+        return;
+      }
+      doSignup().catch(e => setMsg(`❌ ${e.message || "Sign up failed."}`));
+    });
     $("btnLoginPage")?.addEventListener("click", () => doLogin().catch(e => setMsg(`❌ ${e.message || "Login failed."}`)));
 
     // Enter submits login
-    ["authEmailPage","authPassPage"].forEach((id) => {
+    ["authEmailPage", "authPassPage"].forEach((id) => {
       $(id)?.addEventListener("keydown", (e) => {
         if (e.key === "Enter") $("btnLoginPage")?.click();
       });
@@ -556,7 +556,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       if (!ok) throw lastErr;
-setMsg("If an account exists for that email, a reset link has been sent.");
+      setMsg("If an account exists for that email, a reset link has been sent.");
     } catch (e) {
       // Always show a generic message to avoid account enumeration
       setMsg("If an account exists for that email, a reset link has been sent.");
@@ -610,4 +610,5 @@ setMsg("If an account exists for that email, a reset link has been sent.");
 })();
 
 document.addEventListener("DOMContentLoaded", async () => {
-  if (typeof redirectToResetPageIfNeeded === "function" && redirectToResetPageIfNeeded()) return; const inReset = await maybeHandlePasswordReset(); if (inReset) return; });
+  if (typeof redirectToResetPageIfNeeded === "function" && redirectToResetPageIfNeeded()) return; const inReset = await maybeHandlePasswordReset(); if (inReset) return;
+});

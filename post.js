@@ -2,7 +2,7 @@
 (() => {
   "use strict";
 
-  const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
+  const BACKEND_BASE_URL = "https://api.lypo.org";
   const CACHE_KEY_PREFIX = "lypo_post_cache_v2_";
   const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 

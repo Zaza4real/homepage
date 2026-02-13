@@ -3,7 +3,7 @@
 (function () {
   "use strict";
 
-  const API_BASE = "https://lypo-backend.onrender.com";
+  const API_BASE = "https://api.lypo.org";
   //const API_BASE = "http://localhost:3000"; // Development
 
   // DOM Elements

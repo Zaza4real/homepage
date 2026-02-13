@@ -126,7 +126,7 @@ async function uploadVoiceoverBlog() {
     return;
   }
 
-  const BACKEND_URL = "https://lypo-backend.onrender.com";
+  const BACKEND_URL = "https://api.lypo.org";
   
   console.log("📤 Uploading voiceover blog post...");
   
