@@ -981,7 +981,8 @@ app.get("/api/languages", (_req, res) => {
       "Greek", "Turkish", "Ukrainian", "Russian",
       "Arabic", "Hebrew",
       "Hindi", "Bengali", "Urdu",
-      "Chinese", "Japanese", "Korean", "Vietnamese", "Thai", "Indonesian"
+      "Chinese", "Japanese", "Korean", "Vietnamese", "Thai", "Indonesian",
+      "ZazaTest"
     ]
   });
 });
