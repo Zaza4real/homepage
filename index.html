@@ -55,7 +55,8 @@
 
  <!-- Critical CSS Inlined -->
  <style>
-    /* Desktop Header - Critical for preventing FOUC */
+    
+    /* Desktop Header - Critical for preventing FOUC and Layout Shifts */
     .header {
       position: fixed;
       top: 18px; left: 50%;
@@ -70,10 +71,13 @@
       -webkit-backdrop-filter: blur(16px);
       border-radius: 999px;
       box-shadow: 0 25px 80px rgba(0, 0, 0, .55);
-      z-index: 1000 !important; /* Force high z-index */
+      z-index: 1000 !important;
+      flex-wrap: nowrap; /* Prevent wrapping */
+      height: 72px; /* Enforce height */
+      overflow: hidden;
     }
     
-    .logoWrap { padding: 6px 10px; }
+    .logoWrap { padding: 6px 10px; flex-shrink: 0; }
     .logo {
       font-size: 44px;
       line-height: 1;
@@ -84,6 +88,37 @@
       text-shadow: 0 0 14px rgba(255, 255, 255, .08), 0 0 36px rgba(255, 255, 255, .06), 0 12px 44px rgba(0, 0, 0, .70);
       position: relative;
     }
+
+    /* Critical Children Styles to prevent layout shifts */
+    .tabs { display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; }
+    .tabBtn {
+        border: 1px solid rgba(255,255,255,.14);
+        background: rgba(255,255,255,.06);
+        color: rgba(255,255,255,.85);
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-weight: 900;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    
+    .toolsDropdown { position: relative; display: inline-block; }
+    
+    .headerRight { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-shrink: 0; }
+    
+    .btnPrimary {
+         border-radius: 14px;
+         padding: 12px 14px;
+         font-weight: 1000;
+         background: rgba(255,255,255,.86);
+         color: rgba(0,0,0,.92);
+         white-space: nowrap;
+         border: 1px solid rgba(255,255,255,.14);
+    }
+    
+    /* Ensure mobile menu doesn't flash on desktop */
+    #mobileMenuBtn { display: none; }
+
 
   /* ========================================
   PROFESSIONAL MOBILE HEADER WITH HAMBURGER MENU
