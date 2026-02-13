@@ -1,0 +1,129 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The Quick Guide: How to Go Viral on TikTok Without Speaking English (2026)",
+  "description": "Short, actionable guide on how non-English creators can reach millions using AI translation + captions. Real examples, simple workflow, proven results.",
+  "image": [
+    "https://lypo.org/cover-quick-guide.png"
+  ],
+  "datePublished": "2026-02-02T00:00:00+00:00",
+  "dateModified": "2026-02-02T00:00:00+00:00",
+  "author": {
+    "@type": "Organization",
+    "name": "LYPO",
+    "url": "https://lypo.org",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://lypo.org/favicon.png",
+      "width": 512,
+      "height": 512
+    }
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "LYPO",
+    "url": "https://lypo.org",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://lypo.org/favicon.png",
+      "width": 512,
+      "height": 512
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://lypo.org/post.html?slug=go-viral-without-english-quick-guide"
+  },
+  "articleSection": "Creator Growth Strategies",
+  "keywords": [
+    "go viral TikTok",
+    "non-English creators",
+    "video translation",
+    "AI captions",
+    "global reach",
+    "TikTok growth",
+    "Instagram growth",
+    "YouTube Shorts",
+    "multilingual content",
+    "creator strategy 2026",
+    "AI dubbing",
+    "social media fame",
+    "brand deals",
+    "follower growth"
+  ],
+  "about": [
+    {
+      "@type": "Thing",
+      "name": "Video Translation",
+      "description": "AI-powered video translation for content creators"
+    },
+    {
+      "@type": "Thing",
+      "name": "TikTok Growth",
+      "description": "Strategies for growing TikTok following and engagement"
+    },
+    {
+      "@type": "Thing",
+      "name": "AI Captions",
+      "description": "Automated caption generation for social media videos"
+    }
+  ],
+  "mentions": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "LYPO Video Translator",
+      "url": "https://lypo.org",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "LYPO TikTok Captions",
+      "url": "https://lypo.org/tiktok-captions.html",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web"
+    }
+  ],
+  "wordCount": 2100,
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "156",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "speakable": {
+    "@type": "SpeakableSpecification",
+    "cssSelector": [".lead", "h2", "h3"]
+  },
+  "citation": [
+    {
+      "@type": "CreativeWork",
+      "name": "Statista 2025 Social Media Report",
+      "url": "https://www.statista.com"
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "Facebook Business 2025 Video Statistics",
+      "url": "https://www.facebook.com/business"
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "TikTok Creator Report Q1 2025",
+      "url": "https://www.tiktok.com"
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "CreatorIQ 2025 Brand Deal Data",
+      "url": "https://creatoriq.com"
+    }
+  ],
+  "isAccessibleForFree": true,
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "isAccessibleForFree": true,
+      "cssSelector": ".postBody"
+    }
+  ]
+}

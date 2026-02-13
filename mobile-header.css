@@ -1,0 +1,383 @@
+/* ========================================
+   PROFESSIONAL MOBILE HEADER WITH HAMBURGER MENU
+   No more horizontal scrolling - clean & modern!
+   ======================================== */
+
+@media only screen and (max-width: 768px) {
+  /* Mobile header - fixed, clean, no scrolling needed */
+  html body .header {
+    position: fixed !important;
+    top: 12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 24px) !important;
+    padding: 12px 16px !important;
+    gap: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+    z-index: 1000 !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    background: rgba(0,0,0,0.45) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+  }
+  
+  /* Logo - always visible, clickable */
+  html body .logoWrap {
+    display: flex !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  html body .logo {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.05em !important;
+    color: rgba(255,255,255,0.95) !important;
+  }
+  
+  html body .logoTagline {
+    display: none !important;
+  }
+  
+  /* HIDE desktop navigation on mobile */
+  html body .tabs {
+    display: none !important;
+  }
+  
+  /* HIDE Tools dropdown on mobile (replaced by hamburger menu) */
+  html body .toolsDropdown {
+    display: none !important;
+  }
+  
+  /* Mobile menu container - right side of header */
+  html body .headerRight {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+  }
+  
+  /* Hamburger menu button with MENU label */
+  html body #mobileMenuBtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 40px !important;
+    padding: 0 12px !important;
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+    z-index: 1001 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,0.9) !important;
+    white-space: nowrap !important;
+  }
+  
+  html body #mobileMenuBtn:active {
+    transform: scale(0.95) !important;
+    background: rgba(255,255,255,0.12) !important;
+  }
+  
+  /* Hamburger icon (3 lines) - compact */
+  html body .hamburgerIcon {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    width: 16px !important;
+    height: 14px !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+  
+  html body .hamburgerIcon span {
+    display: block !important;
+    width: 100% !important;
+    height: 2px !important;
+    background: rgba(255,255,255,0.9) !important;
+    border-radius: 2px !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  /* MENU text inside button */
+  html body #mobileMenuBtn .menuText {
+    display: inline !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,0.9) !important;
+  }
+  
+  /* Animate to X when open */
+  html body #mobileMenuBtn.active .hamburgerIcon span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg) !important;
+  }
+  
+  html body #mobileMenuBtn.active .hamburgerIcon span:nth-child(2) {
+    opacity: 0 !important;
+  }
+  
+  html body #mobileMenuBtn.active .hamburgerIcon span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg) !important;
+  }
+  
+  /* Mobile menu overlay - fullscreen */
+  html body #mobileMenuOverlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(7, 10, 18, 0.97) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    z-index: 999 !important;
+    display: none !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  html body #mobileMenuOverlay.active {
+    display: block !important;
+    opacity: 1 !important;
+  }
+  
+  /* Mobile menu content - centered, clean list */
+  html body .mobileMenuContent {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 100vh !important;
+    padding: 80px 24px 40px !important;
+    gap: 8px !important;
+  }
+  
+  /* Mobile menu items - large, touch-friendly */
+  html body .mobileMenuItem {
+    width: 100% !important;
+    max-width: 400px !important;
+    padding: 18px 24px !important;
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 14px !important;
+    color: rgba(255,255,255,0.95) !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+  }
+  
+  html body .mobileMenuItem:active {
+    transform: scale(0.98) !important;
+    background: rgba(255,255,255,0.08) !important;
+  }
+  
+  /* Active page highlight */
+  html body .mobileMenuItem.isActive {
+    background: rgba(255,255,255,0.12) !important;
+    border-color: rgba(255,255,255,0.25) !important;
+    box-shadow: 0 4px 16px rgba(255,255,255,0.1) !important;
+  }
+  
+  /* Tools section in mobile menu */
+  html body .mobileToolsSection {
+    width: 100% !important;
+    max-width: 400px !important;
+    margin-top: 16px !important;
+    padding: 16px !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 16px !important;
+  }
+  
+  html body .mobileToolsTitle {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    color: rgba(255,255,255,0.5) !important;
+    margin-bottom: 12px !important;
+    text-align: center !important;
+  }
+  
+  html body .mobileTool {
+    width: 100% !important;
+    padding: 14px 16px !important;
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 12px !important;
+    margin-bottom: 8px !important;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  html body .mobileTool:active {
+    transform: scale(0.98) !important;
+    background: rgba(255,255,255,0.08) !important;
+  }
+  
+  html body .mobileToolInfo {
+    flex: 1 !important;
+    text-align: left !important;
+  }
+  
+  html body .mobileToolName {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,0.95) !important;
+    margin-bottom: 2px !important;
+  }
+  
+  html body .mobileToolDesc {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.5) !important;
+  }
+  
+  /* Auth button in HEADER (not menu) - compact and aligned */
+  html body .headerRight .headerAuthBtn,
+  html body .headerRight .btnPrimary {
+    padding: 9px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    white-space: nowrap !important;
+    height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  html body .headerRight .headerAuthBtn:active,
+  html body .headerRight .btnPrimary:active {
+    transform: scale(0.95) !important;
+  }
+  
+  /* Adjust container padding for mobile header */
+  html body .container {
+    padding-top: 85px !important;
+  }
+  
+  /* Tools dropdown button - hide on mobile (replaced by hamburger) */
+  html body .toolsDropdown {
+    display: none !important;
+  }
+}
+
+/* Extra small screens */
+@media only screen and (max-width: 480px) {
+  html body .header {
+    top: 8px !important;
+    width: calc(100% - 16px) !important;
+    padding: 10px 12px !important;
+  }
+  
+  html body .logo {
+    font-size: 18px !important;
+  }
+  
+  html body #mobileMenuBtn {
+    padding: 0 10px !important;
+    height: 38px !important;
+    font-size: 12px !important;
+  }
+  
+  html body .headerRight .headerAuthBtn,
+  html body .headerRight .btnPrimary {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    height: 38px !important;
+  }
+  
+  html body .hamburgerIcon {
+    width: 14px !important;
+    height: 12px !important;
+  }
+  
+  html body .mobileMenuItem {
+    padding: 16px 20px !important;
+    font-size: 15px !important;
+  }
+  
+  html body .container {
+    padding-top: 75px !important;
+  }
+}
+
+/* Landscape mobile */
+@media only screen and (max-width: 768px) and (orientation: landscape) {
+  html body .header {
+    top: 8px !important;
+    padding: 10px 14px !important;
+  }
+  
+  html body .container {
+    padding-top: 70px !important;
+  }
+  
+  html body .mobileMenuContent {
+    padding: 70px 24px 30px !important;
+  }
+}
+
+/* Desktop - ensure hamburger is hidden, show normal tabs */
+@media only screen and (min-width: 769px) {
+  html body #mobileMenuBtn {
+    display: none !important;
+  }
+  
+  html body #mobileMenuOverlay {
+    display: none !important;
+  }
+  
+  html body .tabs {
+    display: flex !important;
+  }
+  
+  html body .toolsDropdown {
+    display: block !important;
+  }
+}
+
+/* CRITICAL: Ensure proper button alignment on mobile */
+@media only screen and (max-width: 768px) {
+  /* Remove any conflicting styles from style.css */
+  html body .headerRight {
+    gap: 10px !important;
+  }
+  
+  html body .headerRight > * {
+    flex-shrink: 0 !important;
+    height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+  
+  /* Ensure Login/Dashboard button is properly sized */
+  html body .headerRight a,
+  html body .headerRight button {
+    min-width: auto !important;
+    max-width: none !important;
+  }
+}

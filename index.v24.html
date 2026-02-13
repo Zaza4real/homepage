@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LYPO — Video Translation</title>
+  <meta name="description" content="Translate videos to every language while keeping voice and syncing lips." />
+  <link rel="stylesheet" href="style.min.css" />
+</head>
+
+<body>
+  <div class="bg">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
+  </div>
+
+  <header class="header">
+    <a class="logoWrap" href="#" aria-label="LYPO Home" data-go="home">
+      <span class="logo">LYP <span class="logoSpinner" aria-hidden="true"></span><span class="logoTagline">Sounds like magic…</span></span>
+    </a>
+
+    <nav class="tabs" role="tablist" aria-label="LYPO tabs">
+      <button class="tabBtn isActive" role="tab" aria-selected="true" data-tab="home" type="button">Demo</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="features" type="button">Features</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="pricing" type="button">Pricing</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="docs" type="button">Docs</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="about" type="button">About</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- HOME -->
+    <section class="tabPanel isActive" id="tab-home" role="tabpanel">
+      <div class="hero">
+                <h1 class="h1">
+          Translate your video to <span class="grad">every language</span>
+          — keep your voice, sync the lips.
+        </h1>
+
+        <p class="sub">
+          Upload a video, select a language, sit back and enjoy the magic...
+        </p>
+<div class="demoCard">
+          <div class="demoTop">
+            <div class="demoTitle">LYPO Video Translator</div>
+            <div class="chips">
+              <span class="chip">UI ✓</span>
+              <span class="chip" id="chipBackend">Backend: not connected</span>
+            </div>
+          </div>
+
+          <div class="demoBody">
+            <div class="form">
+
+              <!-- SHOWCASE (mini, portrait) -->
+              <div class="showcaseTab" aria-label="Example translations">
+                <div class="showTabLeft">
+                  <div class="showTabTitle">Mini showcase</div>
+                  <div class="showTabSub">English ➜ French</div>
+                  <div class="showTabCaption">Same voice. New language.</div>
+                </div>
+
+                <div class="showTabMedia">
+                  <div class="miniVid">
+                    <video class="miniVidEl" id="miniEnglish" src="english.mp4" playsinline preload="metadata"></video>
+                    <button class="miniPlay" type="button" data-play="english" aria-label="Play English sample">▶</button>
+                    <div class="miniWave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+                    <div class="miniCap">English</div>
+                  </div>
+
+                  <div class="miniArrow" aria-hidden="true">➜</div>
+
+                  <div class="miniVid">
+                    <video class="miniVidEl" id="miniFrench" src="french.mp4" playsinline preload="metadata"></video>
+                    <button class="miniPlay" type="button" data-play="french" aria-label="Play French sample">▶</button>
+                    <div class="miniWave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+                    <div class="miniCap">French</div>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <span>Upload video</span>
+                <div class="upload">
+                  <input id="videoFile" type="file" accept="video/*" hidden />
+                  <div class="uploadGrid">
+                    <button class="uploadBtn" id="btnPickVideo" type="button">
+                      <span class="uploadIcon">🎬</span>
+                      <span class="uploadText">
+                        <strong>Choose a video</strong>
+                        <em id="videoName">or drop it here</em>
+                      </span>
+                      <span class="uploadFx"></span>
+                    </button>
+
+                    <div class="previewBox" id="previewBox" aria-label="Output window">
+                      <div class="previewInner">
+                        <span class="previewIcon" aria-hidden="true">🪟</span>
+                        <span class="previewText" id="previewText">No output yet</span>
+                      </div>
+                      <div class="previewHint" id="previewHint">Generated video will appear here</div>
+                      <div id="previewSkeleton" class="previewSkeleton" hidden aria-hidden="true"></div>
+                      <video id="outputVideo" class="outputVideo" controls playsinline hidden></video>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <label class="field">
+                <span>Target language</span>
+                <select id="targetLang"></select>
+              </label>
+
+              <div class="actions">
+                <button class="btnPrimary" id="btnRun" type="button">
+                  <span class="btnLabel">Upload & translate</span>
+                  <span class="btnSpinner" aria-hidden="true"></span>
+                  <span class="btnGlow"></span>
+                </button>
+
+                <button class="btnGhost" id="btnPay" type="button">
+                  <span class="btnLabel">Pay</span>
+                  <span class="btnSpinner" aria-hidden="true" data-spinner="pay"></span>
+                  <span class="btnGlow"></span>
+                </button>
+
+                <button class="btnGhost btnLink" id="btnDownload" type="button" hidden aria-disabled="true" tabindex="-1">
+                  <span class="btnLabel">Download</span>
+                  <span class="btnGlow"></span>
+                </button>
+              </div>
+
+              <div class="statusRow">
+                <div class="statusPill" id="statusPill">
+                  <span class="loader" id="statusLoader" aria-hidden="true"></span>
+                  <span class="ping" id="statusDot" aria-hidden="true"></span>
+                  <span id="statusText">Ready.</span>
+                </div>
+                <div class="hint">
+                  Tip: 30 seconds of video costs <strong>$2.89</strong>.
+                  <span class="hintSep">•</span>
+                  <span id="costEstimate" class="costEstimate"></span>
+                </div>
+                <div class="progressWrap" id="progressWrap" hidden>
+                  <div class="progressBar" aria-hidden="true"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="tabPanel" id="tab-features" role="tabpanel">
+      <div class="panel">
+        <h2>Features</h2>
+        <div class="grid2">
+          <div class="tile"><div class="tileTitle">Voice-preserving</div><p>Keep speaker identity across languages.</p></div>
+          <div class="tile"><div class="tileTitle">Lip sync</div><p>Align mouth movement to translated speech.</p></div>
+          <div class="tile"><div class="tileTitle">API-first</div><p>Integrate into creator tools and pipelines.</p></div>
+          <div class="tile"><div class="tileTitle">Scales</div><p>Move from demo to batch processing later.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="tabPanel" id="tab-pricing" role="tabpanel">
+      <div class="panel">
+        <h2>Pricing</h2>
+        <div class="pricing">
+          <div class="priceCard">
+            <div class="priceTop"><div class="priceName">Starter</div><div class="priceValue">$—</div></div>
+            <ul><li>Few languages</li><li>Basic support</li><li>Low volume</li></ul>
+          </div>
+          <div class="priceCard featured">
+            <div class="priceTop"><div class="priceName">Pro</div><div class="priceValue">$—</div></div>
+            <ul><li>All languages</li><li>Better consistency</li><li>Higher concurrency</li></ul>
+          </div>
+          <div class="priceCard">
+            <div class="priceTop"><div class="priceName">Enterprise</div><div class="priceValue">Let’s talk</div></div>
+            <ul><li>SLAs</li><li>Security reviews</li><li>Custom workflow</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOCS -->
+    <section class="tabPanel" id="tab-docs" role="tabpanel">
+      <div class="panel">
+        <h2>Docs</h2>
+        <p class="muted">Frontend calls these backend endpoints:</p>
+        <div class="codeCard">
+          <pre class="code">GET  /health
+GET  /api/languages
+POST /api/dub-upload   (multipart form: video file + output_language)
+GET  /api/dub/:id      (poll status + outputUrl)</pre>
+        </div>
+        <p class="muted">Replicate token stays in Render env vars (server-side).</p>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="tabPanel" id="tab-about" role="tabpanel">
+      <div class="panel">
+        <h2>About LYPO</h2>
+        <p>LYPO translates videos into new languages while preserving voice identity and syncing lips.</p>
+        <p class="muted">Add contact/social links here when ready.</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>© <span id="year"></span> LYPO</span>
+      <span class="muted">Ready to publish • Hosted on Render</span>
+    </footer>
+  </main>
+
+  <!-- IMPORTANT: include script.js ONCE -->
+  <script src="script.min.js"></script>
+</body>
+</html>

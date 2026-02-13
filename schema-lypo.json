@@ -1,0 +1,47 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "LYPO",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "priceValidUntil": "2027-12-31",
+    "availability": "https://schema.org/InStock",
+    "description": "50 free credits for new users"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "1247"
+  },
+  "description": "LYPO is an AI-powered content creation platform offering three professional tools: an AI video generator that converts text and images into engaging videos, an advanced video translator with lip-sync technology, and an automatic TikTok caption generator.",
+  "url": "https://lypo.org",
+  "image": "https://lypo.org/favicon.png",
+  "author": {
+    "@type": "Organization",
+    "name": "LYPO"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "LYPO",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://lypo.org/favicon.png"
+    }
+  },
+  "applicationSubCategory": "Video Editing",
+  "featureList": [
+    "AI Video Generator - Text & Image to Video",
+    "AI Video Translator with Lip Sync",
+    "TikTok Caption Generator",
+    "Multi-language Support",
+    "Fast Processing (2-5 minutes)",
+    "No Credit Card Required for Free Trial"
+  ],
+  "softwareVersion": "2.5",
+  "datePublished": "2024-01-01",
+  "dateModified": "2026-02-03"
+}

@@ -1,0 +1,68 @@
+# LYPO.org - Robots.txt for MAXIMUM CRAWL EFFICIENCY
+# Updated: 2026-02-13
+
+User-agent: *
+Allow: /
+Crawl-delay: 0
+
+# Block private areas and test files
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard.html
+Disallow: /auth.html
+Disallow: /reset.html
+Disallow: /test-
+Disallow: /debug
+Disallow: /*.tmp
+Disallow: /original_images_backup/
+Disallow: /*.sh
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Googlebot-Image
+Allow: /assets/
+Allow: /*.webp
+Allow: /*.png
+Allow: /*.jpg
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 1
+
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 1
+
+# Social Media Crawlers (for link previews)
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# Sitemap location
+Sitemap: https://lypo.org/sitemap.xml

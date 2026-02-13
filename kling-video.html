@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Security Headers -->
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  
+  <!-- PRIMARY SEO -->
+  <title>Kling AI Video Generator | Create Realistic Videos from Text & Images in Minutes • LYPO</title>
+  <meta name="description" content="Generate stunning, cinematic AI videos from text prompts or images in 2-5 minutes. Kling 2.5 Turbo Pro creates professional video content with built-in audio. Perfect for TikTok, Instagram, YouTube. Try now!" />
+  <meta name="keywords" content="AI video generator, text to video, image to video, Kling AI, video generation tool, AI video maker, create videos with AI, realistic AI videos, video content creator, TikTok videos, Instagram Reels, YouTube Shorts, fast video generation, AI video with audio" />
+  <link rel="canonical" href="https://lypo.org/kling-video.html" />
+  
+  <!-- OPEN GRAPH / FACEBOOK -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="LYPO" />
+  <meta property="og:title" content="Kling AI Video Generator | Create Realistic Videos in Minutes" />
+  <meta property="og:description" content="Transform text and images into stunning, professional videos with AI. 2-5 minute generation. Built-in audio. Perfect for social media content." />
+  <meta property="og:image" content="https://lypo.org/assets/kling-ai-video-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://lypo.org/kling-video.html" />
+  <meta property="og:locale" content="en_US" />
+  
+  <!-- TWITTER CARD -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@LYPO" />
+  <meta name="twitter:creator" content="@LYPO" />
+  <meta name="twitter:title" content="Kling AI Video Generator | Create Videos from Text" />
+  <meta name="twitter:description" content="Generate professional AI videos in 2-5 minutes. Text-to-video & image-to-video with built-in audio." />
+  <meta name="twitter:image" content="https://lypo.org/assets/kling-ai-video-cover.png" />
+  
+  <!-- ADDITIONAL SEO -->
+  <meta name="author" content="LYPO" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow" />
+  <meta name="bingbot" content="index, follow" />
+  
+  <!-- MOBILE -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kling AI Video" />
+  
+  <!-- THEME -->
+  <meta name="theme-color" content="#8b5cf6" />
+  <meta name="msapplication-TileColor" content="#8b5cf6" />
+  
+  <!-- DNS Prefetch -->
+  <link rel="dns-prefetch" href="//lypo-backend.onrender.com" />
+  <link rel="preconnect" href="https://lypo-backend.onrender.com" crossorigin />
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="style.min.css" as="style" />
+  <link rel="stylesheet" href="mobile-header.min.css" />
+  
+  <link rel="stylesheet" href="style.min.css" />
+  <link rel="stylesheet" href="mobile-header.min.css" />
+  <link rel="stylesheet" href="home-cleanup.min.css" />
+  
+  <!-- Kling Tool Styles -->
+  <style>
+    /* Active state for chipBtn buttons */
+    .chipBtn.active {
+      background: rgba(255,255,255,0.95) !important;
+      color: #0A0F1C !important;
+      border-color: rgba(255,255,255,0.3) !important;
+      font-weight: 600;
+    }
+    
+    .chipBtn.active:hover {
+      background: rgba(255,255,255,1) !important;
+      color: #0A0F1C !important;
+    }
+    
+    /* Make text and icons dark when button is active */
+    .chipBtn.active span {
+      color: #0A0F1C !important;
+      opacity: 1 !important;
+    }
+    
+    /* Compact spacing for Kling tool */
+    .kling-hero { padding-bottom: 30px !important; }
+    .kling-card { margin-top: 24px !important; }
+    .kling-field { margin-bottom: 16px !important; }
+    .kling-divider { margin: 16px 0 !important; }
+    
+    /* Generate Button - Enhanced Purple Glow */
+    #generateBtn:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 40px rgba(139, 92, 246, 0.8), 0 0 80px rgba(139, 92, 246, 0.6), 0 10px 50px rgba(139, 92, 246, 0.5) !important;
+    }
+    
+    #generateBtn:not(:disabled):active {
+      transform: translateY(0px);
+    }
+    
+    #generateBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Pulsing animation for generating state */
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2); }
+      50% { box-shadow: 0 6px 30px rgba(139, 92, 246, 0.7), 0 0 60px rgba(139, 92, 246, 0.5); }
+    }
+    
+    #generateBtn.generating {
+      animation: pulse 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    
+    #statusPill.active {
+      background: rgba(139, 92, 246, 0.15) !important;
+      border-color: rgba(139, 92, 246, 0.3) !important;
+    }
+    
+    #statusPill.active .loader {
+      opacity: 1;
+    }
+    
+    /* Status pill enhancement */
+    #statusPill {
+      transition: all 0.3s ease;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    /* Compact video output */
+    #outputSection video {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    /* Compact image preview */
+    #imagePreview {
+      max-width: 400px;
+    }
+    
+    #imagePreviewImg {
+      max-height: 300px;
+      object-fit: contain;
+    }
+    
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .kling-hero h1 { font-size: 28px !important; }
+      .kling-hero p { font-size: 14px !important; }
+      
+      .mode-card {
+        padding: 12px !important;
+        font-size: 13px !important;
+      }
+      
+      .mode-card-icon { font-size: 20px !important; }
+      
+      #generateBtn {
+        font-size: 14px !important;
+        padding: 16px 20px !important;
+      }
+      
+      #outputSection video {
+        max-width: 100%;
+      }
+      
+      /* Image preview on mobile */
+      #imagePreview {
+        max-width: 100%;
+      }
+      
+      #imagePreviewImg {
+        max-height: 250px;
+      }
+      
+      .duration-option, .aspect-btn {
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+      }
+      
+      /* Better touch targets for mobile */
+      .chipBtn {
+        min-height: 44px;
+        padding: 10px 16px !important;
+      }
+      
+      .uploadBtn {
+        min-height: 48px;
+      }
+      
+      /* Compact output actions on mobile */
+      #outputSection .btnPrimary {
+        font-size: 13px !important;
+        padding: 12px !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .kling-card { padding: 16px !important; }
+      
+      .mode-card {
+        padding: 10px !important;
+      }
+      
+      #promptInput {
+        font-size: 14px !important;
+      }
+    }
+  </style>
+  
+  <!-- Analytics -->
+  <script src="analytics.min.js" defer></script>
+  
+  <!-- SCHEMA.ORG STRUCTURED DATA -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Kling AI Video Generator",
+    "alternateName": "Kling 2.5 Turbo Pro",
+    "description": "Generate professional, realistic videos from text prompts or images in 2-5 minutes. Advanced AI video generation tool with built-in audio, cinematic quality, and multiple aspect ratios.",
+    "url": "https://lypo.org/kling-video.html",
+    "image": "https://lypo.org/assets/kling-ai-video-cover.png",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "20",
+      "priceCurrency": "USD",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "20",
+        "priceCurrency": "USD",
+        "unitText": "per second of video"
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "1247",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "creator": {
+      "@type": "Organization",
+      "name": "LYPO",
+      "url": "https://lypo.org"
+    },
+    "featureList": [
+      "Text-to-Video Generation",
+      "Image-to-Video Animation",
+      "Built-in Audio Generation",
+      "Multiple Aspect Ratios (16:9, 9:16, 1:1)",
+      "2-5 Minute Generation Time",
+      "Cinematic Quality Output",
+      "Realistic Motion Physics",
+      "Professional Camera Movements",
+      "5-10 Second Video Length",
+      "MP4 Export Format"
+    ],
+    "softwareVersion": "2.5 Turbo Pro",
+    "datePublished": "2026-02-02",
+    "inLanguage": "en-US"
+  }
+  </script>
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How long does it take to generate a video?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Kling AI Video Generator creates professional videos in 2-5 minutes, which is 5-10x faster than most AI video generators that take 20-30 minutes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Kling AI generate videos with audio?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Unlike most text-to-video tools that produce silent clips, Kling 2.5 Turbo Pro includes built-in ambient audio that matches your video's mood and atmosphere."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the cost per video?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Kling AI uses pay-as-you-go pricing at 20 credits per second. A 5-second video costs 100 credits (approximately $10) and a 10-second video costs 200 credits (approximately $20)."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use Kling videos commercially?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Videos you create with Kling are yours to use for any purpose including marketing, social media, YouTube monetization, client projects, and commercial advertising."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What video formats and aspect ratios are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Kling outputs MP4 format (H.264 codec) and supports multiple aspect ratios including 16:9 (YouTube/widescreen), 9:16 (TikTok/Instagram Reels), and 1:1 (Instagram feed)."
+        }
+      }
+    ]
+  }
+  </script>
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://lypo.org"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Tools",
+        "item": "https://lypo.org/#tools"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Kling AI Video Generator",
+        "item": "https://lypo.org/kling-video.html"
+      }
+    ]
+  }
+  </script>
+  <!-- Google tag (gtag.js) - Google Analytics 4 & Google Ads -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG0Q52LT2K"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FG0Q52LT2K');
+    gtag('config', 'AW-16928193692');
+  </script>
+
+</head>
+
+<body>
+  <div class="bg">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <a class="logoWrap" href="index.html" aria-label="LYPO Home">
+      <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
+    </a>
+
+    <nav class="tabs" role="navigation" aria-label="Main navigation">
+      <!-- Home Button -->
+      <button class="tabBtn" role="button" aria-label="Home" data-href="index.html" type="button">Home</button>
+      
+      <!-- Tools Dropdown -->
+      <div class="toolsDropdown">
+        <button class="tabBtn isActive" id="toolsBtn" role="button" aria-label="Tools" aria-haspopup="true" aria-expanded="false" type="button">
+          Tools <span class="dropdownArrow">▾</span>
+        </button>
+        <div class="toolsMenu" id="toolsMenu" role="menu" hidden>
+          <a href="index.html" class="toolItem" role="menuitem" data-tool="video-translator">
+            <span class="toolIcon">🎬</span>
+            <div class="toolInfo">
+              <div class="toolName">Video Translator</div>
+              <div class="toolDesc">Translate & dub videos with AI</div>
+            </div>
+          </a>
+          
+          <a href="tiktok-captions.html" class="toolItem" role="menuitem" data-tool="tiktok-captions">
+            <span class="toolIcon">📱</span>
+            <div class="toolInfo">
+              <div class="toolName">TikTok Captions</div>
+              <div class="toolDesc">Auto-generate viral captions</div>
+            </div>
+          </a>
+          
+          <a href="kling-video.html" class="toolItem" role="menuitem" data-tool="kling-video">
+            <span class="toolIcon">🎥</span>
+            <div class="toolInfo">
+              <div class="toolName">Kling AI Video</div>
+              <div class="toolDesc">Generate cinematic AI videos</div>
+            </div>
+          </a>
+          
+          <a href="voiceover.html" class="toolItem" role="menuitem" data-tool="voiceover">
+            <span class="toolIcon">🎙️</span>
+            <div class="toolInfo">
+              <div class="toolName">AI Voiceover</div>
+              <div class="toolDesc">Professional text-to-speech</div>
+            </div>
+          </a>
+          
+          <div class="toolItemDisabled" role="menuitem" aria-disabled="true">
+            <span class="toolIcon">🔜</span>
+            <div class="toolInfo">
+              <div class="toolName">More tools coming soon</div>
+              <div class="toolDesc">Stay tuned for updates</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="tabBtn" role="button" aria-label="Features" data-href="features.html" type="button">Features</button>
+      <button class="tabBtn" role="button" aria-label="Support" data-href="support.html" type="button">Support</button>
+      <button class="tabBtn" role="button" aria-label="Blog" data-href="blog.html" type="button">Blog</button>
+      <button class="tabBtn" role="button" aria-label="About" data-href="about.html" type="button">About</button>
+    </nav>
+
+    <div class="headerRight">
+      <button class="btnPrimary headerAuthBtn" id="headerAuth" type="button" aria-label="Account">
+        <span class="btnLabel" id="headerAuthLabel">Login</span>
+        <span class="btnGlow" aria-hidden="true"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="tabPanel isActive" role="main">
+      <!-- Hero Section -->
+      <div class="hero kling-hero" style="padding-bottom: 24px;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 100px; padding: 4px 12px; margin-bottom: 16px;">
+          <span style="font-size: 11px; font-weight: 600; color: rgba(139, 92, 246, 1); text-transform: uppercase; letter-spacing: 0.5px;">Kling 2.5 Turbo Pro</span>
+        </div>
+        
+        <h1 class="h1" style="margin-bottom: 12px;">
+          Generate <span class="grad">cinematic AI videos</span><br/>
+          from text or images
+        </h1>
+
+        <p class="sub" style="margin-bottom: 28px;">
+          Professional AI video generation for TikTok, Reels, and YouTube.
+        </p>
+
+        <!-- Tool Card -->
+        <div class="demoCard kling-card">
+          <!-- Header -->
+          <div class="demoTop">
+            <div class="demoTitle">
+              AI Video Studio
+            </div>
+            <div class="chips">
+              <span class="chip" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15)); border-color: rgba(139, 92, 246, 0.3);">
+                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; margin-right: 6px;"></span>
+                Ready
+              </span>
+              <span class="chip" id="creditsBalance" aria-live="polite" style="cursor: pointer; transition: all 0.2s;" onclick="window.location.href='index.html#buycredits';" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(139, 92, 246, 0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='';">— Credits</span>
+            </div>
+          </div>
+
+          <!-- Form -->
+          <div class="demoForm">
+        <!-- Mode Selection -->
+        <div class="field kling-field">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button class="chipBtn active" data-mode="text" type="button" style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px; font-size: 12px;">
+              <span style="font-size: 18px;">✍️</span>
+              <span style="font-weight: 600;">Text to Video</span>
+              <span style="font-size: 9px; opacity: 0.6; font-weight: 400;">From description</span>
+            </button>
+            <button class="chipBtn" data-mode="image" type="button" style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px; font-size: 12px;">
+              <span style="font-size: 18px;">🖼️</span>
+              <span style="font-weight: 600;">Image to Video</span>
+              <span style="font-size: 9px; opacity: 0.6; font-weight: 400;">Animate images</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="divider kling-divider"></div>
+
+        <!-- Input Image Section (hidden by default) -->
+        <div id="imageInputSection" style="display: none;">
+          <div class="field kling-field">
+            <span style="font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; margin-bottom: 8px;">
+              Input Image
+              <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; opacity: 0.5; margin-left: 3px;">
+                <span style="display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: currentColor;"></span>
+                Max 10MB
+              </span>
+            </span>
+            <div class="upload">
+              <input type="file" id="imageInput" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" hidden />
+              <button class="uploadBtn" id="imageInputBtn" type="button" style="position: relative; overflow: hidden;">
+                <span class="uploadIcon" style="font-size: 28px;">🎨</span>
+                <span class="uploadText">
+                  <strong style="font-size: 15px;">Choose an image to animate</strong>
+                  <em id="imageFileName" style="font-size: 13px; opacity: 0.7;">PNG, JPEG, or WebP • High quality recommended</em>
+                </span>
+                <span class="uploadFx"></span>
+              </button>
+            </div>
+          </div>
+          
+          <div id="imagePreview" style="display: none; margin-top: 12px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1); max-width: 400px;">
+            <img id="imagePreviewImg" alt="Preview" style="width: 100%; height: auto; max-height: 300px; display: block; object-fit: contain;" />
+          </div>
+
+          <div class="divider kling-divider"></div>
+        </div>
+
+        <!-- Text Prompt -->
+        <div class="field kling-field">
+          <span style="font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; margin-bottom: 8px;">
+            <span id="promptHint">Video Prompt</span>
+            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; opacity: 0.5; margin-left: 3px;">
+              <span style="display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: currentColor;"></span>
+              Be specific
+            </span>
+          </span>
+          <div style="position: relative;">
+            <textarea 
+              id="promptInput" 
+              placeholder="Example: A cinematic drone shot through a futuristic city at sunset. Neon lights reflect off glass towers. Flying cars pass. Camera glides forward. Golden hour with purple-blue accents..."
+              rows="4"
+              maxlength="1000"
+              style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; font-size: 14px; resize: vertical; font-family: inherit; line-height: 1.5; transition: all 0.2s;"
+            ></textarea>
+            <div style="position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 6px; font-size: 11px; opacity: 0.5; pointer-events: none;">
+              <span id="charCount">0</span><span>/</span><span>1000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider kling-divider"></div>
+
+        <!-- Advanced Settings Toggle -->
+        <button id="advancedToggle" type="button" style="width: 100%; padding: 10px 12px; background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s;">
+          <span style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 14px;">⚙️</span>
+            Advanced Settings
+            <span style="display: inline-flex; align-items: center; font-size: 10px; font-weight: 500; opacity: 0.5; margin-left: 3px;">
+              Duration • Aspect Ratio
+            </span>
+          </span>
+          <span class="toggleArrow" style="transition: transform 0.2s; opacity: 0.6;">▾</span>
+        </button>
+
+        <!-- Advanced Settings Panel -->
+        <div id="advancedSettings" style="display: none;">
+          <div class="divider kling-divider"></div>
+
+          <!-- Duration -->
+          <div class="field kling-field">
+            <span style="font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; margin-bottom: 8px;">
+              <span style="font-size: 14px;">⏱️</span>
+              Video Duration
+              <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; opacity: 0.5; margin-left: 3px;">
+                <span style="display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: currentColor;"></span>
+                20 credits/sec
+              </span>
+            </span>
+            <select id="durationSelect" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+              <option value="5">5 seconds (100 credits) - Quick test</option>
+              <option value="10" selected>10 seconds (200 credits) - Recommended</option>
+            </select>
+          </div>
+
+          <div class="divider kling-divider"></div>
+
+          <!-- Aspect Ratio -->
+          <div class="field kling-field">
+            <span style="font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; margin-bottom: 8px;">
+              <span style="font-size: 14px;">📐</span>
+              Aspect Ratio
+            </span>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+              <button class="chipBtn active" data-ratio="16:9" type="button" style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px;">
+                <span style="font-size: 18px;">📺</span>
+                <span style="font-weight: 600; font-size: 13px;">16:9</span>
+                <span style="font-size: 9px; opacity: 0.6; font-weight: 400;">Landscape</span>
+                <span style="font-size: 8px; opacity: 0.5;">YouTube</span>
+              </button>
+              <button class="chipBtn" data-ratio="9:16" type="button" style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px;">
+                <span style="font-weight: 600; font-size: 13px;">9:16</span>
+                <span style="font-size: 9px; opacity: 0.6; font-weight: 400;">Portrait</span>
+                <span style="font-size: 8px; opacity: 0.5;">TikTok</span>
+              </button>
+              <button class="chipBtn" data-ratio="1:1" type="button" style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px;">
+                <span style="font-weight: 600; font-size: 13px;">1:1</span>
+                <span style="font-size: 9px; opacity: 0.6; font-weight: 400;">Square</span>
+                <span style="font-size: 8px; opacity: 0.5;">Instagram</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider kling-divider"></div>
+
+        <!-- Pricing Info -->
+        <div style="margin:20px 0 16px 0;padding:12px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:8px;font-size:13px;line-height:1.6;">
+          <strong style="color:rgba(139,92,246,1);">💡 Pricing:</strong> 1 second of video = 20 credits (5s video = 100 credits, 10s video = 200 credits)
+        </div>
+
+        <!-- Generate Button -->
+        <div class="actions">
+          <button class="btnPrimary" id="generateBtn" type="button" disabled style="
+            width: 100%;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            box-shadow: 0 4px 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(139, 92, 246, 0.4), 0 8px 40px rgba(139, 92, 246, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+          ">
+            <span class="btnLabel" id="generateBtnLabel" style="position: relative; z-index: 1;">Generate Video (200 credits)</span>
+            <span class="btnGlow" style="opacity: 0.5;"></span>
+          </button>
+          
+          <div class="statusPill" id="statusPill" aria-live="polite">
+            <span class="ping"></span>
+            <span class="loader"></span>
+            <span id="progressText">Ready</span>
+          </div>
+        </div>
+
+        <!-- Output Section -->
+        <div id="outputSection" style="display: none;">
+          <div class="divider kling-divider"></div>
+          
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05)); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 16px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%); pointer-events: none;"></div>
+            
+            <div style="position: relative;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.3);">
+                  <span style="font-size: 16px;">✅</span>
+                </div>
+                <div>
+                  <h3 style="font-size: 15px; font-weight: 700; margin: 0; color: rgba(16, 185, 129, 1);">Video Ready!</h3>
+                  <p style="font-size: 11px; opacity: 0.7; margin: 2px 0 0 0;">Your AI video is complete</p>
+                </div>
+              </div>
+              
+              <div style="border-radius: 10px; overflow: hidden; background: black; box-shadow: 0 6px 20px rgba(0,0,0,0.4); max-width: 600px; margin: 0 auto;">
+                <video id="outputVideo" controls playsinline style="width: 100%; display: block;"></video>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px;">
+                <a id="downloadBtn" class="btnPrimary" download style="text-align: center; text-decoration: none; font-weight: 600; font-size: 13px;">
+                  <span class="btnLabel" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    Download
+                  </span>
+                  <span class="btnGlow"></span>
+                </a>
+                
+                <button class="btnGhost" id="newVideoBtn" type="button" style="font-weight: 600; font-size: 13px;">
+                  <span class="btnLabel" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    <span style="font-size: 14px;">✨</span>
+                    New Video
+                  </span>
+                  <span class="btnGlow"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- Info Section -->
+      <div class="infoSection" style="margin-top: 80px;">
+        <div style="text-align: center; margin-bottom: 48px;">
+          <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 12px; background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Why Professionals Choose Kling AI</h2>
+          <p style="font-size: 15px; opacity: 0.6; max-width: 600px; margin: 0 auto;">Industry-leading AI video generation trusted by creators worldwide</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto;">
+          <div style="padding: 28px 24px; border-radius: 16px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.2); position: relative; overflow: hidden; transition: all 0.3s;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%); pointer-events: none;"></div>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: rgba(255,255,255,0.95);">Cinematic Quality</h3>
+            <p style="color: rgba(255,255,255,0.65); font-size: 14px; line-height: 1.7; margin: 0;">Fluid motion, exact prompt adherence, and stable frames. Professional-grade results every time.</p>
+          </div>
+          
+          <div style="padding: 28px 24px; border-radius: 16px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05)); border: 1px solid rgba(16, 185, 129, 0.2); position: relative; overflow: hidden; transition: all 0.3s;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%); pointer-events: none;"></div>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: rgba(255,255,255,0.95);">Lightning Fast</h3>
+            <p style="color: rgba(255,255,255,0.65); font-size: 14px; line-height: 1.7; margin: 0;">Turbo Pro speed delivers your video in 2-5 minutes. No more waiting hours for results.</p>
+          </div>
+          
+          <div style="padding: 28px 24px; border-radius: 16px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(219, 39, 119, 0.05)); border: 1px solid rgba(236, 72, 153, 0.2); position: relative; overflow: hidden; transition: all 0.3s;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%); pointer-events: none;"></div>
+            <div style="display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(219, 39, 119, 0.15)); border: 1px solid rgba(236, 72, 153, 0.3); margin-bottom: 16px; position: relative;">
+              <span style="font-size: 28px;">🎨</span>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: rgba(255,255,255,0.95);">Style Consistency</h3>
+            <p style="color: rgba(255,255,255,0.65); font-size: 14px; line-height: 1.7; margin: 0;">Perfect color, lighting, and mood preservation throughout complex camera movements.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro Tips Banner -->
+      <div style="margin-top: 60px; max-width: 800px; margin-left: auto; margin-right: auto;">
+        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; padding: 24px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%); pointer-events: none;"></div>
+          <div style="position: relative;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2)); border: 1px solid rgba(245, 158, 11, 0.4);">
+                <span style="font-size: 18px;">💡</span>
+              </div>
+              <h3 style="font-size: 16px; font-weight: 700; margin: 0; color: rgba(245, 158, 11, 1);">Pro Tips for Best Results</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.8);">
+              <div style="display: flex; align-items: start; gap: 8px;">
+                <span style="color: rgba(245, 158, 11, 0.8); margin-top: 2px;">•</span>
+                <span><strong style="color: rgba(255,255,255,0.9);">Be specific:</strong> Include camera angles, lighting, and movement details</span>
+              </div>
+              <div style="display: flex; align-items: start; gap: 8px;">
+                <span style="color: rgba(245, 158, 11, 0.8); margin-top: 2px;">•</span>
+                <span><strong style="color: rgba(255,255,255,0.9);">Format matters:</strong> Use 9:16 for TikTok, 16:9 for YouTube</span>
+              </div>
+              <div style="display: flex; align-items: start; gap: 8px;">
+                <span style="color: rgba(245, 158, 11, 0.8); margin-top: 2px;">•</span>
+                <span><strong style="color: rgba(255,255,255,0.9);">Test first:</strong> Start with 5s duration to preview results</span>
+              </div>
+              <div style="display: flex; align-items: start; gap: 8px;">
+                <span style="color: rgba(245, 158, 11, 0.8); margin-top: 2px;">•</span>
+                <span><strong style="color: rgba(255,255,255,0.9);">Image quality:</strong> Higher resolution images = better animations</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="heroFooter" style="margin-top: 80px;">
+    </section>
+  </main>
+
+  <!-- Footer -->
+    <footer class="footer">
+      <div class="footerContent">
+        <div class="footerLeft">
+          <span class="footerBrand">LYPO</span>
+          <span class="muted">Video Translation Made Easy</span>
+        </div>
+        <div class="footerLinks">
+          <a href="terms.html" class="footerLink">Terms of Service</a>
+          <span class="footerSep">•</span>
+          <a href="privacy.html" class="footerLink">Privacy Policy</a>
+          <span class="footerSep">•</span>
+          <a href="support.html" class="footerLink">Support</a>
+          <span class="footerSep">•</span>
+          <a href="about.html" class="footerLink">About</a>
+        </div>
+        <div class="footerRight">
+          <span class="muted">© 2026 LYPO</span>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="generating-modal.js"></script>
+  <script src="header.min.js" defer></script>
+  <script src="kling-video.min.js" defer></script>
+  <script src="mobile-header.js" defer></script>
+</body>
+</html>

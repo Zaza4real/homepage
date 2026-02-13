@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  
+  <title>LYPO — Feedback</title>
+  <meta name="description" content="Leave feedback for LYPO." />
+  <link rel="stylesheet" href="style.min.css" />
+  <link rel="stylesheet" href="mobile-header.min.css" />
+  <!-- Google tag (gtag.js) - Google Ads Conversion Tracking -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16928193692"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-16928193692');
+  </script>
+
+</head>
+
+<body>
+  <div class="bg">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
+  </div>
+
+  <header class="header">
+    <a class="logoWrap" href="index.html" aria-label="LYPO Home">
+      <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
+    </a>
+
+    <nav class="tabs" role="tablist" aria-label="LYPO tabs">
+      <button class="tabBtn" role="tab" aria-selected="false" data-tab="home" type="button">Demo</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="features.html" type="button">Features</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="support.html" type="button">Support</button>
+      <button class="tabBtn isActive" role="tab" aria-selected="true" data-href="feedback.html" type="button">Feedback</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="about.html" type="button">About</button>
+    </nav>
+
+    <div class="headerRight">
+      <a class="btnPrimary headerAuthBtn" href="auth.html" style="text-decoration:none;">
+        <span class="btnLabel">Login</span><span class="btnGlow"></span>
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>Feedback</h2>
+      <p class="muted" style="max-width: 860px;">
+        Tell us what you think. Choose a rating, drop a quick note, and we’ll use it to make LYPO better.
+      </p>
+
+      <form class="form" id="feedbackForm" style="margin-top: 14px;">
+        <div class="field">
+          <span>Name</span>
+          <input id="fbName" type="text" placeholder="e.g. Alex" autocomplete="name" />
+        </div>
+
+        <div class="field">
+          <span>Rating</span>
+          <div class="actions" style="justify-content:flex-start; gap:10px; margin-top: 8px;">
+            <div id="starRow" aria-label="Star rating" style="display:flex; gap:8px; align-items:center;">
+              <button class="btnGhost" type="button" data-star="1" aria-label="1 star">★</button>
+              <button class="btnGhost" type="button" data-star="2" aria-label="2 stars">★</button>
+              <button class="btnGhost" type="button" data-star="3" aria-label="3 stars">★</button>
+              <button class="btnGhost" type="button" data-star="4" aria-label="4 stars">★</button>
+              <button class="btnGhost" type="button" data-star="5" aria-label="5 stars">★</button>
+            </div>
+            <span class="muted" id="starLabel" style="margin-left: 6px;">No rating selected</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <span>Comment</span>
+          <textarea id="fbComment" required placeholder="What should we improve? What did you love?" rows="5"
+            style="width:100%; resize:vertical;"></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="btnPrimary" type="submit">
+            <span class="btnLabel">Send feedback</span><span class="btnGlow"></span>
+          </button>
+          <button class="btnGhost" type="button" id="fbRandom">
+            <span class="btnLabel">Random name</span><span class="btnGlow"></span>
+          </button>
+        </div>
+
+        <div class="card" id="fbThanks" style="display:none; padding: 14px; margin-top: 14px;">
+          <div class="cardHeader" style="margin-bottom: 6px;">
+            <h3 class="cardTitle" style="font-size: 16px;">Thanks!</h3>
+            <p class="cardSub">Your feedback was saved.</p>
+          </div>
+          <p class="muted" style="margin:0;">We read every message.</p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="feedback.js" defer></script>
+  <script src="header.min.js" defer></script>
+  <script src="mobile-header.js" defer></script>
+</body>
+</html>

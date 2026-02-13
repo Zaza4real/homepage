@@ -1,0 +1,39 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LYPO",
+  "legalName": "LYPO AI-Powered Content Tools",
+  "url": "https://lypo.org",
+  "logo": "https://lypo.org/favicon.png",
+  "foundingDate": "2025",
+  "description": "AI-powered content tools for creators, businesses, and hospitals. Video translation, TikTok captions, and multilingual content solutions.",
+  "slogan": "AI-Powered Content Tools",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "Customer Support",
+    "email": "support@lypo.org",
+    "availableLanguage": ["English", "Estonian"],
+    "areaServed": "Worldwide"
+  },
+  "sameAs": [
+    "https://twitter.com/lypo_ai",
+    "https://facebook.com/lypo.org",
+    "https://linkedin.com/company/lypo"
+  ],
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "EE"
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "USD",
+    "lowPrice": "0",
+    "highPrice": "100",
+    "offerCount": "3"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://lypo.org/blog.html?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
