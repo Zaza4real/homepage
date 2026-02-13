@@ -177,8 +177,8 @@
         signal: controller.signal,
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest' // CSRF protection indicator
+          'Accept': 'application/json'
+          // Removed 'X-Requested-With' - causes CORS error with backend
         },
         credentials: 'omit', // Don't send credentials for public API
         mode: 'cors',

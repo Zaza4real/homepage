@@ -1,7 +1,7 @@
 // OPTIMIZED & SECURED Post loader
 (() => {
   "use strict";
-  
+
   const BACKEND_BASE_URL = "https://lypo-backend.onrender.com";
   const CACHE_KEY_PREFIX = "lypo_post_cache_v2_";
   const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
@@ -11,14 +11,14 @@
   const metaEl = document.getElementById("postMeta");
   const bodyEl = document.getElementById("postBody");
   const mediaEl = document.getElementById("postMedia");
-  
+
   if (!titleEl || !bodyEl) return; // Guard clause
 
   // SECURITY: Comprehensive HTML escaping
-  const escapeMap = { 
-    "&": "&amp;", 
-    "<": "&lt;", 
-    ">": "&gt;", 
+  const escapeMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
     '"': "&quot;",
     "'": "&#x27;",
     "/": "&#x2F;"
@@ -29,10 +29,10 @@
   const sanitizeUrl = (url) => {
     if (!url) return "";
     const urlStr = String(url).trim().toLowerCase();
-    if (urlStr.startsWith("javascript:") || 
-        urlStr.startsWith("data:") || 
-        urlStr.startsWith("vbscript:") ||
-        urlStr.startsWith("file:")) {
+    if (urlStr.startsWith("javascript:") ||
+      urlStr.startsWith("data:") ||
+      urlStr.startsWith("vbscript:") ||
+      urlStr.startsWith("file:")) {
       return "";
     }
     return String(url).trim();
@@ -44,35 +44,35 @@
     try {
       const date = new Date(iso);
       if (isNaN(date.getTime())) return "";
-      return date.toLocaleDateString(undefined, { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
     } catch {
       return "";
     }
   };
-  
+
   // SECURITY: Process and sanitize HTML content
   function processContent(html) {
     if (!html || typeof html !== 'string') return "";
-    
+
     // For blog posts from the database (admin-created content),
     // we trust the HTML but strip dangerous elements as a safety measure
-    
+
     let processed = html;
-    
+
     // Remove any script tags
     processed = processed.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    
+
     // Remove inline event handlers (onclick, onerror, etc.)
     processed = processed.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
     processed = processed.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
-    
+
     // Remove javascript: URLs
     processed = processed.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"');
-    
+
     // Return the HTML for proper rendering
     return processed;
   }
@@ -80,23 +80,23 @@
   // Cache helpers with validation
   function getCached(slug) {
     if (!slug) return null;
-    
+
     try {
       const cached = localStorage.getItem(CACHE_KEY_PREFIX + slug);
       if (!cached) return null;
-      
+
       const parsed = JSON.parse(cached);
       if (!parsed || !parsed.data || typeof parsed.data !== 'object') {
         localStorage.removeItem(CACHE_KEY_PREFIX + slug);
         return null;
       }
-      
+
       const age = Date.now() - (parsed.timestamp || 0);
-      
+
       if (age < CACHE_DURATION) {
         return parsed.data;
       }
-      
+
       localStorage.removeItem(CACHE_KEY_PREFIX + slug);
       return null;
     } catch {
@@ -106,7 +106,7 @@
 
   function setCache(slug, data) {
     if (!slug || !data || typeof data !== 'object') return;
-    
+
     try {
       localStorage.setItem(CACHE_KEY_PREFIX + slug, JSON.stringify({
         data,
@@ -131,7 +131,7 @@
     // Update page title securely
     const safeTitle = String(p.title || 'Post').trim();
     document.title = `${safeTitle} • LYPO Blog`;
-    
+
     // Set content safely
     titleEl.textContent = safeTitle;
     if (metaEl) metaEl.textContent = p.published_at ? fmtDate(p.published_at) : "";
@@ -162,7 +162,7 @@
     // Get slug from URL
     const qs = new URLSearchParams(location.search || "");
     const slug = qs.get("slug") || "";
-    
+
     if (!slug) {
       titleEl.textContent = "No post specified";
       bodyEl.innerHTML = '<p class="mutedCell" role="alert">Please select a post to view.</p>';
@@ -204,14 +204,14 @@
         signal: controller.signal,
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
+          'Accept': 'application/json'
+          // Removed 'X-Requested-With' - causes CORS error with backend
         },
         credentials: 'omit',
         mode: 'cors',
         cache: 'no-cache'
       });
-      
+
       clearTimeout(timeoutId);
 
       if (!res.ok) {
@@ -228,39 +228,39 @@
       }
 
       const data = await res.json();
-      
+
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format');
       }
-      
+
       const post = data.post;
-      
+
       if (!post || typeof post !== 'object') {
         if (!silent) renderPost(null);
         return;
       }
-      
+
       // Cache it
       setCache(slug, post);
-      
+
       // Render if not silent
       if (!silent) {
         renderPost(post);
       }
-      
+
     } catch (e) {
       console.error("Post load error:", e);
-      
+
       if (silent) return;
-      
+
       titleEl.textContent = "Error loading post";
-      
-      const errorMsg = e.message === 'Post not found' 
+
+      const errorMsg = e.message === 'Post not found'
         ? 'This post could not be found.'
-        : e.name === 'AbortError' 
-          ? 'Request timed out.' 
+        : e.name === 'AbortError'
+          ? 'Request timed out.'
           : 'Could not load post.';
-      
+
       bodyEl.innerHTML = `
         <p class="mutedCell" role="alert">
           ⚠️ ${esc(errorMsg)} 
