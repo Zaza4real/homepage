@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  
+  <title>LYPO — About | All-in-One AI Video Creation Platform</title>
+  <meta name="description" content="LYPO is your all-in-one platform for creating TikTok and YouTube Shorts. Generate AI videos, add captions, translate content - everything you need in one simple place. Fast, easy, professional." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobile-header.css" />
+  <!-- Google Analytics -->
+  <script src="analytics.js" defer></script>
+  <!-- Google tag (gtag.js) - Google Analytics 4 & Google Ads -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG0Q52LT2K"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FG0Q52LT2K');
+    gtag('config', 'AW-16928193692');
+  </script>
+
+</head>
+
+<body>
+  <div class="bg">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
+  </div>
+
+  <header class="header">
+    <a class="logoWrap" href="#" aria-label="LYPO Home" data-go="home">
+      <span class="logo">LYPO<span class="logoTagline">Sounds like magic…</span></span>
+    </a>
+
+    <nav class="tabs" role="tablist" aria-label="LYPO tabs">
+      <!-- Home Button -->
+      <button class="tabBtn" role="button" aria-label="Home" data-href="index.html" type="button">Home</button>
+      
+      <!-- Tools Dropdown -->
+      <div class="toolsDropdown">
+        <button class="tabBtn" id="toolsBtn" role="button" aria-label="Tools" aria-haspopup="true" aria-expanded="false" type="button">
+          Tools <span class="dropdownArrow">▾</span>
+        </button>
+        <div class="toolsMenu" id="toolsMenu" role="menu" hidden>
+          <a href="index.html" class="toolItem" role="menuitem" data-tool="video-translator">
+            <span class="toolIcon">🎬</span>
+            <div class="toolInfo">
+              <div class="toolName">Video Translator</div>
+              <div class="toolDesc">Translate & dub videos with AI</div>
+            </div>
+          </a>
+          
+          <a href="tiktok-captions.html" class="toolItem" role="menuitem" data-tool="tiktok-captions">
+            <span class="toolIcon">📱</span>
+            <div class="toolInfo">
+              <div class="toolName">TikTok Captions</div>
+              <div class="toolDesc">Auto-generate viral captions</div>
+            </div>
+          </a>
+          
+          <a href="kling-video.html" class="toolItem" role="menuitem" data-tool="kling-video">
+            <span class="toolIcon">🎥</span>
+            <div class="toolInfo">
+              <div class="toolName">Kling AI Video</div>
+              <div class="toolDesc">Generate cinematic AI videos</div>
+            </div>
+          </a>
+          
+          <a href="voiceover.html" class="toolItem" role="menuitem" data-tool="voiceover">
+            <span class="toolIcon">🎙️</span>
+            <div class="toolInfo">
+              <div class="toolName">AI Voiceover</div>
+              <div class="toolDesc">Professional text-to-speech</div>
+            </div>
+          </a>
+          
+          <div class="toolItemDisabled" role="menuitem" aria-disabled="true">
+            <span class="toolIcon">🔜</span>
+            <div class="toolInfo">
+              <div class="toolName">More tools coming soon</div>
+              <div class="toolDesc">Stay tuned for updates</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="features.html" type="button">Features</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="support.html" type="button">Support</button>
+      <button class="tabBtn" role="tab" aria-selected="false" data-href="blog.html" type="button">Blog</button>
+      <button class="tabBtn isActive" role="tab" aria-selected="true" data-href="about.html" type="button">About</button>
+    </nav>
+
+    <div class="headerRight">
+      <button class="btnPrimary headerAuthBtn" id="headerAuth" data-auth-page="1" type="button">
+        <span class="btnLabel" id="headerAuthLabel">Login</span>
+        <span class="btnGlow"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>About LYPO</h2>
+      <p class="muted" style="max-width: 900px; font-size: 18px; line-height: 1.7;">
+        LYPO is your <strong>all-in-one platform</strong> for creating TikTok and YouTube Shorts. Generate AI videos, add viral captions, translate content into any language — everything you need in one simple, fast, and professional place.
+      </p>
+
+      <!-- Mission Statement -->
+      <div class="card" style="padding: 24px; margin-top: 30px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08)); border: 1px solid rgba(139, 92, 246, 0.2);">
+        <h3 style="font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 14px; color: rgba(255,255,255,0.98);">Our Mission</h3>
+        <p style="font-size: 17px; line-height: 1.75; margin: 0; color: rgba(255,255,255,0.87);">
+          <strong>Stop juggling 5 different tools.</strong> LYPO brings every AI video tool you need into one place — compact, simple, and fast. Create your entire TikTok or YouTube Short from start to finish without leaving the platform.
+        </p>
+      </div>
+
+      <!-- What We Do -->
+      <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 24px; font-weight: 700;">What We Do</h3>
+      
+      <div class="grid2" style="margin-top: 16px;">
+        <!-- Generate Videos -->
+        <div class="card" style="padding: 18px;">
+          <div class="cardHeader" style="margin-bottom: 10px;">
+            <h4 class="cardTitle" style="font-size: 17px;">🎥 Generate AI Videos</h4>
+            <p class="cardSub">Fastest text-to-video and image-to-video on the market</p>
+          </div>
+          <p class="muted" style="margin:0; line-height: 1.7; font-size: 15px;">
+            Create stunning, cinematic videos from text prompts or images in <strong>2-5 minutes</strong>. Kling AI generates professional-quality videos with built-in audio, realistic motion, and cinematic quality — 10x faster than competitors.
+          </p>
+        </div>
+
+        <!-- Add Captions -->
+        <div class="card" style="padding: 18px;">
+          <div class="cardHeader" style="margin-bottom: 10px;">
+            <h4 class="cardTitle" style="font-size: 17px;">📱 Add Viral Captions</h4>
+            <p class="cardSub">Auto-generate TikTok-style word-by-word captions</p>
+          </div>
+          <p class="muted" style="margin:0; line-height: 1.7; font-size: 15px;">
+            Upload your video and get perfectly timed, viral-style captions instantly. Fully customizable colors, fonts, animations, and timing. Works with 30+ languages. Turn any video into a scroll-stopping TikTok hit.
+          </p>
+        </div>
+
+        <!-- Translate Content -->
+        <div class="card" style="padding: 18px;">
+          <div class="cardHeader" style="margin-bottom: 10px;">
+            <h4 class="cardTitle" style="font-size: 17px;">🌍 Translate & Dub</h4>
+            <p class="cardSub">Reach global audiences with natural AI dubbing</p>
+          </div>
+          <p class="muted" style="margin:0; line-height: 1.7; font-size: 15px;">
+            Translate your videos into 30+ languages with natural-sounding AI voices. Perfect pacing, clear speech, and preserved emotion. Expand your reach from local to global without hiring translators or voice actors.
+          </p>
+        </div>
+
+        <!-- Simple Workflow -->
+        <div class="card" style="padding: 18px;">
+          <div class="cardHeader" style="margin-bottom: 10px;">
+            <h4 class="cardTitle" style="font-size: 17px;">⚡ Everything in One Place</h4>
+            <p class="cardSub">No tool-switching, no complexity, no confusion</p>
+          </div>
+          <p class="muted" style="margin:0; line-height: 1.7; font-size: 15px;">
+            <strong>One platform. One login. One credit system.</strong> Generate your video, add captions, translate it, and export — all without leaving LYPO. Simple, fast, professional.
+          </p>
+        </div>
+      </div>
+
+      <!-- The Problem We Solve -->
+      <div class="card" style="padding: 24px; margin-top: 30px;">
+        <h3 style="font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 14px; color: rgba(255,255,255,0.98);">The Problem We Solve</h3>
+        <p style="font-size: 16px; line-height: 1.75; margin-bottom: 16px; color: rgba(255,255,255,0.85);">
+          Content creators today juggle multiple tools just to produce one TikTok or YouTube Short:
+        </p>
+        <ul class="muted" style="margin:0; padding-left: 20px; line-height: 2; font-size: 15px;">
+          <li>Tool #1 for generating AI videos (slow, 20-30 min wait times)</li>
+          <li>Tool #2 for adding captions (clunky, manual timing)</li>
+          <li>Tool #3 for translations (expensive, robotic voices)</li>
+          <li>Tool #4 for editing and exporting</li>
+          <li>Tool #5 for managing subscriptions and credits</li>
+        </ul>
+        <p style="font-size: 16px; line-height: 1.75; margin-top: 16px; margin-bottom: 0; color: rgba(255,255,255,0.85);">
+          <strong>Result:</strong> Wasted time, scattered workflows, expensive subscriptions, and frustration.
+        </p>
+      </div>
+
+      <!-- Our Solution -->
+      <div class="card" style="padding: 24px; margin-top: 20px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2);">
+        <h3 style="font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 14px; color: rgba(16, 185, 129, 1);">Our Solution: All-in-One Platform</h3>
+        <p style="font-size: 17px; line-height: 1.75; margin: 0; color: rgba(255,255,255,0.87);">
+          <strong>One platform. One workflow. One credit system.</strong> LYPO combines the fastest AI video generation (2-5 min), instant caption tools, and natural translation — all optimized for TikTok and YouTube Shorts. Create, caption, translate, and export without switching tools.
+        </p>
+        <div style="margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.8);">
+          <strong>What makes us different:</strong><br>
+          ✓ 10x faster video generation than competitors<br>
+          ✓ 30-second signup (email or Google)<br>
+          ✓ Simple credit system (no subscriptions)<br>
+          ✓ Every tool designed for short-form content<br>
+          ✓ Professional results in minutes, not hours
+        </div>
+      </div>
+
+      <!-- Our Goal -->
+      <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 24px; font-weight: 700;">Our Goal</h3>
+      
+      <div class="card" style="padding: 24px;">
+        <p style="font-size: 17px; line-height: 1.8; margin-bottom: 20px; color: rgba(255,255,255,0.87);">
+          <strong>Become the only platform creators need</strong> to produce professional TikToks and YouTube Shorts from start to finish.
+        </p>
+        
+        <div style="background: rgba(255,255,255,0.03); border-left: 3px solid rgba(139, 92, 246, 0.5); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h4 style="font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 12px; color: rgba(139, 92, 246, 1);">Phase 1: Core Tools (Complete ✓)</h4>
+          <ul class="muted" style="margin:0; padding-left: 20px; line-height: 1.8; font-size: 15px;">
+            <li>✅ Kling AI Video Generator (fastest on market)</li>
+            <li>✅ TikTok Captions Generator (viral-style animations)</li>
+            <li>✅ Video Translation & Dubbing (30+ languages)</li>
+            <li>✅ AI Voiceover Generator (ElevenLabs V3, 70+ languages)</li>
+            <li>✅ Simple credit system (no subscriptions)</li>
+          </ul>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); border-left: 3px solid rgba(59, 130, 246, 0.5); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h4 style="font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 12px; color: rgba(59, 130, 246, 1);">Phase 2: Advanced Creation (Coming Soon)</h4>
+          <ul class="muted" style="margin:0; padding-left: 20px; line-height: 1.8; font-size: 15px;">
+            <li>🔜 AI Voice Generator (create custom voiceovers)</li>
+            <li>🔜 Video Editor (trim, merge, add effects)</li>
+            <li>🔜 Music & Sound Effects Library</li>
+            <li>🔜 AI Script Generator (from idea to script)</li>
+            <li>🔜 Thumbnail Generator (auto-generate viral thumbnails)</li>
+          </ul>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); border-left: 3px solid rgba(139, 92, 246, 0.5); padding: 20px; border-radius: 8px;">
+          <h4 style="font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 12px; color: rgba(139, 92, 246, 1);">Phase 3: Complete Platform (Vision)</h4>
+          <ul class="muted" style="margin:0; padding-left: 20px; line-height: 1.8; font-size: 15px;">
+            <li>🔮 One-click posting to TikTok, YouTube, Instagram</li>
+            <li>🔮 Analytics dashboard (track performance across platforms)</li>
+            <li>🔮 Content calendar & scheduling</li>
+            <li>🔮 Collaboration tools (teams, comments, approvals)</li>
+            <li>🔮 Template library (viral video templates)</li>
+          </ul>
+        </div>
+
+        <p style="font-size: 16px; line-height: 1.75; margin-top: 24px; margin-bottom: 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.8);">
+          <strong>End result:</strong> Open LYPO, create your TikTok or YouTube Short from idea to published video, all in one place. No switching tools. No complexity. Just results.
+        </p>
+      </div>
+
+      <!-- Why We Built This -->
+      <h3 style="margin-top: 40px; margin-bottom: 20px; font-size: 24px; font-weight: 700;">Why We Built This</h3>
+      
+      <div class="card" style="padding: 24px;">
+        <p style="font-size: 17px; line-height: 1.8; margin: 0; color: rgba(255,255,255,0.87);">
+          We're creators too. We got tired of:
+        </p>
+        <ul class="muted" style="margin: 16px 0 0 0; padding-left: 20px; line-height: 2; font-size: 16px;">
+          <li><strong>Waiting 30 minutes</strong> for AI videos to generate</li>
+          <li><strong>Paying $100/month</strong> for 5 different subscriptions</li>
+          <li><strong>Manually timing captions</strong> for every video</li>
+          <li><strong>Using clunky tools</strong> that weren't built for short-form content</li>
+          <li><strong>Losing momentum</strong> while switching between platforms</li>
+        </ul>
+        <p style="font-size: 17px; line-height: 1.8; margin: 20px 0 0 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.87);">
+          So we built LYPO: <strong>fast, simple, and all in one place.</strong> The platform we wish existed when we started creating.
+        </p>
+      </div>
+
+      <!-- Join Us -->
+      <div class="card" style="padding: 30px; margin-top: 30px; text-align: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(59, 130, 246, 0.12)); border: 2px solid rgba(139, 92, 246, 0.3);">
+        <h3 style="font-size: 26px; font-weight: 800; margin-top: 0; margin-bottom: 16px; color: rgba(255,255,255,0.98);">Join the Platform Built for Creators</h3>
+        <p style="font-size: 17px; line-height: 1.75; margin-bottom: 26px; color: rgba(255,255,255,0.85); max-width: 700px; margin-left: auto; margin-right: auto;">
+          Sign up in 30 seconds. Get 50 free credits. Create your first TikTok or YouTube Short with AI — all in one place.
+        </p>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button class="btnPrimary" type="button" onclick="location.href='index.html#auth'" style="min-width: 200px;">
+            <span class="btnLabel">Get Started Free</span><span class="btnGlow"></span>
+          </button>
+          <button class="btnGhost" type="button" onclick="location.href='features.html'" style="min-width: 200px;">
+            <span class="btnLabel">Explore All Tools</span><span class="btnGlow"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Questions -->
+      <div style="margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+        <p style="font-size: 16px; line-height: 1.7; margin: 0; color: rgba(255,255,255,0.75); text-align: center;">
+          Have questions or feature requests? <a href="support.html" style="color: rgba(139, 92, 246, 1); text-decoration: none; font-weight: 600;">Contact our support team</a> — we read every message.
+        </p>
+      </div>
+
+    </section>
+
+    <footer class="footer">
+      <div class="footerContent">
+        <div class="footerLeft">
+          <span class="footerBrand">LYPO</span>
+          <span class="muted">Video Translation Made Easy</span>
+        </div>
+        <div class="footerLinks">
+          <a href="terms.html" class="footerLink">Terms of Service</a>
+          <span class="footerSep">•</span>
+          <a href="privacy.html" class="footerLink">Privacy Policy</a>
+          <span class="footerSep">•</span>
+          <a href="support.html" class="footerLink">Support</a>
+          <span class="footerSep">•</span>
+          <a href="about.html" class="footerLink">About</a>
+        </div>
+        <div class="footerRight">
+          <span class="muted">© 2026 LYPO</span>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="header.js" defer></script>
+  <script src="mobile-header.js" defer></script>
+</body>
+</html>

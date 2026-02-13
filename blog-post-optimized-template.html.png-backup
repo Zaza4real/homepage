@@ -366,14 +366,14 @@
   </section>
 
   <!-- Cover Image - Lazy loaded with placeholder -->
-  <picture><source srcset="cover-global-fame.webp" type="image/webp"><img 
+  <img 
     src="cover-global-fame.png" 
     alt="Content creator going from local to global fame using AI translation and captions"
     class="cover-image"
     loading="lazy"
     width="1200"
     height="630"
-  ></picture>
+  >
 
   <!-- Article Content -->
   <div class="article-container">

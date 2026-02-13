@@ -30,7 +30,7 @@
 
   <!-- Cover Image -->
   <div style="margin-bottom: 40px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
-    <picture><source srcset="assets/fastest-video-generator-cover.webp" type="image/webp"><img src="assets/fastest-video-generator-cover.png" alt="Fastest AI Video Generator Speed Comparison" style="width: 100%; display: block;"></picture>
+    <img src="assets/fastest-video-generator-cover.png" alt="Fastest AI Video Generator Speed Comparison" style="width: 100%; display: block;">
   </div>
 
   <!-- Title -->

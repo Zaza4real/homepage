@@ -162,7 +162,7 @@
 
         <!-- Cover Image -->
         <div style="margin-top: 32px; border-radius: 16px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.5);">
-          <picture><source srcset="assets/kling-ai-video-cover.webp" type="image/webp"><img src="assets/kling-ai-video-cover.png" alt="Kling AI Video Generator Cover" style="width: 100%; display: block;" /></picture>
+          <img src="assets/kling-ai-video-cover.png" alt="Kling AI Video Generator Cover" style="width: 100%; display: block;" />
         </div>
 
         <div class="divider" style="margin: 40px 0; border-top: 1px solid rgba(255,255,255,.10);"></div>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  
+  <title>Privacy Policy | Lypo</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobile-header.css" />
+  <!-- Google tag (gtag.js) - Google Analytics 4 & Google Ads -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG0Q52LT2K"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FG0Q52LT2K');
+    gtag('config', 'AW-16928193692');
+  </script>
+
+</head>
+<body>
+  <main class="legal">
+    <h1>Privacy Policy</h1>
+    <p class="legal-updated">Last updated: January 2026</p>
+
+    <h2>1. Information We Collect</h2>
+    <p>We collect information you provide (such as email address and account details) and basic technical data needed to operate the Service.</p>
+
+    <h2>2. Payments</h2>
+    <p>Payments are processed by Stripe. We do not store your full card number. Stripe may process your payment information according to their policies.</p>
+
+    <h2>3. How We Use Information</h2>
+    <p>We use your information to provide the Service, process payments, communicate with you, and improve the Service.</p>
+
+    <h2>4. Emails</h2>
+    <p>Transactional emails (e.g., receipts, account messages) may be sent via our email provider (Resend).</p>
+
+    <h2>5. Cookies</h2>
+    <p>We may use cookies or similar technologies for functionality and analytics. You can control cookies through your browser settings.</p>
+
+    <h2>6. Data Retention</h2>
+    <p>We retain personal data as long as needed to provide the Service and comply with legal obligations.</p>
+
+    <h2>7. Your Rights</h2>
+    <p>You may request access, correction, or deletion of your personal data, subject to applicable laws.</p>
+
+    <h2>8. Contact</h2>
+    <p>If you have questions about this Privacy Policy, contact us through the Support page.</p>
+  </main>
+  <script src="mobile-header.js" defer></script>
+</body>
+</html>

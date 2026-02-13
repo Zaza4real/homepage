@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Dropdown Test - Safari</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0a0c12;
+      color: white;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .alert {
+      background: rgba(0,200,100,0.1);
+      border: 2px solid rgba(0,200,100,0.5);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .test-button {
+      background: rgba(124,58,237,0.8);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 16px 24px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .test-button:active {
+      background: rgba(124,58,237,1);
+      transform: scale(0.98);
+    }
+    
+    #testMenu {
+      position: fixed;
+      left: 50%;
+      top: 100px;
+      transform: translateX(-50%);
+      width: 300px;
+      max-width: calc(100vw - 40px);
+      background: rgba(20,20,30,0.98);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 999999;
+      padding: 12px;
+      /* Hidden by default */
+      display: none;
+      visibility: hidden;
+      opacity: 0;
+    }
+    
+    .menu-item {
+      padding: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+    
+    .menu-item:active {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .log {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 20px;
+      font-family: monospace;
+      font-size: 11px;
+      max-height: 400px;
+      overflow-y: auto;
+      word-break: break-all;
+    }
+    
+    .log-item {
+      margin: 6px 0;
+      padding: 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .success { color: #0f0; }
+    .error { color: #f00; }
+    .info { color: #0ff; }
+    .warning { color: #fa0; }
+  </style>
+</head>
+<body>
+  <div class="alert">
+    <strong>📱 MOBILE SAFARI DROPDOWN TEST</strong><br>
+    Tap the button below. If menu appears, the code works!<br>
+    Check the logs to see what's happening.
+  </div>
+  
+  <button class="test-button" id="testBtn">
+    Tools <span>▾</span>
+  </button>
+  
+  <div id="testMenu">
+    <div class="menu-item">🎬 Video Translator</div>
+    <div class="menu-item">📱 TikTok Captions</div>
+  </div>
+  
+  <button class="test-button" onclick="forceOpen()">
+    🔧 FORCE OPEN (Manual Test)
+  </button>
+  
+  <button class="test-button" onclick="checkState()">
+    🔍 CHECK CURRENT STATE
+  </button>
+  
+  <div class="log" id="log"></div>
+  
+  <script>
+    const logEl = document.getElementById('log');
+    const testBtn = document.getElementById('testBtn');
+    const testMenu = document.getElementById('testMenu');
+    
+    let isOpen = false;
+    
+    function log(msg, type = 'info') {
+      const item = document.createElement('div');
+      item.className = `log-item ${type}`;
+      const time = new Date().toLocaleTimeString();
+      item.textContent = `[${time}] ${msg}`;
+      logEl.appendChild(item);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    
+    function open() {
+      log('🟢 OPENING DROPDOWN', 'success');
+      isOpen = true;
+      
+      // Remove hidden first
+      testMenu.removeAttribute('hidden');
+      
+      // Set ALL styles with cssText
+      testMenu.style.cssText = `
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        position: fixed !important;
+        left: 50% !important;
+        top: 100px !important;
+        transform: translateX(-50%) !important;
+        -webkit-transform: translateX(-50%) !important;
+        z-index: 999999 !important;
+        width: 300px !important;
+        max-width: calc(100vw - 40px) !important;
+        background: rgba(20,20,30,0.98) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+        padding: 12px !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+      `;
+      
+      // Force recalculation
+      void testMenu.offsetWidth;
+      
+      log('✅ DROPDOWN SHOULD BE VISIBLE NOW!', 'success');
+      log('Display: ' + testMenu.style.display, 'info');
+      log('Visibility: ' + testMenu.style.visibility, 'info');
+      log('Opacity: ' + testMenu.style.opacity, 'info');
+      log('Position: ' + testMenu.style.position, 'info');
+      log('Z-index: ' + testMenu.style.zIndex, 'info');
+      
+      // Check computed styles
+      const computed = window.getComputedStyle(testMenu);
+      log('Computed display: ' + computed.display, 'warning');
+      log('Computed visibility: ' + computed.visibility, 'warning');
+      log('Computed opacity: ' + computed.opacity, 'warning');
+    }
+    
+    function close() {
+      log('🔴 CLOSING DROPDOWN', 'info');
+      isOpen = false;
+      
+      testMenu.style.cssText = `
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      `;
+      testMenu.setAttribute('hidden', '');
+      
+      log('✅ DROPDOWN CLOSED', 'info');
+    }
+    
+    function toggle(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      if (isOpen) {
+        close();
+      } else {
+        open();
+      }
+    }
+    
+    function forceOpen() {
+      log('🔧 FORCING MENU OPEN (MANUAL)', 'warning');
+      open();
+    }
+    
+    function checkState() {
+      log('🔍 CHECKING CURRENT STATE:', 'warning');
+      log('Is Open: ' + isOpen, 'info');
+      log('Menu Element: ' + (testMenu ? 'EXISTS' : 'NULL'), 'info');
+      log('Menu Display: ' + testMenu.style.display, 'info');
+      log('Menu Visibility: ' + testMenu.style.visibility, 'info');
+      
+      const computed = window.getComputedStyle(testMenu);
+      log('Computed Display: ' + computed.display, 'warning');
+      log('Computed Visibility: ' + computed.visibility, 'warning');
+      log('Computed Position: ' + computed.position, 'warning');
+      log('Computed Z-index: ' + computed.zIndex, 'warning');
+      log('Computed Top: ' + computed.top, 'warning');
+      log('Computed Left: ' + computed.left, 'warning');
+    }
+    
+    // Event listeners
+    testBtn.addEventListener('click', function(e) {
+      log('🔵 BUTTON CLICKED', 'success');
+      toggle(e);
+    }, false);
+    
+    testBtn.addEventListener('touchstart', function(e) {
+      log('📱 TOUCH START', 'info');
+    }, { passive: true });
+    
+    testBtn.addEventListener('touchend', function(e) {
+      log('📱 TOUCH END', 'info');
+    }, { passive: true });
+    
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+      if (isOpen && !testBtn.contains(e.target) && !testMenu.contains(e.target)) {
+        log('👉 CLICKED OUTSIDE - CLOSING', 'info');
+        close();
+      }
+    }, true);
+    
+    // Initial state
+    close();
+    
+    // Log device info
+    log('🚀 TEST PAGE LOADED', 'success');
+    log('User Agent: ' + navigator.userAgent, 'info');
+    log('Device: ' + (/iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iOS' : 'Other'), 'info');
+    log('Safari: ' + (/Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) ? 'YES' : 'NO'), 'info');
+    log('', 'info');
+    log('👆 TAP THE "TOOLS" BUTTON ABOVE!', 'success');
+  </script>
+</body>
+</html>
