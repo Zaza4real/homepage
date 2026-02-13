@@ -72,6 +72,8 @@ minify_js "header.js"
 minify_js "analytics.js"
 minify_js "auth.js"
 minify_js "blog.js"
+minify_js "post.js"
+minify_js "support.js"
 minify_js "mobile-header.js"
 
 echo ""
