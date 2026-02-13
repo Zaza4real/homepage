@@ -37,8 +37,11 @@ minify_js() {
     
     if [ -f "$input" ]; then
         echo "Minifying: $input"
-        # Basic JS minification: remove comments, extra whitespace
-        sed 's|//.*$||g' "$input" | \
+        # Basic JS minification: remove comments (safely handling URLs), extra whitespace
+        # Use a placeholder for :// to avoid stripping URLs
+        sed 's|://|__PROTOCOL__|g' "$input" | \
+        sed 's|//.*$||g' | \
+        sed 's|__PROTOCOL__|://|g' | \
         sed 's|/\*[^*]*\*\+\([^/*][^*]*\*\+\)*/||g' | \
         tr '\n' ' ' | \
         sed 's/  \+/ /g' > "$output"
