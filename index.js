@@ -970,6 +970,7 @@ async function createHeygenPrediction({ videoUrl, outputLanguage }) {
    Routes
 ---------------------------- */
 app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/canary", (_req, res) => res.json({ status: "alive", tool: "voiceover", version: "v1.1" }));
 
 app.get("/api/languages", (_req, res) => {
   res.json({
